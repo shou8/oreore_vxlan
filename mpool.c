@@ -1,5 +1,3 @@
-#include <stdlib.h>
-
 #include "mpool.h"
 
 
@@ -49,9 +47,10 @@ void *mp_alloc(size_t size, mpool_t *pool)
 
 	if (usize > msize)
 	{
-		mp_extend(pp, usize*2+1, pool);
+		usize *= 2;
+		mp_extend(pp, usize+1, pool);
 		pool->usize = 0;
-		pool->msize = usize * 2;
+		pool->msize = usize;
 		d = pool->begin;
 		pool->begin += mp_align(size);
 		*p = pp->next;
