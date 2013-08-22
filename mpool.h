@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define MAX_ONE_POOL 16		// 1024(Real Max) / 64(long long)
+
 
 
 #define MPOOL_MALLOC(p, size)				\
@@ -27,7 +29,7 @@
 
 typedef struct _mpool_pool_t_
 {
-	void					*pool;
+	void					*pool;	// Real memory space
 	struct _mpool_pool_t_	*next;
 } mpool_pool_t;
 
@@ -35,11 +37,11 @@ typedef struct _mpool_pool_t_
 
 typedef struct mpool_t
 {
-	mpool_pool_t	*head;	// Memory pool head
-	void			*begin; // Data for internal conduct
-	size_t			usize;	// Used pool size
-	size_t			msize;	// Max pool size
-	mpool_pool_t	*mpool;	// Memory pool
+	mpool_pool_t	*head;			// Memory pool head
+	void			*begin; 		// Data for internal conduct
+	size_t			usize;			// Used pool size
+	size_t			msize;			// Max pool size
+	mpool_pool_t	*mpool;			// Memory pool
 } mpool_t;
 
 
