@@ -9,8 +9,13 @@
 
 typedef struct _hash_tbl_
 {
-	HASH_DATA_TYPE 
-} hash;
+	HASH_DATA_TYPE data;
+	HASH_DATA_TYPE *next;
+} hash_tbl;
+
+
+
+extern 
 
 
 

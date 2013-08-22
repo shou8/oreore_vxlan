@@ -1,9 +1,19 @@
 #ifndef VXLAN_H_INCLUDED
 #define VXLAN_H_INCLUDED
 
+
+
+#include <net/in.h>
+#include <net/ip.h>
+#include <net/ethernet.h>
+
+
+
 typedef struct _mac2ip4_table_
 {
-	struct 
+	struct ether_addr hw_addr;
+	in_addr_t vtep_addr;
+	time_t time;
 } mac_tbl;
 
 typedef mac_tbl HASH_DATA_TYPE;
