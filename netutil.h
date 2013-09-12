@@ -10,7 +10,7 @@
 
 
 extern void mtos(char *str, uint8_t hwaddr[MAC_LEN]);
-extern uint8_t cmp_mac(struct ether_addr *hwaddr1, struct ether_addr *hwaddr2);
+extern uint8_t cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] );
 
 #ifdef DEBUG
 extern void get_mac( uint8_t hwaddr[MAC_LEN]);
