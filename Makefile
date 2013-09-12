@@ -2,6 +2,7 @@ CC=gcc
 OBJS=main.o netutil.o log.o iftap.o mpool.o table.o vxlan.o
 SRCS=${OBJS:%.o=%.c}
 CFLAGS=-Wall
+CFLAGS=
 #LDLIBS=-lpthread
 TARGET=vxland
 
