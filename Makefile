@@ -1,5 +1,5 @@
 CC=gcc
-OBJS=main.o netutil.o log.o iftap.o # net.o vxlan.o
+OBJS=main.o netutil.o log.o iftap.o mpool.o# net.o vxlan.o
 SRCS=${OBJS:%.o=%.c}
 CFLAGS=-Wall
 #LDLIBS=-lpthread
@@ -21,6 +21,10 @@ ${TARGET}:${OBJS}
 
 debug:
 	${MAKE} "CFLAGS=${CFLAGS} -DDEBUG" "OBJS=${OBJS} test.o"
+
+test:${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -c test.c
+	${CC} ${CFLAGS} -DDEBUG ${LDFLAGS} -o $@ $^ test.o ${LDLIBS}
 
 clean:
 	@rm -f *.o ${TARGET}
