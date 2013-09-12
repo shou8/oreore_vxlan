@@ -16,8 +16,6 @@ typedef struct _mac2ip4_table_
 	time_t time;
 } mac_tbl;
 
-typedef mac_tbl TABLE_DATA_TYPE;
-
 
 
 typedef struct _vxlan_instance_
@@ -29,7 +27,6 @@ typedef struct _vxlan_instance_
 
 
 
-int cmp_data(TABLE_DATA_TYPE *d1, TABLE_DATA_TYPE *d2);
 
 
 

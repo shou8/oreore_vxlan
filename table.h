@@ -9,23 +9,11 @@
 
 typedef struct _table_
 {
-	TABLE_DATA_TYPE data;
-	TABLE_DATA_TYPE *next;
+	mac_tbl data;
+	mac_tbl *next;
 } TABLE;
 
 
-
-/**
- * Compare data method.
- * You must define.
- *
- * + Policy
- *
- *		 Return int: 0	: equal
- *				   other: Not equal
- *
- */
-extern int cmp_data(TABLE_DATA_TYPE *d1, TABLE_DATA_TYPE *d2);
 
 void *init_table(int size);
 

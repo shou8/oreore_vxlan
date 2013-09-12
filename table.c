@@ -1,8 +1,9 @@
 #include <stdlib.h>
 
 #include "mpool.h"
-#include "log.h"
+#include "netutil.h"
 #include "table.h"
+#include "log.h"
 
 
 
@@ -27,13 +28,27 @@ void *init_table(int size) // hash table size
 
 
 
-TABLE_DATA_TYPE *find_table(int tbl_key, TABLE_DATA_TYPE *data)
+static int cmp_data(struct ether_addr *eth1, struct ether_addr *eth2)
+{
+	uint8_t *hw_addr1 = d1->ether_addr_octet;
+	uint8_t *hw_addr2 = d2->ether_addr_octet;
+
+	return cmp_mac(hw_addr1, hw_addr2);
+}
+
+
+
+TABLE_DATA_TYPE *find_data(int tbl_key, struct ether_addr *data)
 {
 	TABLE *p;
 	int key = tbl_key % table_size;
 
 	for (p = table + key; p != NULL; p = p->next)
-		if (cmp_data(&(p->data), data) == 0) return p;
+	{
+		mac_tbl *mac_tbl_p = &(p->data);
+		struct ether_addr *ethp = &(mac_tbl_p->hw_addr);
+		if (cmp_data(ethp, data) == 0) return p;
+	}
 
 	return NULL;
 }
