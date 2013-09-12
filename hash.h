@@ -15,7 +15,7 @@ typedef struct _hash_tbl_
 
 
 
-extern 
+void *init_table(int hash_size);
 
 
 

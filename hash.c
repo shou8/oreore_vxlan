@@ -1,17 +1,23 @@
 #include <stdlib.h>
 
+#include "mpool.h"
 #include "log.h"
 
 
 
-hash_tbl htbl;
+static mpool_t *pool;
+static hash_tbl *htbl;
 
-void *init_table(int size)
+
+
+void *init_table(int hash_size)
 {
-	if ((p = (hash_tbl *)malloc(sizeof(hash_tbl) * size)) == NULL)
-		log_pxit("malloc");
+	int mem_size = hash_size * sizeof(hash_tbl);
 
-	memset(p, 0, size * total);
+	if ((pool = mp_create(mem_size)) == NULL)
+		log_exit("Memory allocation initializing error: mp_create");
+
+	htbl = (hash_tbl *)mp_alloc(mem_size, pool);
 }
 
 
