@@ -40,10 +40,10 @@ static int cmp_data(struct ether_addr *eth1, struct ether_addr *eth2)
 
 mac_tbl *find_data(int tbl_key, struct ether_addr *data)
 {
-	TABLE *p;
+	TABLE *p = table;
 	int key = tbl_key % table_size;
 
-	for (p = table + key; p != NULL; p = p->next)
+	for (p += key; p != NULL; p = p->next)
 	{
 		mac_tbl *mac_tbl_p = &(p->data);
 		struct ether_addr *ethp = &(mac_tbl_p->hw_addr);
