@@ -1,5 +1,5 @@
 CC=gcc
-OBJS=main.o netutil.o log.o iftap.o mpool.o table.o# net.o vxlan.o
+OBJS=main.o netutil.o log.o iftap.o mpool.o table.o vxlan.o
 SRCS=${OBJS:%.o=%.c}
 CFLAGS=-Wall
 #LDLIBS=-lpthread

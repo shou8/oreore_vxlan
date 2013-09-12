@@ -29,7 +29,7 @@ typedef struct _vxlan_instance_
 
 
 
-int cmp_data(mac_tbl *d1, mac_tbl *d2);
+int cmp_data(TABLE_DATA_TYPE *d1, TABLE_DATA_TYPE *d2);
 
 
 

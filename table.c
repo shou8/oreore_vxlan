@@ -29,11 +29,11 @@ void *init_table(int size) // hash table size
 
 TABLE_DATA_TYPE *find_table(int tbl_key, TABLE_DATA_TYPE *data)
 {
-	TABLE_DATA_TYPE *p;
+	TABLE *p;
 	int key = tbl_key % table_size;
 
 	for (p = table + key; p != NULL; p = p->next)
-		if (cmp_data(p->data, data) == 0) return p;
+		if (cmp_data(&(p->data), data) == 0) return p;
 
 	return NULL;
 }
