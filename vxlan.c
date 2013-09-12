@@ -5,7 +5,7 @@
 
 
 
-int cmp_data(mac_tbl *d1, mac_tbl *d2)
+int cmp_data(TABLE_DATA_TYPE *d1, TABLE_DATA_TYPE *d2)
 {
 	return cmp_mac(d1->hw_addr, d2->hw_addr);
 }

@@ -25,7 +25,7 @@ typedef struct _table_
  *				   other: Not equal
  *
  */
-extern int cmp_data(TABLE_DATA_TYPE *data1, TABLE_DATA_TYPE *data2);
+extern int cmp_data(TABLE_DATA_TYPE *d1, TABLE_DATA_TYPE *d2);
 
 void *init_table(int size);
 
