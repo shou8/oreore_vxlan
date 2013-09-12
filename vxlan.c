@@ -5,13 +5,10 @@
 
 
 
-int cmp_data(void *data1, void *data2)
+int cmp_data(mac_tbl *d1, mac_tbl *d2)
 {
-	mac_tbl *d1 = (mac_tbl *)data1;
-	mac_tbl *d2 = (mac_tbl *)data2;
+	struct ether_addr *hw_addr1 = d1->hw_addr;
+	struct ether_addr *hw_addr2 = d2->hw_addr;
 
-	struct ether_addr hw_addr1 = d1->hw_addr;
-	struct ether_addr hw_addr2 = d2->hw_addr;
-
-	return ();
+	return cmp_mac(hw_addr1, hwaddr2);
 }
