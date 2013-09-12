@@ -29,5 +29,9 @@ typedef struct _vxlan_instance_
 
 
 
+int cmp_data(mac_tbl *d1, mac_tbl *d2);
+
+
+
 #endif /* VXLAN_H_INCLUDED */
 

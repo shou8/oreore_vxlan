@@ -15,6 +15,18 @@ typedef struct _table_
 
 
 
+/**
+ * Compare data method.
+ * You must define.
+ *
+ * + Policy
+ *
+ *		 Return int: 0	: equal
+ *				   other: Not equal
+ *
+ */
+extern int cmp_data(TABLE_DATA_TYPE *data1, TABLE_DATA_TYPE *data2);
+
 void *init_table(int size);
 
 
