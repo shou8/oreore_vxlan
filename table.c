@@ -2,6 +2,7 @@
 
 #include "mpool.h"
 #include "log.h"
+#include "table.h"
 
 
 
@@ -19,7 +20,9 @@ void *init_table(int size) // hash table size
 	if ((pool = mp_create(mem_size)) == NULL)
 		log_exit("Memory allocation initializing error: mp_create");
 
-	htbl = (TABLE *)mp_alloc(mem_size, pool);
+	table = (TABLE *)mp_alloc(mem_size, pool);
+
+	return table;
 }
 
 
@@ -27,4 +30,6 @@ void *init_table(int size) // hash table size
 TABLE_DATA_TYPE *find_table(int tbl_key)
 {
 	int key = tbl_key % table_size;
+
+	return NULL;
 }

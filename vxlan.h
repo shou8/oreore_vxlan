@@ -3,9 +3,9 @@
 
 
 
-#include <net/in.h>
-#include <net/ip.h>
 #include <net/ethernet.h>
+#include <netinet/in.h>
+#include <netinet/ip.h>
 
 
 
