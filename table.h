@@ -10,7 +10,7 @@
 typedef struct _table_
 {
 	mac_tbl *data;
-	_table_ *next;
+	struct _table_ *next;
 } TABLE;
 
 
