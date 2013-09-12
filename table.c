@@ -47,7 +47,7 @@ mac_tbl *find_data(int tbl_key, struct ether_addr *data)
 	{
 		mac_tbl *mac_tbl_p = &(p->data);
 		struct ether_addr *ethp = &(mac_tbl_p->hw_addr);
-		if (cmp_data(ethp, data) == 0) return p.data;
+		if (cmp_data(ethp, data) == 0) return &(p->data);
 	}
 
 	return NULL;
