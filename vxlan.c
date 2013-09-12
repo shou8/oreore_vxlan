@@ -7,8 +7,5 @@
 
 int cmp_data(mac_tbl *d1, mac_tbl *d2)
 {
-	struct ether_addr *hw_addr1 = d1->hw_addr;
-	struct ether_addr *hw_addr2 = d2->hw_addr;
-
-	return cmp_mac(hw_addr1, hwaddr2);
+	return cmp_mac(d1->hw_addr, d2->hw_addr);
 }
