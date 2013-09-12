@@ -30,8 +30,8 @@ void *init_table(int size) // hash table size
 
 static int cmp_data(struct ether_addr *eth1, struct ether_addr *eth2)
 {
-	uint8_t *hw_addr1 = d1->ether_addr_octet;
-	uint8_t *hw_addr2 = d2->ether_addr_octet;
+	uint8_t *hw_addr1 = eth1->ether_addr_octet;
+	uint8_t *hw_addr2 = eth2->ether_addr_octet;
 
 	return cmp_mac(hw_addr1, hw_addr2);
 }
