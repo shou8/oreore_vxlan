@@ -38,7 +38,7 @@ static int cmp_data(struct ether_addr *eth1, struct ether_addr *eth2)
 
 
 
-TABLE_DATA_TYPE *find_data(int tbl_key, struct ether_addr *data)
+mac_tbl *find_data(int tbl_key, struct ether_addr *data)
 {
 	TABLE *p;
 	int key = tbl_key % table_size;
