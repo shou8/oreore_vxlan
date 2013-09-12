@@ -16,7 +16,7 @@ typedef struct _mac2ip4_table_
 	time_t time;
 } mac_tbl;
 
-typedef mac_tbl HASH_DATA_TYPE;
+typedef mac_tbl TABLE_DATA_TYPE;
 
 
 

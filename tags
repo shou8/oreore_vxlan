@@ -14,7 +14,6 @@ CFLAGS	Makefile	/^CFLAGS=-Wall$/;"	m
 DAEMON_NAME	base.h	/^#define DAEMON_NAME	/;"	d
 DEBUG_DISABLE	log.c	/^#define DEBUG_DISABLE	/;"	d	file:
 DEBUG_ENABLE	log.c	/^#define DEBUG_ENABLE	/;"	d	file:
-HASH_DATA_TYPE	vxlan.h	/^typedef mac_tbl HASH_DATA_TYPE;$/;"	t
 IFTAP_H_INCLUDED	iftap.h	/^#define IFTAP_H_INCLUDED$/;"	d
 LOG_H_INCLUDED	log.h	/^#define LOG_H_INCLUDED$/;"	d
 LOG_LINELEN	log.c	/^#define LOG_LINELEN	/;"	d	file:
@@ -28,37 +27,39 @@ MPOOL_H_INCLUDED	mpool.h	/^#define MPOOL_H_INCLUDED$/;"	d
 MPOOL_MALLOC	mpool.h	/^#define MPOOL_MALLOC(/;"	d
 MPOOL_POOL_SIZE	mpool.c	/^#define MPOOL_POOL_SIZE /;"	d	file:
 NETUTIL_H_INCLUDED	netutil.h	/^#define NETUTIL_H_INCLUDED$/;"	d
-OBJS	Makefile	/^OBJS=main.o netutil.o log.o iftap.o # net.o vxlan.o$/;"	m
+OBJS	Makefile	/^OBJS=main.o netutil.o log.o iftap.o mpool.o table.o# net.o vxlan.o$/;"	m
 SRCS	Makefile	/^SRCS=${OBJS:%.o=%.c}$/;"	m
 SYSLOG_DISABLE	log.c	/^#define SYSLOG_DISABLE	/;"	d	file:
 SYSLOG_ENABLE	log.c	/^#define SYSLOG_ENABLE	/;"	d	file:
+TABLE	table.h	/^} TABLE;$/;"	t	typeref:struct:_table_
+TABLE_DATA_TYPE	vxlan.h	/^typedef mac_tbl TABLE_DATA_TYPE;$/;"	t
+TABLE_H_INCLUDED	table.h	/^#define TABLE_H_INCLUDED$/;"	d
 TAP_BASE_NAME	base.h	/^#define TAP_BASE_NAME	/;"	d
 TARGET	Makefile	/^TARGET=vxland$/;"	m
-UTIL_H_INCLUDED	hash.h	/^#define UTIL_H_INCLUDED$/;"	d
+TEST_H_INCLUDED	test.h	/^#define TEST_H_INCLUDED$/;"	d
 VXLAN_H_INCLUDED	vxlan.h	/^#define VXLAN_H_INCLUDED$/;"	d
 _debug_mode	log.c	/^static int _debug_mode = DEBUG_ENABLE;$/;"	v	file:
 _h_name	log.c	/^static char _h_name[HOST_NAME_MAX];		\/\/ Host Name$/;"	v	file:
-_hash_tbl_	hash.h	/^typedef struct _hash_tbl_$/;"	s
 _mac2ip4_table_	vxlan.h	/^typedef struct _mac2ip4_table_$/;"	s
 _mpool_pool_t_	mpool.h	/^typedef struct _mpool_pool_t_$/;"	s
 _pid	log.c	/^static int _pid;						\/\/ Process ID$/;"	v	file:
 _print_log	log.c	/^static void _print_log(int level, const char *fmt, ...)$/;"	f	file:
 _syslog_mode	log.c	/^static int _syslog_mode = SYSLOG_ENABLE;$/;"	v	file:
+_table_	table.h	/^typedef struct _table_$/;"	s
 _vxlan_instance_	vxlan.h	/^typedef struct _vxlan_instance_$/;"	s
 begin	mpool.h	/^	void			*begin; 		\/\/ Data for internal conduct$/;"	m	struct:mpool_t
 cmp_mac	netutil.c	/^uint8_t cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] )$/;"	f
-data	hash.h	/^	HASH_DATA_TYPE data;$/;"	m	struct:_hash_tbl_
+data	table.h	/^	TABLE_DATA_TYPE data;$/;"	m	struct:_table_
 disable_debug	log.c	/^void disable_debug(void)$/;"	f
 disable_syslog	log.c	/^void disable_syslog(void)$/;"	f
 enable_debug	log.c	/^void enable_debug(void)$/;"	f
 enable_syslog	log.c	/^void enable_syslog(void)$/;"	f
+find_table	table.c	/^TABLE_DATA_TYPE *find_table(int tbl_key)$/;"	f
 get_mac	netutil.c	/^void get_mac( uint8_t hwaddr[MAC_LEN] )$/;"	f
-hash_tbl	hash.h	/^} hash_tbl;$/;"	t	typeref:struct:_hash_tbl_
 head	mpool.h	/^	mpool_pool_t	*head;			\/\/ Memory pool head$/;"	m	struct:mpool_t
-htbl	hash.c	/^hash_tbl htbl;$/;"	v
 hw_addr	vxlan.h	/^	struct ether_addr hw_addr;$/;"	m	struct:_mac2ip4_table_	typeref:struct:_mac2ip4_table_::ether_addr
 init_log	log.c	/^void init_log(void)$/;"	f
-init_table	hash.c	/^void *init_table(int size)$/;"	f
+init_table	table.c	/^void *init_table(int size) \/\/ hash table size$/;"	f
 log_crit	log.c	/^void log_crit(const char *fmt, ...)$/;"	f
 log_debug	log.c	/^void log_debug(const char *fmt, ...)$/;"	f
 log_err	log.c	/^void log_err(const char *fmt, ...)$/;"	f
@@ -72,7 +73,6 @@ log_warn	log.c	/^void log_warn(const char *fmt, ...)$/;"	f
 mac_tbl	vxlan.h	/^	mac_tbl *mac_tbl;$/;"	m	struct:_vxlan_instance_
 mac_tbl	vxlan.h	/^} mac_tbl;$/;"	t	typeref:struct:_mac2ip4_table_
 main	main.c	/^int main(int argc, char *argv[]){$/;"	f
-main	test.c	/^int main(int argc, char *argv[])$/;"	f
 mp_align	mpool.c	/^static inline size_t mp_align(size_t size)$/;"	f	file:
 mp_alloc	mpool.c	/^void *mp_alloc(size_t size, mpool_t *pool)$/;"	f
 mp_create	mpool.c	/^mpool_t *mp_create(size_t size)$/;"	f
@@ -85,12 +85,16 @@ mpool_t	mpool.h	/^typedef struct mpool_t$/;"	s
 mpool_t	mpool.h	/^} mpool_t;$/;"	t	typeref:struct:mpool_t
 msize	mpool.h	/^	size_t			msize;			\/\/ Max pool size$/;"	m	struct:mpool_t
 mtos	netutil.c	/^void mtos(char *str, uint8_t hwaddr[MAC_LEN] )$/;"	f
-next	hash.h	/^	HASH_DATA_TYPE *next;$/;"	m	struct:_hash_tbl_
 next	mpool.h	/^	struct _mpool_pool_t_	*next;$/;"	m	struct:_mpool_pool_t_	typeref:struct:_mpool_pool_t_::_mpool_pool_t_
+next	table.h	/^	TABLE_DATA_TYPE *next;$/;"	m	struct:_table_
 pool	mpool.h	/^	void					*pool;	\/\/ Real memory space$/;"	m	struct:_mpool_pool_t_
+pool	table.c	/^static mpool_t *pool;$/;"	v	file:
 sock	vxlan.h	/^	int sock;$/;"	m	struct:_vxlan_instance_
+table	table.c	/^static TABLE *table;$/;"	v	file:
+table_size	table.c	/^static int table_size;$/;"	v	file:
 tap_alloc	iftap.c	/^int tap_alloc(char *dev)  $/;"	f
 tap_up	iftap.c	/^int tap_up(char *dev)$/;"	f
+test	test.c	/^void test(void)$/;"	f
 time	vxlan.h	/^	time_t time;$/;"	m	struct:_mac2ip4_table_
 usize	mpool.h	/^	size_t			usize;			\/\/ Used pool size$/;"	m	struct:mpool_t
 vid	vxlan.h	/^	int vid;$/;"	m	struct:_vxlan_instance_
