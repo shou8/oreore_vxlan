@@ -9,8 +9,8 @@
 
 typedef struct _table_
 {
-	mac_tbl data;
-	mac_tbl *next;
+	mac_tbl *data;
+	TABLE *next;
 } TABLE;
 
 

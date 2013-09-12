@@ -8,20 +8,20 @@
 
 
 static mpool_t *pool;
-static TABLE *table;
+static TABLE **table;
 static int table_size;
 
 
 
 void *init_table(int size) // hash table size
 {
-	int mem_size = size * sizeof(TABLE);
+	int mem_size = size * sizeof(TABLE *);
 	table_size = size;
 
 	if ((pool = mp_create(mem_size)) == NULL)
 		log_exit("Memory allocation initializing error: mp_create");
 
-	table = (TABLE *)mp_alloc(mem_size, pool);
+	table = (TABLE **)mp_alloc(mem_size, pool);
 
 	return table;
 }
@@ -40,14 +40,14 @@ static int cmp_data(struct ether_addr *eth1, struct ether_addr *eth2)
 
 mac_tbl *find_data(int tbl_key, struct ether_addr *data)
 {
-	TABLE *p = table;
 	int key = tbl_key % table_size;
+	TABLE *p = *(table + key);
 
-	for (p += key; p != NULL; p = p->next)
+	for ( ; p != NULL; p = p->next)
 	{
-		mac_tbl *mac_tbl_p = &(p->data);
-		struct ether_addr *ethp = &(mac_tbl_p->hw_addr);
-		if (cmp_data(ethp, data) == 0) return &(p->data);
+		mac_tbl mac_t = p->data;
+		struct ether_addr *ethp = mac_t->hw_addr;
+		if (cmp_data(ethp, data) == 0) return p->data;
 	}
 
 	return NULL;
