@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
+#include "base.h"
+
 
 
 typedef struct _mac2ip4_table_

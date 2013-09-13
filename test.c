@@ -5,6 +5,10 @@
 
 
 
+void test_mpool(void);
+
+
+
 void test(void)
 {
 	test_mpool();

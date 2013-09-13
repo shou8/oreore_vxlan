@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <time.h>
 
 #include "mpool.h"
 #include "netutil.h"
@@ -30,7 +31,7 @@ void *init_table(int size) // hash table size
 
 mac_tbl *find_data(uint8_t *eth_addr)
 {
-	int key = (int *)eth_addr % table_size;
+	int key = *((int *)eth_addr) % table_size;
 	LIST *p = *(table + key);
 
 	for ( ; p != NULL; p = p->next)
@@ -56,10 +57,14 @@ int add_data(uint8_t *hw_addr, uint32_t vtep_addr)
 		mt->vtep_addr = vtep_addr;
 		mt->time = time(NULL);
 
-		int key = (int *)hw_addr % table_size;
+		int key = *((int *)hw_addr) % table_size;
 		LIST *p = *(table + key);
-		p->data 
+
+		// Delete
+		p += 1;
 	}
+
+	return 0;
 }
 
 

@@ -10,13 +10,13 @@
 typedef struct _list_
 {
 	mac_tbl *data;
-	struct _LIST_ *next;
+	struct _list_ *next;
 } LIST;
 
 
 
 void *init_table(int size);
-mac_tbl *find_data(int tbl_key, uint8_t *data);
+mac_tbl *find_data(uint8_t *data);
 
 
 
