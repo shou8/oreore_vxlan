@@ -7,15 +7,16 @@
 
 
 
-typedef struct _table_
+typedef struct _list_
 {
 	mac_tbl *data;
-	struct _table_ *next;
-} TABLE;
+	struct _LIST_ *next;
+} LIST;
 
 
 
 void *init_table(int size);
+mac_tbl *find_data(int tbl_key, uint8_t *data);
 
 
 

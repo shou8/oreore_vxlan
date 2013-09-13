@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "mpool.h"
 
+#include "table.h"
+
 
 
 void test(void)
@@ -35,6 +37,8 @@ void test(void)
 	mp_alloc(sizeof(char) * 1000, pool);
 
 	mp_destroy(pool);
+
+
 
 }
 

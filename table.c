@@ -8,47 +8,79 @@
 
 
 static mpool_t *pool;
-static TABLE **table;
+static LIST **table;
 static int table_size;
 
 
 
 void *init_table(int size) // hash table size
 {
-	int mem_size = size * sizeof(TABLE *);
+	int mem_size = size * sizeof(LIST *);
 	table_size = size;
 
 	if ((pool = mp_create(mem_size)) == NULL)
 		log_exit("Memory allocation initializing error: mp_create");
 
-	table = (TABLE **)mp_alloc(mem_size, pool);
+	table = (LIST **)mp_alloc(mem_size, pool);
 
 	return table;
 }
 
 
 
-static int cmp_data(struct ether_addr *eth1, struct ether_addr *eth2)
+mac_tbl *find_data(uint8_t *eth_addr)
 {
-	uint8_t *hw_addr1 = eth1->ether_addr_octet;
-	uint8_t *hw_addr2 = eth2->ether_addr_octet;
-
-	return cmp_mac(hw_addr1, hw_addr2);
-}
-
-
-
-mac_tbl *find_data(int tbl_key, struct ether_addr *data)
-{
-	int key = tbl_key % table_size;
-	TABLE *p = *(table + key);
+	int key = (int *)eth_addr % table_size;
+	LIST *p = *(table + key);
 
 	for ( ; p != NULL; p = p->next)
 	{
 		mac_tbl *mac_t = p->data;
-		struct ether_addr *ethp = mac_t->hw_addr;
-		if (cmp_data(ethp, data) == 0) return p->data;
+		uint8_t *eth_p = mac_t->hw_addr;
+		if (cmp_mac(eth_p, eth_addr) == 0) return p->data;
 	}
 
 	return NULL;
 }
+
+
+
+int add_data(uint8_t *hw_addr, uint32_t vtep_addr)
+{
+	mac_tbl *mt = find_data(hw_addr);
+
+	if (mt == NULL)
+	{
+		mt = (mac_tbl *)mp_alloc(sizeof(mac_tbl), pool);
+		memcpy(mt->hw_addr, hw_addr, sizeof(hw_addr));
+		mt->vtep_addr = vtep_addr;
+		mt->time = time(NULL);
+
+		int key = (int *)hw_addr % table_size;
+		LIST *p = *(table + key);
+		p->data 
+	}
+}
+
+
+
+#ifdef DEBUG
+
+void show_table(void)
+{
+	LIST **tp = table;
+	LIST *lp;
+
+	int i = 0;
+	for( ; i < table_size; i++, tp++)
+	{
+		printf("%3d: ", i);
+		for(lp = *tp; lp != NULL; lp = lp->next)
+		{
+			printf("%p ->", lp);
+		}
+		printf("NULL\n");
+	}
+}
+
+#endif

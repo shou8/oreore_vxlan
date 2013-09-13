@@ -11,8 +11,8 @@
 
 typedef struct _mac2ip4_table_
 {
-	struct ether_addr *hw_addr;
-	in_addr_t *vtep_addr;
+	uint8_t hw_addr[MAC_LEN];
+	uint32_t vtep_addr;
 	time_t time;
 } mac_tbl;
 
