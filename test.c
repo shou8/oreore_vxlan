@@ -7,6 +7,13 @@
 
 void test(void)
 {
+	test_mpool();
+}
+
+
+
+void test_mpool(void)
+{
 	printf("sizeof(type)\n");
 	printf("sizeof(int): %d\n", sizeof(int));
 	printf("sizeof(char): %d\n", sizeof(char));
@@ -37,8 +44,11 @@ void test(void)
 	mp_alloc(sizeof(char) * 1000, pool);
 
 	mp_destroy(pool);
-
-
-
 }
 
+
+
+void test_table(void)
+{
+	init_table(16);
+}
