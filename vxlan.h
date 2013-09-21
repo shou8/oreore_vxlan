@@ -24,6 +24,7 @@ typedef struct _mac2ip4_table_
 typedef struct _list_
 {
 	mac_tbl *data;
+	struct _list_ *pre;
 	struct _list_ *next;
 } list;
 

@@ -29,7 +29,7 @@ void *init_table(int size) // hash table size
 
 
 
-list *find_list(uint8_t *eth_addr)
+static list *find_list(uint8_t *eth_addr)
 {
 	int key = *((int *)eth_addr) % table_size;
 	list *p = *(table + key);
@@ -70,12 +70,16 @@ void add_data(uint8_t *hw_addr, uint32_t vtep_addr)
 		*lr = (list *)malloc(sizeof(list));
 
 		if (lp != NULL)
+		{
 			(*lr)->next = lp;
+			lp->pre = *lr;
+		}
 
 		lp = *lr;
+		lp->pre = NULL;
 		lp->data = (mac_tbl *)malloc(sizeof(mac_tbl));
-		mt = lp->data;
 
+		mt = lp->data;
 		memcpy(mt->hw_addr, hw_addr, sizeof(hw_addr));
 		mt->vtep_addr = vtep_addr;
 		mt->time = time(NULL);
@@ -86,17 +90,39 @@ void add_data(uint8_t *hw_addr, uint32_t vtep_addr)
 		mt->vtep_addr = vtep_addr;
 		memcpy(mt->hw_addr, hw_addr, sizeof(hw_addr));
 
-//		if ( lp != mp )
-//		{
-//			printf("ok\n");
-//		}
+		if ( lp != mp )
+		{
+			list *pre = mp->pre;
+			pre->next = mp->next;
+			if (pre->next != NULL)
+				(pre->next)->pre = pre;
+
+			mp->pre = NULL;
+			mp->next = lp;
+			lp->pre = mp;
+			*lr = mp;
+		}
 	}
 }
 
 
 
-void del_data(uint8_t *hw_addr)
+void del_data(int key)
 {
+	list **lr = table + key;
+	list *p = *lr;
+
+	if (p == NULL) return;
+	while( p->next != NULL ) p = p->next;
+	list *pre = p->pre;
+
+	if (pre != NULL)
+		pre->next = NULL;
+	else
+		*lr = NULL;
+
+	free(p->data);
+	free(p);
 }
 
 

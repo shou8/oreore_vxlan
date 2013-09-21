@@ -14,7 +14,7 @@
 void *init_table(int size);
 mac_tbl *find_data(uint8_t *eth_addr);
 void add_data(uint8_t *hw_addr, uint32_t vtep_addr);
-
+void del_data(int key);
 
 
 #ifdef DEBUG

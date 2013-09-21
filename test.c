@@ -96,9 +96,33 @@ void test_table(void)
 	hw[0] = 16;
 	add_data(hw, 16);
 
-	hw[0] = 8;
-	add_data(hw, 88);
+	hw[0] = 24;
+	add_data(hw, 24);
 
 	show_table();
 
+	hw[0] = 0;
+	add_data(hw, 10);
+
+	hw[0] = 32;
+	add_data(hw, 32);
+
+	hw[0] = 0;
+	add_data(hw, 100);
+
+	show_table();
+
+	hw[0] = 0;
+	add_data(hw, 0);
+
+	show_table();
+
+	del_data(1);
+	show_table();
+
+	del_data(1);
+	show_table();
+
+	del_data(0);
+	show_table();
 }
