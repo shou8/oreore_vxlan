@@ -1,21 +1,23 @@
 #include <stdio.h>
-#include "mpool.h"
 
 #include "table.h"
 
 
 
-void test_mpool(void);
+//void test_mpool(void);
+void test_table(void);
 
 
 
 void test(void)
 {
-	test_mpool();
+//	test_mpool();
+	test_table();
 }
 
 
 
+/*
 void test_mpool(void)
 {
 	printf("sizeof(type)\n");
@@ -49,10 +51,54 @@ void test_mpool(void)
 
 	mp_destroy(pool);
 }
+*/
 
 
 
 void test_table(void)
 {
-	init_table(16);
+//	init_vxlan(1);
+	init_table(8);
+
+	uint8_t hw[6];
+	hw[0] = 0;
+	hw[1] = 0;
+	hw[2] = 0;
+	hw[3] = 0;
+	hw[4] = 0;
+	hw[5] = 0;
+
+	add_data(hw, 0);
+//	show_table();
+
+	hw[0] = 1;
+	add_data(hw, 1);
+//	show_table();
+
+	hw[0] = 2;
+	add_data(hw, 2);
+//	show_table();
+
+	hw[0] = 8;
+	add_data(hw, 8);
+//	show_table();
+
+	hw[0] = 3;
+	add_data(hw, 3);
+//	show_table();
+
+	hw[0] = 4;
+	add_data(hw, 4);
+
+	hw[0] = 5;
+	add_data(hw, 5);
+
+	hw[0] = 16;
+	add_data(hw, 16);
+
+	hw[0] = 8;
+	add_data(hw, 88);
+
+	show_table();
+
 }

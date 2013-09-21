@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <netinet/ip.h>
 
+#include "table.h"
 #include "base.h"
 
 
@@ -20,15 +21,24 @@ typedef struct _mac2ip4_table_
 
 
 
+typedef struct _list_
+{
+	mac_tbl *data;
+	struct _list_ *next;
+} list;
+
+
+
 typedef struct _vxlan_instance_
 {
 	int vid;
 	int sock;
-	mac_tbl *mac_tbl;
+	list **table;
 } vxi;
 
 
 
+vxi init_vxlan(int vid);
 
 
 

@@ -7,16 +7,19 @@
 
 
 
-typedef struct _list_
-{
-	mac_tbl *data;
-	struct _list_ *next;
-} LIST;
+#define TABLE_SIZE 4096
 
 
 
 void *init_table(int size);
-mac_tbl *find_data(uint8_t *data);
+mac_tbl *find_data(uint8_t *eth_addr);
+void add_data(uint8_t *hw_addr, uint32_t vtep_addr);
+
+
+
+#ifdef DEBUG
+void show_table(void);
+#endif
 
 
 
