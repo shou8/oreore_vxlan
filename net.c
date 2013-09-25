@@ -12,6 +12,7 @@
 #include "net.h"
 #include "log.h"
 #include "iftap.h"
+#include "netutil.h"
 
 
 
@@ -46,6 +47,7 @@ int init_raw_sock(char *dev)
 
 	sa.sll_family = AF_PACKET;
 	sa.sll_protocol = htons(ETH_P_ALL);
+	sa.sll_ifindex = ifreq.ifr_ifindex;
 
 	if (bind(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0)
 	{

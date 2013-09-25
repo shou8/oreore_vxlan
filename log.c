@@ -226,7 +226,6 @@ static void _print_log(int level, const char *fmt, ...)
 		line[len-1] = '\0';
 		fprintf(stderr, "%s %s "DAEMON_NAME"[%d]: ", line, _h_name, _pid);
 		vfprintf(stderr, fmt, ap);
-		fprintf(stderr, "\n");
 #ifndef DEBUG
 	}
 #endif /* DEBUG */
