@@ -109,7 +109,7 @@ int outer_loop(int sock)
 		char *p = buf;
 		for(i=0; i < buf_len; p++, i++)
 			printf("%02X", *p);
-		printf("\n");
+		printf("\nlen:%d\n", buf_len);
 	}
 
 	/*
