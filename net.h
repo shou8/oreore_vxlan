@@ -3,8 +3,10 @@
 
 
 
-#tdefine VXLAN_PORT	4789
-#define BUF_SIZE	65536
+int init_raw_sock(char *dev);
+int init_udp_sock(void);
+int outer_loop(int sock);
+
 
 
 #endif

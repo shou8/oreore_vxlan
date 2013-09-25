@@ -1,18 +1,21 @@
 #include <stdio.h>
 
 #include "table.h"
+#include "net.h"
 
 
 
 //void test_mpool(void);
 void test_table(void);
+void test_net(void);
 
 
 
 void test(void)
 {
 //	test_mpool();
-	test_table();
+//	test_table();
+	test_net();
 }
 
 
@@ -126,3 +129,13 @@ void test_table(void)
 	del_data(0);
 	show_table();
 }
+
+
+
+void test_net(void)
+{
+	int rsoc = init_raw_sock("test");
+	int usoc = init_udp_sock();
+	outer_loop(usoc);
+}
+

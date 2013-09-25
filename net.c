@@ -14,8 +14,8 @@
 
 
 
-int init_raw_sock(char *dev);
-static int init_udp_sock(void);
+#define VXLAN_PORT	4789
+#define BUF_SIZE	65536
 
 
 
@@ -61,7 +61,7 @@ int init_udp_sock(void)
 	int sock;
 	struct sockaddr_in addr;
 
-	if(sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 	{
 		log_pcrit("socket");
 		return -1;
@@ -83,7 +83,7 @@ int init_udp_sock(void)
 
 
 
-int outr_loop(int sock)
+int outer_loop(int sock)
 {
 	int buf_len;
 	char buf[BUF_SIZE];
