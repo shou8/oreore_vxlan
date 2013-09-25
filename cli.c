@@ -18,7 +18,7 @@
 
 
 void sendUdp(void);
-struct ether_header make_l2_packet(void);
+void make_l2_packet(char *buf);
 
 
 
@@ -44,20 +44,28 @@ void sendUdp(void)
 	while (1)
 	{
 		char buf[128];
-		struct ether_header eh = make_l2_packet();
-		memcpy(buf, (char *)&eh, sizeof(eh));
-		len = sendto(sock, buf, 5, 0, (struct sockaddr *)&addr, sizeof(addr));
+		make_l2_packet(buf);
+		len = sendto(sock, buf, strlen(buf)+1, 0, (struct sockaddr *)&addr, sizeof(addr));
 		sleep(3);
 	}
 }
 
 
 
-struct ether_header make_l2_packet(void)
+void make_l2_packet(char *buf)
 {
-	struct ether_header eh;
-	uint8_t *addr = eh.ether_dhost;
-	eh.ether_type = ETH_P_IP;
+	struct ether_header *eh = (struct ether_header *)buf;
+	uint8_t *addr = eh->ether_dhost;
+	eh->ether_type = ETH_P_IP;
+
+	addr[0] = 0x0;
+	addr[1] = 0x1;
+	addr[2] = 0x2;
+	addr[3] = 0x3;
+	addr[4] = 0x4;
+	addr[5] = 0x5;
+
+	addr = eh->ether_shost;
 
 	addr[0] = 0xa;
 	addr[1] = 0xb;
@@ -65,15 +73,4 @@ struct ether_header make_l2_packet(void)
 	addr[3] = 0xd;
 	addr[4] = 0xe;
 	addr[5] = 0xf;
-
-	addr = eh.ether_shost;
-
-	addr[0] = 0xa;
-	addr[1] = 0xb;
-	addr[2] = 0xc;
-	addr[3] = 0xd;
-	addr[4] = 0xe;
-	addr[5] = 0xf;
-
-	return eh;
 }
