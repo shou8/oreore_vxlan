@@ -206,18 +206,17 @@ static void _print_log(int level, const char *fmt, ...)
 
 	va_start(ap, fmt);
 
-#ifdef DEBUG
+#ifndef DEBUG
 	if (_syslog_mode == SYSLOG_ENABLE)
 	{
-#endif /* DEBUG */
 		openlog(DAEMON_NAME, LOG_CONS | LOG_PID, level);
 		vsnprintf(line, LOG_LINELEN, fmt, ap);
 		syslog(level, line);
 		closelog();
-#ifdef DEBUG
 	}
 	else
 	{
+#endif /* DEBUG */
 		time_t t;
 
 		time(&t);
@@ -228,6 +227,7 @@ static void _print_log(int level, const char *fmt, ...)
 		fprintf(stderr, "%s %s "DAEMON_NAME"[%d]: ", line, _h_name, _pid);
 		vfprintf(stderr, fmt, ap);
 		fprintf(stderr, "\n");
+#ifndef DEBUG
 	}
 #endif /* DEBUG */
 

@@ -11,6 +11,7 @@
 
 #include "net.h"
 #include "log.h"
+#include "iftap.h"
 
 
 
@@ -24,6 +25,9 @@ int init_raw_sock(char *dev)
 	struct ifreq ifreq;
 	struct sockaddr_ll sa;
 	int sock;
+
+	tap_alloc(dev);
+	tap_up(dev);
 
 	if ((sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0)
 	{
