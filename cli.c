@@ -58,12 +58,12 @@ void make_l2_packet(char *buf)
 	uint8_t *addr = eh->ether_dhost;
 	eh->ether_type = ETH_P_IP;
 
-	addr[0] = 0;
-	addr[1] = 1;
-	addr[2] = 2;
-	addr[3] = 3;
-	addr[4] = 4;
-	addr[5] = 5;
+	addr[0] = 0xa;
+	addr[1] = 0xb;
+	addr[2] = 0xc;
+	addr[3] = 0xd;
+	addr[4] = 0xe;
+	addr[5] = 0xf;
 
 	addr = eh->ether_shost;
 
