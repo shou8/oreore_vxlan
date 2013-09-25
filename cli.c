@@ -56,6 +56,7 @@ void make_l2_packet(char *buf)
 {
 	struct ether_header *eh = (struct ether_header *)buf;
 	uint8_t *addr = eh->ether_dhost;
+	eh->ether_type = ETH_P_IP;
 
 	addr[0] = 0;
 	addr[1] = 1;
