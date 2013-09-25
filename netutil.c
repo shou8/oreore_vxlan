@@ -70,7 +70,7 @@ void print_eth_h(struct ether_header *eh, FILE *fp)
 
 	fprintf(fp, "ether_header -----\n");
 	fprintf(fp, "ether_dhost: %s\n", eth_ntoa(eh->ether_dhost, buf, sizeof(buf)));
-	fprintf(fp, "ether_dhost: %s\n", eth_ntoa(eh->ether_shost, buf, sizeof(buf)));
+	fprintf(fp, "ether_shost: %s\n", eth_ntoa(eh->ether_shost, buf, sizeof(buf)));
 	fprintf(fp, "ether_type : %02X", ntohs(eh->ether_type));
 
 	switch(ntohs(eh->ether_type))
