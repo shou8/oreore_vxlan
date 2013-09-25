@@ -45,7 +45,7 @@ void sendUdp(void)
 	{
 		char buf[128];
 		make_l2_packet(buf);
-		len = sendto(sock, buf, strlen(buf)+1, 0, (struct sockaddr *)&addr, sizeof(addr));
+		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&addr, sizeof(addr));
 		sleep(3);
 	}
 }
