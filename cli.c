@@ -73,4 +73,6 @@ void make_l2_packet(char *buf)
 	addr[3] = 0xd;
 	addr[4] = 0xe;
 	addr[5] = 0xf;
+
+	buf[sizeof(struct ether_header) + 1] = '\0';
 }
