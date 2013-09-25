@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <netinet/in.h>
 
 #include "netutil.h"
 
@@ -51,6 +52,42 @@ void get_mac( uint8_t hwaddr[MAC_LEN] )
 	int i = 0;
 	for (i=0; i<MAC_LEN; i++)
 		hwaddr[i] = rand() % 0xFF;
+}
+
+
+
+char *eth_ntoa(uint8_t *hwaddr, char *buf, size_t size)
+{
+	snprintf(buf, size, "%02X:%02X:%02X:%02X:%02X:%02X", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5]);
+	return buf;
+}
+
+
+
+void print_eth_h(struct ether_header *eh, FILE *fp)
+{
+	char buf[128];
+
+	fprintf(fp, "ether_header -----\n");
+	fprintf(fp, "ether_dhost: %s\n", eth_ntoa(eh->ether_dhost, buf, sizeof(buf)));
+	fprintf(fp, "ether_dhost: %s\n", eth_ntoa(eh->ether_shost, buf, sizeof(buf)));
+	fprintf(fp, "ether_type : %02X", ntohs(eh->ether_type));
+
+	switch(ntohs(eh->ether_type))
+	{
+		case ETH_P_IP:
+			fprintf(fp, "(IP)\n");
+			break;
+		case ETH_P_IPV6:
+			fprintf(fp, "(IPv6)\n");
+			break;
+		case ETH_P_ARP:
+			fprintf(fp, "(ARP)\n");
+			break;
+		default:
+			fprintf(fp, "(unknown)\n");
+			break;
+	}
 }
 
 #endif

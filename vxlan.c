@@ -17,9 +17,7 @@ vxi init_vxlan(int vid)
 
 
 
-/*
-int add_data(vxi vi, uint8_t *hw_addr, uint32_t vtep_addr)
-{
-		return 0;
-}
-*/
+//int add_data(vxi vi, uint8_t *hw_addr, uint32_t vtep_addr)
+//{
+//		return 0;
+//}

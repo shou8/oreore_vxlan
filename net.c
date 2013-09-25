@@ -46,7 +46,6 @@ int init_raw_sock(char *dev)
 
 	sa.sll_family = AF_PACKET;
 	sa.sll_protocol = htons(ETH_P_ALL);
-	sa.sll_ifindex = ifreq.ifr_ifindex;
 
 	if (bind(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0)
 	{
@@ -99,11 +98,26 @@ int outer_loop(int sock)
 		if ((buf_len = recvfrom(sock, buf, sizeof(buf)-1, 0,
 						(struct sockaddr *)&sender_info, &addr_len)) < 0)
 			log_perr("recvfrom");
-		log_stderr(buf);
+//		log_stderr(buf);
+
+		struct ether_header *eh = (struct ether_header *)buf;
+		print_eth_h(eh, stdout);
 	}
 
 	/*
 	 * Cannot reach here.
 	 */
 	return 0;
+}
+
+
+
+int inner_loop(int sock)
+{
+	int buf_len;
+	char buf[BUF_SIZE];
+
+	while(1)
+	{
+	}
 }

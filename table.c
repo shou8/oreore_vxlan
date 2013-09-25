@@ -2,10 +2,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <time.h>
-
-#ifdef DEBUG
 #include <stdio.h>
-#endif
 
 #include "netutil.h"
 #include "table.h"

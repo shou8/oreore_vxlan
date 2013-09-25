@@ -14,6 +14,8 @@ extern uint8_t cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] );
 
 #ifdef DEBUG
 extern void get_mac( uint8_t hwaddr[MAC_LEN]);
+char *eth_ntoa(uint8_t *hwaddr, char *buf, size_t size);
+void print_eth_h(struct ether_header *eh, FILE *fp);
 #endif
 
 
