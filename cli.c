@@ -66,10 +66,10 @@ void make_l2_packet(char *buf)
 
 	addr = eh->ether_shost;
 
-	addr[0] = 10;
-	addr[1] = 11;
-	addr[2] = 12;
-	addr[3] = 13;
-	addr[4] = 14;
-	addr[5] = 15;
+	addr[0] = 0xa;
+	addr[1] = 0xb;
+	addr[2] = 0xc;
+	addr[3] = 0xd;
+	addr[4] = 0xe;
+	addr[5] = 0xf;
 }
