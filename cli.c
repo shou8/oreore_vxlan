@@ -24,6 +24,7 @@ void make_l2_packet(char *buf);
 
 int main(int argc, char *argv[])
 {
+	sendUdp();
     return 0;
 }
 
