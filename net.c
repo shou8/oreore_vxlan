@@ -104,6 +104,11 @@ int outer_loop(int sock)
 
 		struct ether_header *eh = (struct ether_header *)buf;
 		print_eth_h(eh, stdout);
+
+		int i = 0;
+		char *p = buf;
+		for(i=0; i < buf_len; p++, i++)
+			printf("%02X", *p);
 	}
 
 	/*
