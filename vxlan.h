@@ -12,6 +12,11 @@
 
 
 
+#define VNI_BIT		24
+#define VNI_BYTE	3
+
+
+
 typedef struct _mac2ip4_table_
 {
 	uint8_t hw_addr[MAC_LEN];
@@ -40,10 +45,19 @@ typedef struct _device_
 
 typedef struct _vxlan_instance_
 {
-	int vid;
+	uint8_t vni[VNI_BYTE];
 	device dev;
 	list **table;
 } vxi;
+
+
+
+typedef struct _vxlan_list_
+{
+	vxi *vi;
+	struct _vxlan_instance_ *pre;
+	struct _vxlan_instance_ *next;
+} vlist;
 
 
 

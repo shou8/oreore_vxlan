@@ -33,7 +33,7 @@ void mtos(char *str, uint8_t hwaddr[MAC_LEN] )
 
 
 
-uint8_t cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] )
+int cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] )
 {
 	return memcmp(hwaddr1, hwaddr2, MAC_LEN);
 }

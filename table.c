@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include "netutil.h"
 #include "table.h"
@@ -10,15 +11,20 @@
 
 
 
+#define TABLE_MIN	1024
+
+
+
 static list **table;
-static int table_size;
+static unsigned int table_size;
 
 
 
-void *init_table(int size) // hash table size
+list **init_table(unsigned int size) // hash table size
 {
-	int mem_size = size * sizeof(list *);
-	table_size = size;
+	table_size = size % UINT_MAX;
+	if (table_size < TABLE_MIN) table_size = TABLE_MIN;
+	unsigned int mem_size = table_size * sizeof(list *);
 	table = (list **)malloc(mem_size);
 
 	return table;
@@ -28,7 +34,7 @@ void *init_table(int size) // hash table size
 
 static list *find_list(uint8_t *eth_addr)
 {
-	int key = *((int *)eth_addr) % table_size;
+	unsigned int key = *((unsigned int *)eth_addr) % table_size;
 	list *p = *(table + key);
 
 	for ( ; p != NULL; p = p->next)
@@ -39,6 +45,25 @@ static list *find_list(uint8_t *eth_addr)
 	}
 
 	return NULL;
+}
+
+
+
+static void to_head(list **root, list *lp)
+{
+	list *head = *root;
+	if ( lp != head )
+	{
+		list *pre = lp->pre;
+		pre->next = lp->next;
+		if (pre->next != NULL)
+			(pre->next)->pre = pre;
+
+		lp->pre = NULL;
+		lp->next = head;
+		head->pre = lp;
+		*root = lp;
+	}
 }
 
 
@@ -57,54 +82,54 @@ mac_tbl *find_data(uint8_t *eth)
 void add_data(uint8_t *hw_addr, uint32_t vtep_addr)
 {
 	mac_tbl *mt;
-	list *mp = find_list(hw_addr);
-	int key = *((int *)hw_addr) % table_size;
-	list **lr = table + key;
-	list *lp = *lr;
+	list *lp = find_list(hw_addr);
+	unsigned int key = *((unsigned int *)hw_addr) % table_size;
+	list **root = table + key;
+	list *head = *root;
 
-	if (mp == NULL)		// Target MAC is not stored
+	if (lp == NULL)		// Target MAC is not stored
 	{
-		*lr = (list *)malloc(sizeof(list));
+		*root = (list *)malloc(sizeof(list));
 
-		if (lp != NULL)
+		if (head != NULL)
 		{
-			(*lr)->next = lp;
-			lp->pre = *lr;
+			(*root)->next = head;
+			head->pre = *root;
 		}
 
-		lp = *lr;
-		lp->pre = NULL;
-		lp->data = (mac_tbl *)malloc(sizeof(mac_tbl));
+		head = *root;
+		head->pre = NULL;
+		head->data = (mac_tbl *)malloc(sizeof(mac_tbl));
 
-		mt = lp->data;
+		mt = head->data;
 		memcpy(mt->hw_addr, hw_addr, sizeof(hw_addr));
 		mt->vtep_addr = vtep_addr;
 		mt->time = time(NULL);
 	}
 	else			// Target MAC exists
 	{
-		mt = mp->data;
+		mt = lp->data;
 		mt->vtep_addr = vtep_addr;
 		memcpy(mt->hw_addr, hw_addr, sizeof(hw_addr));
 
-		if ( lp != mp )
+		if ( lp != head )
 		{
-			list *pre = mp->pre;
-			pre->next = mp->next;
+			list *pre = lp->pre;
+			pre->next = lp->next;
 			if (pre->next != NULL)
 				(pre->next)->pre = pre;
 
-			mp->pre = NULL;
-			mp->next = lp;
-			lp->pre = mp;
-			*lr = mp;
+			lp->pre = NULL;
+			lp->next = head;
+			head->pre = lp;
+			*root = lp;
 		}
 	}
 }
 
 
 
-void del_data(int key)
+void del_data(unsigned int key)
 {
 	list **lr = table + key;
 	list *p = *lr;
