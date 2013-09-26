@@ -13,6 +13,7 @@
 #include "log.h"
 #include "iftap.h"
 #include "netutil.h"
+#include "vxlan.h"
 
 
 
@@ -88,7 +89,7 @@ int init_udp_sock(void)
 
 
 
-int outer_loop(int sock)
+int outer_loop(int udp_soc, int raw_soc)
 {
 	int buf_len;
 	char buf[BUF_SIZE];
@@ -97,19 +98,19 @@ int outer_loop(int sock)
 
 	while (1)
 	{
-		if ((buf_len = recvfrom(sock, buf, sizeof(buf)-1, 0,
+		if ((buf_len = recvfrom(udp_soc, buf, sizeof(buf)-1, 0,
 						(struct sockaddr *)&sender_info, &addr_len)) < 0)
 			log_perr("recvfrom");
-//		log_stderr(buf);
 
 		struct ether_header *eh = (struct ether_header *)buf;
-		print_eth_h(eh, stdout);
+		uint8_t *dhost = eh->ether_dhost;
+		uint8_t *shost = eh->ether_shost;
 
-		int i = 0;
-		char *p = buf;
-		for(i=0; i < buf_len; p++, i++)
-			printf("%02X", *p);
-		printf("\nlen:%d\n", buf_len);
+#ifdef DEBUG
+		print_eth_h(eh, stdout);
+#endif
+
+		write(raw_soc, buf, buf_len); 
 	}
 
 	/*
@@ -120,6 +121,14 @@ int outer_loop(int sock)
 
 
 
+int packet_analyze(char *buf, int buf_len)
+{
+	struct ether_header *eh;
+}
+
+
+
+/*
 int inner_loop(int sock)
 {
 	int buf_len;
@@ -129,3 +138,4 @@ int inner_loop(int sock)
 	{
 	}
 }
+*/

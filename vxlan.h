@@ -30,10 +30,18 @@ typedef struct _list_
 
 
 
+typedef struct _device_
+	int sock;
+	char name[256];
+	uint8_t hwaddr[MAC_LEN];
+} device;
+
+
+
 typedef struct _vxlan_instance_
 {
 	int vid;
-	int sock;
+	device dev;
 	list **table;
 } vxi;
 

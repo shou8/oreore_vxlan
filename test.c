@@ -136,6 +136,6 @@ void test_net(void)
 {
 	int rsoc = init_raw_sock("test");
 	int usoc = init_udp_sock();
-	outer_loop(usoc);
+	outer_loop(usoc, rsoc);
 }
 
