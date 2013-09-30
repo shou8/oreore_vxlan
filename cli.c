@@ -15,6 +15,13 @@
 
 #define VXLAN_PORT	4789
 
+typedef struct _vxlan_h_
+{
+	char flag;
+	char reserve1[3];
+	char vni[3];
+	char reserve2;
+} vxlan_h;
 
 
 void sendUdp(void);
@@ -51,6 +58,16 @@ void sendUdp(void)
 }
 
 
+
+void make_vxlan_header(char *buf)
+{
+	static char c = 0;
+	vxlan_h *v = (vxlan_h *)buf;
+	v->flag = 0x08;
+	v->vni[0] = 0;
+	v->vni[1] = 0;
+	v->vni[2] = c++;
+}
 
 void make_l2_packet(char *buf)
 {
