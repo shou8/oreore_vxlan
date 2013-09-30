@@ -123,8 +123,9 @@ int outer_loop(int udp_soc, int raw_soc)
 		bp += sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
 
-		printf("%X\n", vh->flag);
-		printf("%X%X%X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
+		printf("flag: %X\n", vh->flag);
+		printf("VNI: %X%X%X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
+		printf("---\n");
 
 //		struct ether_header *eh = (struct ether_header *)buf;
 //		uint8_t *dhost = eh->ether_dhost;
