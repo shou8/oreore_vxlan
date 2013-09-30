@@ -158,9 +158,7 @@ void test_vxlan(void)
 	uint8_t vni[3];
 	memset(vni, 0, 3);
 	v = init_vxlan();
-
-	vni[2] = 1;
-	v = init_vxlan();
+	add_vxi(vni);
 
 	vni[2] = 1;
 	add_vxi(vni);
