@@ -51,7 +51,7 @@ void sendUdp(void)
 	while (1)
 	{
 		char buf[128];
-		make_l2_packet(buf);
+		make_vxlan_header(buf);
 		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&addr, sizeof(addr));
 		sleep(3);
 	}
