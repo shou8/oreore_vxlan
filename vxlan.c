@@ -2,79 +2,101 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <inttypes.h>
 
-#include "table.h"
+#include "base.h"
+#include "log.h"
 #include "vxlan.h"
+#include "iftap.h"
+#include "net.h"
+#include "netutil.h"
 
 
 
-#define TABLE_MIN	1024
+#define VXI_MAX (UINT8_MAX + 1)
 
 
 
-static vlist **vt;
-static int table_size;
-
-static int cmp_vni(uint8_t *vni1, uint8_t *vni2);
-
+static vxi ****vxlan;
+//static int cmp_vni(uint8_t *vni1, uint8_t *vni2);
+static device create_vxlan_if(uint8_t *vni);
 
 
-vlist **init_vxlan(unsigned short int size)
+
+vxi ****init_vxlan(void)
 {
-	table_size = size % USHRT_MAX;
-	if (table_size < TABLE_MIN) table_size = TABLE_MIN;
-	short int mem_size = table_size * sizeof(vlist *);
-	vt = (vlist **)malloc(mem_size);
+	vxlan = (vxi ****)malloc(sizeof(vxi ***) * VXI_MAX);
+	vxlan[0] = (vxi ***)malloc(sizeof(vxi **) * VXI_MAX * VXI_MAX);
+	vxlan[0][0] = (vxi **)malloc(sizeof(vxi *) * VXI_MAX * VXI_MAX * VXI_MAX);
 
-	return vt;
-
-	vxi vi;
-	vi.vid = vid;
-	vi.sock = 0;
-	vi.table = init_table(TABLE_SIZE);
-
-	return vi;
-}
-
-
-
-static int cmp_vni(uint8_t *vni1, uint8_t *vni2)
-{
-	return memcmp(vni1, vni2, VNI_BYTE);
-}
-
-
-
-static vlist *find_vlist(uint8_t *vni)
-{
-	short int key = (short int *)vni % table_size;
-	vlist *v = *(vxi + (int)key);
-
-	for ( ; v != NULL; v = v->next)
-	{
-		vxi *vi = v->vi;
-		uint8_t *vnip = vi->vni;
-		if (cmp_vni(vnip, vni) == 0) return v;
+	int i,j;
+	for (i=0; i<VXI_MAX; i++) {
+		vxlan[i] = vxlan[0] + i * VXI_MAX;
+		for (j=0; j<VXI_MAX; j++)
+			vxlan[i][j] = vxlan[0][0] + i * VXI_MAX * VXI_MAX + j * VXI_MAX;
 	}
 
-	return NULL;
+	memset(vxlan[0][0], (int)NULL, sizeof(vxi *) * VXI_MAX * VXI_MAX * VXI_MAX);
+
+	return vxlan;
 }
 
 
 
-vni *find_vni(uint8_t *vni)
+void destroy_vxlan(void)
 {
-	vlist *v = find_vlist(vni);
-	if (v != NULL)
-		return v->vi;
-
-	return NULL;
+	free(vxlan[0][0]);
+	free(vxlan[0]);
+	free(vxlan);
 }
 
 
 
-void add_vni(uint8_t *vni) 
+static device create_vxlan_if(uint8_t *vni)
 {
+	device dev;
+//	uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
+	uint32_t vni32 = (uint32_t)vni[0] << 16 | (uint32_t)vni[1] << 8 | (uint32_t)vni[2];
+
+	snprintf(dev.name, IF_NAME_LEN, "vxlan%"PRIo32, vni32);
+	dev.sock = init_raw_sock(dev.name);
+	get_mac(dev.sock, dev.name, dev.hwaddr);
+
+	return dev;
+}
+
+
+
+void add_vxi(uint8_t *vni)
+{
+	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL)
+	{
+//		uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
+		uint32_t vni32 = (uint32_t)vni[0] << 16 | (uint32_t)vni[1] << 8 | (uint32_t)vni[2];
+		log_err("VNI: %"PRIo32" has already exist\n", vni32);
+		return;
+	}
+
+	vxi *v = (vxi *)malloc(sizeof(vxi));
+	memcpy(v->vni, vni, VNI_BYTE);
+	v->table = init_table(TABLE_SIZE);
+	v->dev = create_vxlan_if(vni);
+	vxlan[vni[0]][vni[1]][vni[2]] = v;
+}
+
+
+
+void del_vxi(uint8_t *vni)
+{
+	if (vxlan[vni[0]][vni[1]][vni[2]] == NULL)
+	{
+		uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
+		log_err("VNI: %"PRIo32" does not exist\n", vni32);
+		return;
+	}
+
+	free(vxlan[vni[0]][vni[1]][vni[2]]);
+	vxlan[vni[0]][vni[1]][vni[2]] = NULL;
 }
 
 
@@ -83,3 +105,21 @@ void add_vni(uint8_t *vni)
 //{
 //		return 0;
 //}
+
+
+
+#ifdef DEBUG
+
+void show_vxi(void)
+{
+	int i,j,k;
+	for (i=0; i<VXI_MAX; i++)
+		for (j=0; j<VXI_MAX; j++)
+			for (k=0; k<VXI_MAX; k++)
+				if (vxlan[i][j][k] != NULL) {
+					uint32_t vni32 = (uint32_t)i << 16 | (uint32_t)j << 8 | (uint32_t)k;
+					printf("vxlan[%02X][%02X][%02X]: 0x%06X: %p\n", i, j, k, vni32, vxlan[i][j][k]);
+				}
+}
+
+#endif

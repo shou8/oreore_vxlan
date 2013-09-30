@@ -9,7 +9,7 @@
 #include <net/ethernet.h>
 #include <netpacket/packet.h>
 
-#include "net.h"
+#include "base.h"
 #include "log.h"
 #include "iftap.h"
 #include "netutil.h"
@@ -19,6 +19,21 @@
 
 #define VXLAN_PORT	4789
 #define BUF_SIZE	65536
+
+#define VXLAN_FLAG_MASK 0x00001000
+
+
+
+typedef struct _vxlan_h_
+{
+	char flag;
+	char reserve1[3];
+	char vni[3];
+	char reserve2;
+} vxlan_h;
+
+
+
 
 
 
@@ -92,6 +107,7 @@ int init_udp_sock(void)
 int outer_loop(int udp_soc, int raw_soc)
 {
 	int buf_len;
+	char *bp;
 	char buf[BUF_SIZE];
 	struct sockaddr_in sender_info;
 	socklen_t addr_len = sizeof(sender_info);
@@ -102,15 +118,23 @@ int outer_loop(int udp_soc, int raw_soc)
 						(struct sockaddr *)&sender_info, &addr_len)) < 0)
 			log_perr("recvfrom");
 
-		struct ether_header *eh = (struct ether_header *)buf;
-		uint8_t *dhost = eh->ether_dhost;
-		uint8_t *shost = eh->ether_shost;
+		bp = buf;
+		vxlan_h *vh = (vxlan_h *)buf;
+		bp += sizeof(vxlan_h);
+		buf_len -= sizeof(vxlan_h);
+
+		printf("%X\n", vh->flag);
+		printf("%X%X%X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
+
+//		struct ether_header *eh = (struct ether_header *)buf;
+//		uint8_t *dhost = eh->ether_dhost;
+//		uint8_t *shost = eh->ether_shost;
 
 #ifdef DEBUG
-		print_eth_h(eh, stdout);
+//		print_eth_h(eh, stdout);
 #endif
 
-		write(raw_soc, buf, buf_len); 
+//		write(raw_soc, bp, buf_len); 
 	}
 
 	/*
@@ -121,10 +145,10 @@ int outer_loop(int udp_soc, int raw_soc)
 
 
 
-int packet_analyze(char *buf, int buf_len)
-{
-	struct ether_header *eh;
-}
+//int packet_analyze(char *buf, int buf_len)
+//{
+//	struct ether_header *eh;
+//}
 
 
 

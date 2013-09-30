@@ -1,9 +1,12 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 #include <netinet/in.h>
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 #include "netutil.h"
+#include "log.h"
 
 
 
@@ -40,6 +43,29 @@ int cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] )
 
 
 
+uint8_t *get_mac(int sock, char *name, uint8_t *hwaddr)
+{
+	struct ifreq ifreq;
+	uint8_t *addr;
+
+	strncpy(ifreq.ifr_name, name, sizeof(ifreq.ifr_name) - 1);
+	if ( ioctl(sock, SIOCGIFHWADDR, &ifreq) == -1 )
+	{
+		log_pcrit("ioctl");
+		close(sock);
+		return NULL;
+	}
+	else
+	{
+		addr = (uint8_t *)&ifreq.ifr_hwaddr.sa_data;
+		memcpy(hwaddr, addr, MAC_LEN);
+	}
+
+	return hwaddr;
+}
+
+
+
 #ifdef DEBUG
 
 #include <stdlib.h>
@@ -47,7 +73,7 @@ int cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] )
 /*
  * Get random mac address for DEBUG
  */
-void get_mac( uint8_t hwaddr[MAC_LEN] )
+void get_ran_mac( uint8_t hwaddr[MAC_LEN] )
 {
 	int i = 0;
 	for (i=0; i<MAC_LEN; i++)

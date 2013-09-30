@@ -20,6 +20,11 @@ static unsigned int table_size;
 
 
 
+static void to_head(list **root, list *lp);
+static list *find_list(uint8_t *eth_addr);
+
+
+
 list **init_table(unsigned int size) // hash table size
 {
 	table_size = size % UINT_MAX;
@@ -28,23 +33,6 @@ list **init_table(unsigned int size) // hash table size
 	table = (list **)malloc(mem_size);
 
 	return table;
-}
-
-
-
-static list *find_list(uint8_t *eth_addr)
-{
-	unsigned int key = *((unsigned int *)eth_addr) % table_size;
-	list *p = *(table + key);
-
-	for ( ; p != NULL; p = p->next)
-	{
-		mac_tbl *mac_t = p->data;
-		uint8_t *eth_p = mac_t->hw_addr;
-		if (cmp_mac(eth_p, eth_addr) == 0) return p;
-	}
-
-	return NULL;
 }
 
 
@@ -64,6 +52,28 @@ static void to_head(list **root, list *lp)
 		head->pre = lp;
 		*root = lp;
 	}
+}
+
+
+
+static list *find_list(uint8_t *eth_addr)
+{
+	unsigned int key = *((unsigned int *)eth_addr) % table_size;
+	list **root = table + key;
+	list *p = *root;
+
+	for ( ; p != NULL; p = p->next)
+	{
+		mac_tbl *mac_t = p->data;
+		uint8_t *eth_p = mac_t->hw_addr;
+		if (cmp_mac(eth_p, eth_addr) == 0)
+		{
+			to_head(root, p);
+			return p;
+		}
+	}
+
+	return NULL;
 }
 
 

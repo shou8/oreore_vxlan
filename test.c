@@ -1,13 +1,21 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "table.h"
 #include "net.h"
+#include "vxlan.h"
+
+
+
+vxi ****v;
 
 
 
 //void test_mpool(void);
 void test_table(void);
 void test_net(void);
+void test_vxlan(void);
 
 
 
@@ -15,6 +23,7 @@ void test(void)
 {
 //	test_mpool();
 //	test_table();
+	test_vxlan();
 	test_net();
 }
 
@@ -134,8 +143,51 @@ void test_table(void)
 
 void test_net(void)
 {
-	int rsoc = init_raw_sock("test");
+	vxi *v0 = v[0][0][0];
+printf("%p\n", v0);
 	int usoc = init_udp_sock();
-	outer_loop(usoc, rsoc);
+printf("%d:%d\n", usoc, v0->dev.sock);
+	outer_loop(usoc, v0->dev.sock);
 }
 
+
+
+void test_vxlan(void)
+{
+
+	uint8_t vni[3];
+	memset(vni, 0, 3);
+	v = init_vxlan();
+
+	vni[2] = 1;
+	v = init_vxlan();
+
+	vni[2] = 1;
+	add_vxi(vni);
+
+	vni[2] = 2;
+	add_vxi(vni);
+
+	vni[2] = 3;
+	add_vxi(vni);
+
+	vni[0] = 1;
+	vni[1] = 1;
+	vni[2] = 1;
+	add_vxi(vni);
+
+	del_vxi(vni);
+	del_vxi(vni);
+
+	vni[0] = 1;
+	vni[1] = 0;
+	vni[2] = 0;
+	add_vxi(vni);
+
+	vni[0] = UINT8_MAX;
+	vni[1] = UINT8_MAX;
+	vni[2] = UINT8_MAX;
+	add_vxi(vni);
+
+	show_vxi();
+}
