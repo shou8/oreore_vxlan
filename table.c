@@ -11,17 +11,17 @@
 
 
 
-#define TABLE_MIN	1024
+//#define TABLE_MIN	1024
+#define TABLE_MIN	16
 
 
 
-static list **table;
 static unsigned int table_size;
 
 
 
 static void to_head(list **root, list *lp);
-static list *find_list(uint8_t *eth_addr);
+static list *find_list(list **table, uint8_t *eth_addr);
 
 
 
@@ -30,7 +30,8 @@ list **init_table(unsigned int size) // hash table size
 	table_size = size % UINT_MAX;
 	if (table_size < TABLE_MIN) table_size = TABLE_MIN;
 	unsigned int mem_size = table_size * sizeof(list *);
-	table = (list **)malloc(mem_size);
+	list **table = (list **)malloc(mem_size);
+	memset(table, (int)NULL, mem_size);
 
 	return table;
 }
@@ -56,7 +57,7 @@ static void to_head(list **root, list *lp)
 
 
 
-static list *find_list(uint8_t *eth_addr)
+static list *find_list(list **table, uint8_t *eth_addr)
 {
 	unsigned int key = *((unsigned int *)eth_addr) % table_size;
 	list **root = table + key;
@@ -78,9 +79,9 @@ static list *find_list(uint8_t *eth_addr)
 
 
 
-mac_tbl *find_data(uint8_t *eth)
+mac_tbl *find_data(list **table, uint8_t *eth)
 {
-	list *p = find_list(eth);
+	list *p = find_list(table, eth);
 	if (p != NULL)
 		return p->data;
 
@@ -89,10 +90,10 @@ mac_tbl *find_data(uint8_t *eth)
 
 
 
-void add_data(uint8_t *hw_addr, uint32_t vtep_addr)
+void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr)
 {
 	mac_tbl *mt;
-	list *lp = find_list(hw_addr);
+	list *lp = find_list(table, hw_addr);
 	unsigned int key = *((unsigned int *)hw_addr) % table_size;
 	list **root = table + key;
 	list *head = *root;
@@ -112,7 +113,7 @@ void add_data(uint8_t *hw_addr, uint32_t vtep_addr)
 		head->data = (mac_tbl *)malloc(sizeof(mac_tbl));
 
 		mt = head->data;
-		memcpy(mt->hw_addr, hw_addr, sizeof(hw_addr));
+		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
 		mt->vtep_addr = vtep_addr;
 		mt->time = time(NULL);
 	}
@@ -120,26 +121,27 @@ void add_data(uint8_t *hw_addr, uint32_t vtep_addr)
 	{
 		mt = lp->data;
 		mt->vtep_addr = vtep_addr;
-		memcpy(mt->hw_addr, hw_addr, sizeof(hw_addr));
+		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
 
 		if ( lp != head )
-		{
-			list *pre = lp->pre;
-			pre->next = lp->next;
-			if (pre->next != NULL)
-				(pre->next)->pre = pre;
-
-			lp->pre = NULL;
-			lp->next = head;
-			head->pre = lp;
-			*root = lp;
-		}
+			to_head(root, lp);
+//		{
+//			list *pre = lp->pre;
+//			pre->next = lp->next;
+//			if (pre->next != NULL)
+//				(pre->next)->pre = pre;
+//
+//			lp->pre = NULL;
+//			lp->next = head;
+//			head->pre = lp;
+//			*root = lp;
+//		}
 	}
 }
 
 
 
-void del_data(unsigned int key)
+void del_data(list **table, unsigned int key)
 {
 	list **lr = table + key;
 	list *p = *lr;
@@ -161,7 +163,7 @@ void del_data(unsigned int key)
 
 #ifdef DEBUG
 
-void show_table(void)
+void show_table(list **table)
 {
 	list **tp = table;
 	list *lp;
@@ -172,7 +174,9 @@ void show_table(void)
 		printf("%3d: ", i);
 		for(lp = *tp; lp != NULL; lp = lp->next)
 		{
-			printf("%d => %"PRIu32",  ", ((lp->data)->hw_addr)[0], (lp->data)->vtep_addr);
+			printf("%p\n", lp);
+			uint8_t *addr = (lp->data)->hw_addr;
+			printf("%02X%02X:%02X%02X:%02X%02X => %"PRIu32",  ", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], (lp->data)->vtep_addr);
 		}
 		printf("NULL\n");
 	}

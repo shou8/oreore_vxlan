@@ -27,6 +27,8 @@ typedef struct _vxlan_instance_
 
 
 
+extern vxi ****vxlan;
+
 vxi ****init_vxlan(void);
 void destroy_vxlan(void);
 void add_vxi(uint8_t *vni);

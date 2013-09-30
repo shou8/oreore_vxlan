@@ -5,7 +5,8 @@
 
 #include "base.h"
 
-#define TABLE_SIZE 4096
+//#define TABLE_SIZE 4096
+#define TABLE_SIZE 16
 
 
 
@@ -28,13 +29,13 @@ typedef struct _list_
 
 
 list **init_table(unsigned int size);
-mac_tbl *find_data(uint8_t *eth_addr);
-void add_data(uint8_t *hw_addr, uint32_t vtep_addr);
-void del_data(unsigned int key);
+mac_tbl *find_data(list **table, uint8_t *eth_addr);
+void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr);
+void del_data(list **table, unsigned int key);
 
 
 #ifdef DEBUG
-void show_table(void);
+void show_table(list **table);
 #endif
 
 

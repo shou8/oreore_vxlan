@@ -17,7 +17,7 @@
 
 
 
-static vxi ****vxlan;
+vxi ****vxlan;
 //static int cmp_vni(uint8_t *vni1, uint8_t *vni2);
 static device create_vxlan_if(uint8_t *vni);
 
