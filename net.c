@@ -26,10 +26,10 @@
 
 typedef struct _vxlan_h_
 {
-	char flag;
-	char reserve1[3];
-	char vni[3];
-	char reserve2;
+	uint8_t flag;
+	uint8_t reserve1[3];
+	uint8_t vni[3];
+	uint8_t reserve2;
 } vxlan_h;
 
 
@@ -104,18 +104,18 @@ int init_udp_sock(void)
 
 
 
-int outer_loop(int udp_soc, int raw_soc)
+int outer_loop(int udp_soc)
 {
-	int buf_len;
-	char *bp;
+	int buf_len, len;
+	char *bp, *p;
 	char buf[BUF_SIZE];
-	struct sockaddr_in sender_info;
-	socklen_t addr_len = sizeof(sender_info);
+	struct sockaddr_in sender;
+	socklen_t addr_len = sizeof(sender);
 
 	while (1)
 	{
 		if ((buf_len = recvfrom(udp_soc, buf, sizeof(buf)-1, 0,
-						(struct sockaddr *)&sender_info, &addr_len)) < 0)
+						(struct sockaddr *)&sender, &addr_len)) < 0)
 			log_perr("recvfrom");
 
 		bp = buf;
@@ -123,16 +123,26 @@ int outer_loop(int udp_soc, int raw_soc)
 		bp += sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
 
-		printf("flag: %X\n", vh->flag);
-		printf("VNI: %X%X%X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
+		printf("flag: %02X\n", vh->flag);
+		printf("VNI: %02X%02X%02X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
 		printf("---\n");
 
-//		struct ether_header *eh = (struct ether_header *)buf;
-//		uint8_t *dhost = eh->ether_dhost;
-//		uint8_t *shost = eh->ether_shost;
+		vxi *v = vxlan[vh->vni[0]][vh->vni[1]][vh->vni[2]];
+		if (v == NULL) continue;
+
+		struct ether_header *eh = (struct ether_header *)bp;
+		p = bp + sizeof(struct ether_header);
+		len = len - sizeof(struct ether_header);
+
+		if (eh->ether_type == ETH_P_ARP) {
+			add_data(v->table, eh->ether_shost, sender.sin_addr.s_addr);
+			show_table(v->table);
+		}
+
+		write(v->dev.sock, bp, buf_len);
 
 #ifdef DEBUG
-//		print_eth_h(eh, stdout);
+		print_eth_h(eh, stdout);
 #endif
 
 //		write(raw_soc, bp, buf_len); 

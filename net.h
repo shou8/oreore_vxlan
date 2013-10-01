@@ -5,7 +5,7 @@
 
 int init_raw_sock(char *dev);
 int init_udp_sock(void);
-int outer_loop(int udp_soc, int raw_soc);
+int outer_loop(int udp_soc);
 
 
 
