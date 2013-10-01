@@ -5,8 +5,8 @@
 
 #include "base.h"
 
-//#define TABLE_SIZE 4096
-#define TABLE_SIZE 16
+#define TABLE_SIZE 4096
+//#define TABLE_SIZE 16
 
 
 

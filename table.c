@@ -11,8 +11,8 @@
 
 
 
-//#define TABLE_MIN	1024
-#define TABLE_MIN	16
+#define TABLE_MIN	1024
+//#define TABLE_MIN	16
 
 
 
@@ -97,6 +97,8 @@ void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr)
 	unsigned int key = *((unsigned int *)hw_addr) % table_size;
 	list **root = table + key;
 	list *head = *root;
+//printf("VNI: %02X%02X:%02X%02X:%02X%02X\n", hw_addr[0], hw_addr[1], hw_addr[2],
+//		hw_addr[3], hw_addr[4], hw_addr[5]);
 
 	if (lp == NULL)		// Target MAC is not stored
 	{
@@ -116,6 +118,11 @@ void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr)
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
 		mt->vtep_addr = vtep_addr;
 		mt->time = time(NULL);
+
+		head = *root;
+		printf("key: %d\n", key);
+		printf("head: %p\n", *root);
+		printf("hw[0]: %02X\n", (head->data)->hw_addr[0]);
 	}
 	else			// Target MAC exists
 	{
@@ -125,6 +132,7 @@ void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr)
 
 		if ( lp != head )
 			to_head(root, lp);
+
 //		{
 //			list *pre = lp->pre;
 //			pre->next = lp->next;
@@ -174,7 +182,6 @@ void show_table(list **table)
 		printf("%3d: ", i);
 		for(lp = *tp; lp != NULL; lp = lp->next)
 		{
-			printf("%p\n", lp);
 			uint8_t *addr = (lp->data)->hw_addr;
 			printf("%02X%02X:%02X%02X:%02X%02X => %"PRIu32",  ", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], (lp->data)->vtep_addr);
 		}

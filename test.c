@@ -8,14 +8,11 @@
 
 
 
-vxi ****v;
-
-
-
 //void test_mpool(void);
 void test_table(void);
 void test_net(void);
 void test_vxlan(void);
+void test_vxlan_table(void);
 
 
 
@@ -23,7 +20,8 @@ void test(void)
 {
 //	test_mpool();
 //	test_table();
-	test_vxlan();
+//	test_vxlan();
+	test_vxlan_table();
 	test_net();
 }
 
@@ -70,7 +68,7 @@ void test_mpool(void)
 void test_table(void)
 {
 //	init_vxlan(1);
-	list **table = init_table(8);
+	list **table = init_table(16);
 
 	uint8_t hw[6];
 	hw[0] = 0;
@@ -111,7 +109,7 @@ void test_table(void)
 	hw[0] = 24;
 	add_data(table, hw, 24);
 
-	show_table(table);
+//	show_table(table);
 
 	hw[0] = 0;
 	add_data(table, hw, 10);
@@ -122,20 +120,20 @@ void test_table(void)
 	hw[0] = 0;
 	add_data(table, hw, 100);
 
-	show_table(table);
+//	show_table(table);
 
 	hw[0] = 0;
 	add_data(table, hw, 0);
 
-	show_table(table);
+//	show_table(table);
 
-	del_data(table, 1);
-	show_table(table);
+//	del_data(table, 1);
+//	show_table(table);
 
-	del_data(table, 1);
-	show_table(table);
+//	del_data(table, 1);
+//	show_table(table);
 
-	del_data(table, 0);
+//	del_data(table, 0);
 	show_table(table);
 }
 
@@ -154,7 +152,7 @@ void test_vxlan(void)
 
 	uint8_t vni[3];
 	memset(vni, 0, 3);
-	v = init_vxlan();
+	vxlan = init_vxlan();
 	add_vxi(vni);
 
 	vni[2] = 1;
@@ -198,4 +196,36 @@ void test_vxlan(void)
 
 //	show_vxi();
 
+}
+
+
+
+void test_vxlan_table(void)
+{
+	init_vxlan();
+	uint8_t vni[3];
+	uint8_t hw[6];
+
+	memset(vni, 0, 3);
+	memset(hw, 0, 6);
+
+	vni[0] = 1;
+	add_vxi(vni);
+	vxi *v = vxlan[1][0][0];
+
+	add_data(v->table, hw, 0); 
+
+	hw[0] = 0x01;
+	add_data(v->table, hw, 1); 
+
+	hw[0] = 0x11;
+	hw[1] = 0x11;
+	hw[2] = 0x11;
+	hw[3] = 0x11;
+	hw[4] = 0x11;
+	hw[5] = 0x11;
+
+
+	add_data(v->table, hw, 1111); 
+	show_table(v->table);
 }
