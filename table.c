@@ -31,6 +31,7 @@ list **init_table(unsigned int size) // hash table size
 	if (table_size < TABLE_MIN) table_size = TABLE_MIN;
 	unsigned int mem_size = table_size * sizeof(list *);
 	list **table = (list **)malloc(mem_size);
+	if (table == NULL) log_pexit("malloc");
 	memset(table, (int)NULL, mem_size);
 
 	return table;
@@ -103,6 +104,7 @@ void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr)
 	if (lp == NULL)		// Target MAC is not stored
 	{
 		*root = (list *)malloc(sizeof(list));
+		if (*root == NULL) log_pexit("malloc");
 
 		if (head != NULL)
 		{
@@ -113,6 +115,7 @@ void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr)
 		head = *root;
 		head->pre = NULL;
 		head->data = (mac_tbl *)malloc(sizeof(mac_tbl));
+		if (head->data == NULL) log_pexit("malloc");
 
 		mt = head->data;
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
