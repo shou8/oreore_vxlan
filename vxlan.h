@@ -20,6 +20,7 @@
 typedef struct _vxlan_instance_
 {
 	uint8_t vni[VNI_BYTE];
+	uint32_t mcast_addr;
 	device dev;
 	list **table;
 } vxi;

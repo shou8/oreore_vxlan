@@ -186,7 +186,7 @@ void show_table(list **table)
 	{
 		if (*tp == NULL) continue;
 		printf("%3d: ", i);
-		for(lp = *tp; lp != NULL; lp = lp->next)
+		for (lp = *tp; lp != NULL; lp = lp->next)
 		{
 			uint8_t *addr = (lp->data)->hw_addr;
 			printf("%02X%02X:%02X%02X:%02X%02X => %"PRIu32",  ", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], (lp->data)->vtep_addr);

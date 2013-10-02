@@ -24,8 +24,7 @@ int tap_alloc(char *dev)
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	strncpy(ifr.ifr_name, dev, IFNAMSIZ-1);
 
-	if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0)
-	{
+	if (ioctl(fd, TUNSETIFF, (void *)&ifr) < 0) {
 		close(fd);
 		log_pcrit("TUNSETIFF");
 		return -1;
@@ -41,22 +40,19 @@ int tap_up(char *dev)
 	int fd;
 	struct ifreq ifr;
 
-	if ( (fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-	{
+	if ( (fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		log_pcrit("socket");
 		return -1;
 	}
 
 	strncpy(ifr.ifr_name, dev, IFNAMSIZ-1);
-	if (ioctl(fd, SIOCGIFFLAGS, &ifr) != 0)
-	{
+	if (ioctl(fd, SIOCGIFFLAGS, &ifr) != 0) {
 		log_pcrit("ioctl");
 		return -1;
 	}
 
 	ifr.ifr_flags |= IFF_UP;
-	if (ioctl(fd, SIOCSIFFLAGS, &ifr) != 0)
-	{
+	if (ioctl(fd, SIOCSIFFLAGS, &ifr) != 0) {
 		close(fd);
 		log_pcrit("ioctl");
 		return -1;

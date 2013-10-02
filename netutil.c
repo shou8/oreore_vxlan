@@ -54,9 +54,7 @@ uint8_t *get_mac(int sock, char *name, uint8_t *hwaddr)
 		log_pcrit("ioctl");
 		close(sock);
 		return NULL;
-	}
-	else
-	{
+	} else {
 		addr = (uint8_t *)&ifreq.ifr_hwaddr.sa_data;
 		memcpy(hwaddr, addr, MAC_LEN);
 	}

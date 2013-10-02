@@ -213,9 +213,7 @@ static void _print_log(int level, const char *fmt, ...)
 		vsnprintf(line, LOG_LINELEN, fmt, ap);
 		syslog(level, line);
 		closelog();
-	}
-	else
-	{
+	} else {
 #endif /* DEBUG */
 		time_t t;
 

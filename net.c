@@ -34,9 +34,6 @@ typedef struct _vxlan_h_
 
 
 
-
-
-
 int init_raw_sock(char *dev)
 {
 	struct ifreq ifreq;
