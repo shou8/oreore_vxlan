@@ -123,9 +123,9 @@ void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr)
 		mt->time = time(NULL);
 
 		head = *root;
-		printf("key: %d\n", key);
-		printf("head: %p\n", *root);
-		printf("hw[0]: %02X\n", (head->data)->hw_addr[0]);
+//		printf("key: %d\n", key);
+//		printf("head: %p\n", *root);
+//		printf("hw[0]: %02X\n", (head->data)->hw_addr[0]);
 	}
 	else			// Target MAC exists
 	{

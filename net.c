@@ -120,9 +120,11 @@ int outer_loop(int udp_soc)
 		bp += sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
 
-		printf("flag: %02X\n", vh->flag);
-		printf("VNI: %02X%02X%02X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
-		printf("---\n");
+//		printf("flag: %02X\n", vh->flag);
+//		printf("VNI: %02X%02X%02X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
+//		printf("---\n");
+		static unsigned long long i;
+		printf("%llu\n", i++);
 
 		vxi *v = vxlan[vh->vni[0]][vh->vni[1]][vh->vni[2]];
 		if (v == NULL) continue;
@@ -133,13 +135,13 @@ int outer_loop(int udp_soc)
 
 		if (eh->ether_type == ETH_P_ARP) {
 			add_data(v->table, eh->ether_shost, sender.sin_addr.s_addr);
-			show_table(v->table);
+//			show_table(v->table);
 		}
 
 		write(v->dev.sock, bp, buf_len);
 
 #ifdef DEBUG
-		print_eth_h(eh, stdout);
+//		print_eth_h(eh, stdout);
 #endif
 
 //		write(raw_soc, bp, buf_len); 
