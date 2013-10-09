@@ -49,6 +49,7 @@ void sendUdp(void)
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(VXLAN_PORT);
 	inet_pton(AF_INET, "192.168.2.11", &addr.sin_addr.s_addr);
+//	inet_pton(AF_INET, "192.168.2.12", &addr.sin_addr.s_addr);
 
 	while (1)
 	{
@@ -57,7 +58,7 @@ void sendUdp(void)
 		int len = make_vxlan_header(buf);
 		make_l2_packet(buf + len);
 		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&addr, sizeof(addr));
-		usleep(100000);
+		usleep(10000);
 	}
 }
 
