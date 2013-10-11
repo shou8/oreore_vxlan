@@ -120,6 +120,9 @@ int outer_loop(int udp_soc)
 		bp += sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
 
+		/*
+		 * For DEBUG
+		 */
 //		printf("flag: %02X\n", vh->flag);
 //		printf("VNI: %02X%02X%02X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
 //		printf("---\n");
@@ -138,7 +141,9 @@ int outer_loop(int udp_soc)
 //			show_table(v->table);
 		}
 
-		write(v->dev.sock, bp, buf_len);
+//printf("blen: %d\n", buf_len);
+//		write(v->dev.sock, bp, buf_len);
+		send(v->dev.sock, bp, buf_len, MSG_DONTWAIT);
 
 #ifdef DEBUG
 //		print_eth_h(eh, stdout);
@@ -162,14 +167,52 @@ int outer_loop(int udp_soc)
 
 
 
-/*
-int inner_loop(int sock)
+int inner_loop(int raw_soc)
 {
-	int buf_len;
-	char buf[BUF_SIZE];
+	int rlen, wlen;
+	char *rp, *wp;
+	char rbuf[BUF_SIZE];
+	char wbuf[BUF_SIZE];
+
+	struct sockaddr_in sender;
+	socklen_t addr_len = sizeof(sender);
+	vxlan_h vh;
 
 	while(1)
 	{
+		if ((rlen = recvfrom(raw_soc, rbuf, sizeof(rbuf)-1, 0,
+						(struct sockaddr *)&sender, &addr_len)) < 0)
+			log_perr("recvfrom");
+
+		struct ether_header *eh = (struct ether_header *)rbuf;
+
+		print_eth_h(eh, stdout);
+
+//		vxi *v = vxlan[vh->vni[0]][vh->vni[1]][vh->vni[2]];
+//		if (v == NULL) continue;
+//
+//		p = bp + sizeof(struct ether_header);
+//		len = len - sizeof(struct ether_header);
+//
+//		if (eh->ether_type == ETH_P_ARP) {
+//			add_data(v->table, eh->ether_shost, sender.sin_addr.s_addr);
+////			show_table(v->table);
+//		}
+//
+////printf("blen: %d\n", buf_len);
+////		write(v->dev.sock, bp, buf_len);
+//		send(v->dev.sock, bp, buf_len, MSG_DONTWAIT);
+//
+//#ifdef DEBUG
+////		print_eth_h(eh, stdout);
+//#endif
+//
+////		write(raw_soc, bp, buf_len); 
+
 	}
+
+	/*
+	 * Cannot reach here.
+	 */
+	return 0;
 }
-*/

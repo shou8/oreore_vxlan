@@ -141,8 +141,11 @@ void test_table(void)
 
 void test_net(void)
 {
-	int usoc = init_udp_sock();
-	outer_loop(usoc);
+	//int usoc = init_udp_sock();
+	//outer_loop(usoc);
+	
+	int rsoc = init_raw_sock();
+	inner_loop(rsoc);
 }
 
 
