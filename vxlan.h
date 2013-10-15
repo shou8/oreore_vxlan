@@ -34,10 +34,7 @@ vxi ****init_vxlan(void);
 void destroy_vxlan(void);
 void add_vxi(uint8_t *vni);
 void del_vxi(uint8_t *vni);
-
-#ifdef DEBUG
 void show_vxi(void);
-#endif
 
 
 

@@ -13,6 +13,7 @@
 #include "log.h"
 #include "iftap.h"
 #include "netutil.h"
+#include "table.h"
 #include "vxlan.h"
 
 
@@ -74,7 +75,7 @@ int init_raw_sock(char *dev)
 
 
 
-int init_udp_sock(void)
+int init_udp_sock(unsigned short port)
 {
 	int sock;
 	struct sockaddr_in addr;
@@ -86,8 +87,8 @@ int init_udp_sock(void)
 	}
 
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(VXLAN_PORT);
-	addr.sin_addr.s_addr = INADDR_ANY;
+	addr.sin_port = htons(port);
+	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 	{
@@ -106,13 +107,13 @@ int outer_loop(int udp_soc)
 	int buf_len, len;
 	char *bp, *p;
 	char buf[BUF_SIZE];
-	struct sockaddr_in sender;
-	socklen_t addr_len = sizeof(sender);
+	struct sockaddr_in src;
+	socklen_t addr_len = sizeof(src);
 
 	while (1)
 	{
 		if ((buf_len = recvfrom(udp_soc, buf, sizeof(buf)-1, 0,
-						(struct sockaddr *)&sender, &addr_len)) < 0)
+						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("recvfrom");
 
 		bp = buf;
@@ -137,7 +138,7 @@ int outer_loop(int udp_soc)
 		len = len - sizeof(struct ether_header);
 
 		if (eh->ether_type == ETH_P_ARP) {
-			add_data(v->table, eh->ether_shost, sender.sin_addr.s_addr);
+			add_data(v->table, eh->ether_shost, src.sin_addr.s_addr);
 //			show_table(v->table);
 		}
 
@@ -164,51 +165,50 @@ int outer_loop(int udp_soc)
 //{
 //	struct ether_header *eh;
 //}
+#include <inttypes.h>
 
 
 
-int inner_loop(int raw_soc)
+int inner_loop(vxi *v)
 {
-	int rlen, wlen;
-	char *rp, *wp;
-	char rbuf[BUF_SIZE];
-	char wbuf[BUF_SIZE];
 
-	struct sockaddr_in sender;
-	socklen_t addr_len = sizeof(sender);
-	vxlan_h vh;
+	/* Common declaration */
+	char buf[BUF_SIZE];
+	char *rp = buf + sizeof(vxi);
+	int rlen = sizeof(buf) - sizeof(vxi) - 1;
+	int len;
+
+	/* For RAW socket declaration (Read) */
+	struct sockaddr_in src;
+	socklen_t addr_len = sizeof(src);
+
+	/* For UDP socket declaration (Write) */
+	int usoc = init_udp_sock(0);		// The port number is selected by OS.
+	struct sockaddr_in dst;
+
+	/* For vxlan instance declaration */
+	device dev = v->dev;
+	int rsoc = dev.sock;
+	vxlan_h *vh = (vxlan_h *)buf;
+	mac_tbl *data;
 
 	while(1)
 	{
-		if ((rlen = recvfrom(raw_soc, rbuf, sizeof(rbuf)-1, 0,
-						(struct sockaddr *)&sender, &addr_len)) < 0)
+		if ((len = recvfrom(rsoc, rp, rlen, 0,
+						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("recvfrom");
 
-		struct ether_header *eh = (struct ether_header *)rbuf;
+		struct ether_header *eh = (struct ether_header *)rp;
 
-		print_eth_h(eh, stdout);
+		if ((data = find_data(v->table, eh->ether_dhost)) == NULL)
+			continue;
 
-//		vxi *v = vxlan[vh->vni[0]][vh->vni[1]][vh->vni[2]];
-//		if (v == NULL) continue;
-//
-//		p = bp + sizeof(struct ether_header);
-//		len = len - sizeof(struct ether_header);
-//
-//		if (eh->ether_type == ETH_P_ARP) {
-//			add_data(v->table, eh->ether_shost, sender.sin_addr.s_addr);
-////			show_table(v->table);
-//		}
-//
-////printf("blen: %d\n", buf_len);
-////		write(v->dev.sock, bp, buf_len);
-//		send(v->dev.sock, bp, buf_len, MSG_DONTWAIT);
-//
-//#ifdef DEBUG
-////		print_eth_h(eh, stdout);
-//#endif
-//
-////		write(raw_soc, bp, buf_len); 
-
+		uint32_t addr = ntohl(data->vtep_addr);
+		uint8_t *p = (uint8_t *)&addr;
+		printf("vtep: %"PRIu8, *(p++));
+		printf(".%"PRIu8, *(p++));
+		printf(".%"PRIu8, *(p++));
+		printf(".%"PRIu8"\n", *(p++));
 	}
 
 	/*

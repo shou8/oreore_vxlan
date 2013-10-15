@@ -58,8 +58,7 @@ void destroy_vxlan(void)
 static device create_vxlan_if(uint8_t *vni)
 {
 	device dev;
-//	uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
-	uint32_t vni32 = (uint32_t)vni[0] << 16 | (uint32_t)vni[1] << 8 | (uint32_t)vni[2];
+	uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
 
 	snprintf(dev.name, IF_NAME_LEN, "vxlan%"PRIo32, vni32);
 	dev.sock = init_raw_sock(dev.name);
@@ -74,8 +73,7 @@ void add_vxi(uint8_t *vni)
 {
 	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL)
 	{
-//		uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
-		uint32_t vni32 = (uint32_t)vni[0] << 16 | (uint32_t)vni[1] << 8 | (uint32_t)vni[2];
+		uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
 		log_err("VNI: %"PRIo32" has already exist\n", vni32);
 		return;
 	}
@@ -112,8 +110,6 @@ void del_vxi(uint8_t *vni)
 
 
 
-#ifdef DEBUG
-
 void show_vxi(void)
 {
 	int i,j,k;
@@ -121,9 +117,10 @@ void show_vxi(void)
 		for (j=0; j<VXI_MAX; j++)
 			for (k=0; k<VXI_MAX; k++)
 				if (vxlan[i][j][k] != NULL) {
-					uint32_t vni32 = (uint32_t)i << 16 | (uint32_t)j << 8 | (uint32_t)k;
+					uint32_t vni32 = i << 16 | j << 8 | k;
 					printf("vxlan[%02X][%02X][%02X]: 0x%06X: %p\n", i, j, k, vni32, vxlan[i][j][k]);
 				}
 }
 
-#endif
+
+

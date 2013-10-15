@@ -144,8 +144,7 @@ void test_net(void)
 	//int usoc = init_udp_sock();
 	//outer_loop(usoc);
 	
-	int rsoc = init_raw_sock();
-	inner_loop(rsoc);
+	inner_loop(vxlan[1][0][0]);
 }
 
 
@@ -229,6 +228,6 @@ void test_vxlan_table(void)
 	hw[5] = 0x11;
 
 
-	add_data(v->table, hw, 1111); 
+	add_data(v->table, hw, 3232235777); 
 	show_table(v->table);
 }

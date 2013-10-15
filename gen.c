@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <net/ethernet.h>
 #include <netpacket/packet.h>
+#include <errno.h>
 
 #include "net.h"
 
@@ -25,16 +26,72 @@ typedef struct _vxlan_h_
 } vxlan_h;
 
 
+void sendRaw(void);
 void sendUdp(void);
-void make_l2_packet(char *buf);
+void make_l2_dran_packet(char *buf);
+int make_l2_packet(char *buf);
 int make_vxlan_header(char *buf);
 
 
 
 int main(int argc, char *argv[])
 {
-	sendUdp();
+	//sendUdp();
+	sendRaw();
     return 0;
+}
+
+
+
+void sendRaw(void)
+{
+	struct ifreq ifreq;
+	struct sockaddr_ll sa;
+	int sock;
+	int ret;
+
+	sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
+	if (sock < 0) { 
+		perror("socket");
+	} else {
+		printf("sock: %d\n", sock);
+	}
+	memset(&ifreq, 0, sizeof(struct ifreq));
+	strncpy(ifreq.ifr_name, "vxlan200000", IFNAMSIZ-1);
+	ret = ioctl(sock, SIOCGIFINDEX, &ifreq);
+	if (ret < 0) { 
+		perror("ioctl");
+	} else {
+		printf("ioctl ret: %d\n", ret);
+	}
+
+	sa.sll_family = AF_PACKET;
+	sa.sll_protocol = htons(ETH_P_ALL);
+	sa.sll_ifindex = ifreq.ifr_ifindex;
+
+	ret = bind(sock, (struct sockaddr *)&sa, sizeof(sa));
+	if (ret < 0) {
+		perror("bind");
+	} else {
+		printf("bind ret: %d\n", ret);
+	}
+
+	int len, buf_len;
+	char buf[128];
+
+	while(1)
+	{
+		memset(buf, 0, 128);
+		buf_len = make_l2_packet(buf);
+		printf("buf_len: %d\n", buf_len);
+//		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&sa, sizeof(sa));
+		len = write(sock, buf, buf_len);
+		if (len < 0 ) {
+			perror("sendto");
+		}
+		printf("len: %d\n", len);
+		usleep(100000);
+	}
 }
 
 
@@ -56,10 +113,42 @@ void sendUdp(void)
 		char buf[128];
 		memset(buf, 0, 128);
 		int len = make_vxlan_header(buf);
-		make_l2_packet(buf + len);
+		make_l2_dran_packet(buf + len);
 		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&addr, sizeof(addr));
+		if (len < 0 ) {
+			perror("sendto");
+		}
 		usleep(1000);
 	}
+}
+
+
+
+int make_l2_packet(char *buf)
+{
+	struct ether_header *eh = (struct ether_header *)buf;
+	uint8_t *addr = eh->ether_shost;
+	eh->ether_type = ETH_P_IP;
+
+	addr[0] = 0x0;
+	addr[1] = 0x1;
+	addr[2] = 0x2;
+	addr[3] = 0x3;
+	addr[4] = 0x4;
+	addr[5] = 0x5;
+
+	addr = eh->ether_dhost;
+
+	addr[0] = 0x11;
+	addr[1] = 0x11;
+	addr[2] = 0x11;
+	addr[3] = 0x11;
+	addr[4] = 0x11;
+	addr[5] = 0x11;
+
+	buf[sizeof(struct ether_header) + 1] = '\0';
+
+	return sizeof(struct ether_header);
 }
 
 
@@ -77,7 +166,7 @@ int make_vxlan_header(char *buf)
 	return sizeof(vxlan_h);
 }
 
-void make_l2_packet(char *buf)
+void make_l2_dran_packet(char *buf)
 {
 	struct ether_header *eh = (struct ether_header *)buf;
 	uint8_t *addr = eh->ether_dhost;
