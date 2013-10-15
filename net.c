@@ -35,6 +35,12 @@ typedef struct _vxlan_h_
 
 
 
+/*
+ * Socket Settings
+ */
+
+
+
 int init_raw_sock(char *dev)
 {
 	struct ifreq ifreq;
@@ -99,6 +105,36 @@ int init_udp_sock(unsigned short port)
 
 	return sock;
 }
+
+
+
+/*
+ * Multicast Settings
+ */
+int init_udp_mcast_sock(unsigned short port, uint32_t mcast_addr, char *if_name)
+{
+	int sock;
+	struct ip_mreq mreq;
+
+	sock = init_udp_sock(port);
+
+	memset(&mreq, 0, sizeof(mreq));
+	mreq.imr_address.s_addr = mcast_addr;
+	mreq.imr_interface = htonl((if_name == NULL) ? INADDR_ANY : get_addr(if_name));
+
+	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
+		log_perr("setsockopt");
+		return -1;
+	}
+
+	return sock;
+}
+
+
+
+/*
+ * Network Loop Function
+ */
 
 
 
@@ -183,7 +219,6 @@ int inner_loop(vxi *v)
 	socklen_t addr_len = sizeof(src);
 
 	/* For UDP socket declaration (Write) */
-	int usoc = init_udp_sock(0);		// The port number is selected by OS.
 	struct sockaddr_in dst;
 
 	/* For vxlan instance declaration */
@@ -192,7 +227,7 @@ int inner_loop(vxi *v)
 	vxlan_h *vh = (vxlan_h *)buf;
 	mac_tbl *data;
 
-	while(1)
+	while (1)
 	{
 		if ((len = recvfrom(rsoc, rp, rlen, 0,
 						(struct sockaddr *)&src, &addr_len)) < 0)
@@ -209,6 +244,7 @@ int inner_loop(vxi *v)
 		printf(".%"PRIu8, *(p++));
 		printf(".%"PRIu8, *(p++));
 		printf(".%"PRIu8"\n", *(p++));
+
 	}
 
 	/*

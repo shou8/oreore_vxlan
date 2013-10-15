@@ -69,7 +69,7 @@ static device create_vxlan_if(uint8_t *vni)
 
 
 
-void add_vxi(uint8_t *vni)
+void add_vxi(uint8_t *vni, uint32_t mcast_addr)
 {
 	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL)
 	{
@@ -83,6 +83,7 @@ void add_vxi(uint8_t *vni)
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(TABLE_SIZE);
 	v->dev = create_vxlan_if(vni);
+	v->mcast_usoc = init_udp_mcast_sock(0, mcast_addr, INADDR_ANY);
 	vxlan[vni[0]][vni[1]][vni[2]] = v;
 }
 
