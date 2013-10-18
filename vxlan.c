@@ -58,14 +58,14 @@ void destroy_vxlan(void)
 
 static device create_vxlan_if(uint8_t *vni)
 {
-	device dev;
+	device tap;
 	uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
 
-	snprintf(dev.name, IF_NAME_LEN, "vxlan%"PRIo32, vni32);
-	dev.sock = init_raw_sock(dev.name);
-	get_mac(dev.sock, dev.name, dev.hwaddr);
+	snprintf(tap.name, IF_NAME_LEN, "vxlan%"PRIo32, vni32);
+	tap.sock = init_raw_sock(tap.name);
+	get_mac(tap.sock, tap.name, tap.hwaddr);
 
-	return dev;
+	return tap;
 }
 
 
@@ -83,8 +83,8 @@ void add_vxi(uint8_t *vni, char *addr)
 	if (v == NULL) log_pcexit("malloc");
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(TABLE_SIZE);
-	v->dev = create_vxlan_if(vni);
-	v->mcast_usoc = init_udp_mcast_sock(0, addr, INADDR_ANY);
+	v->tap = create_vxlan_if(vni);
+	v->mcast_usoc = join_mcast_group(get_usoc(), 0, addr, NULL);
 
 	if (v->mcast_usoc == -1) {
 		log_perr("Cannot initialize socket");

@@ -173,13 +173,15 @@ void test_table(void)
 
 void test_net(void)
 {
-	//int usoc = init_udp_sock();
-	//outer_loop(usoc);
-	
+	char buf[] = "239.18.181.0\0";
 	vxlan = init_vxlan();
 	uint8_t vni[3] = {1, 0, 0};
-	add_vxi(vni, NULL);
-	inner_loop(vxlan[1][0][0]);
+	add_vxi(vni, buf);
+	//inner_loop(vxlan[1][0][0]);
+
+//	int usoc = join_mcast_group(4789, buf, NULL);
+	outer_loop();
+	
 }
 
 

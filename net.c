@@ -38,6 +38,10 @@ typedef struct _vxlan_h_
 
 
 
+static int usoc;
+
+
+
 /*
  * Socket Settings
  */
@@ -114,13 +118,13 @@ int init_udp_sock(unsigned short port)
 /*
  * Multicast Settings
  */
-int init_udp_mcast_sock(unsigned short port, char *mcast_addr, char *if_name)
+
+int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_name)
 {
-	int sock;
 	struct ip_mreq mreq;
 	static uint32_t maddr = MCAST_DEFAULT_ADDR;
 
-	sock = init_udp_sock(port);
+	if (sock <= 0) sock = init_udp_sock(port);
 
 	memset(&mreq, 0, sizeof(mreq));
 	if (mcast_addr == NULL) {
@@ -149,6 +153,8 @@ int init_udp_mcast_sock(unsigned short port, char *mcast_addr, char *if_name)
 		return -1;
 	}
 
+	log_info("Multicast address is set: %s\n", mcast_addr);
+
 	return sock;
 }
 
@@ -158,9 +164,7 @@ int init_udp_mcast_sock(unsigned short port, char *mcast_addr, char *if_name)
  * Network Loop Function
  */
 
-
-
-int outer_loop(int usoc)
+int outer_loop(void)
 {
 	int buf_len, len;
 	char *bp, *p;
@@ -168,6 +172,7 @@ int outer_loop(int usoc)
 	struct sockaddr_in src;
 	socklen_t addr_len = sizeof(src);
 
+	usoc = init_udp_sock(VXLAN_PORT);
 	if (usoc < 0) log_cexit("socket: Bad descripter\n");
 
 	while (1)
@@ -181,15 +186,6 @@ int outer_loop(int usoc)
 		bp += sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
 
-		/*
-		 * For DEBUG
-		 */
-//		printf("flag: %02X\n", vh->flag);
-//		printf("VNI: %02X%02X%02X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
-//		printf("---\n");
-		static unsigned long long i;
-		printf("%llu\n", i++);
-
 		vxi *v = vxlan[vh->vni[0]][vh->vni[1]][vh->vni[2]];
 		if (v == NULL) continue;
 
@@ -202,15 +198,13 @@ int outer_loop(int usoc)
 //			show_table(v->table);
 		}
 
-//printf("blen: %d\n", buf_len);
-//		write(v->dev.sock, bp, buf_len);
-		send(v->dev.sock, bp, buf_len, MSG_DONTWAIT);
+		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
 
 #ifdef DEBUG
 //		print_eth_h(eh, stdout);
 #endif
 
-//		write(raw_soc, bp, buf_len); 
+		write(v->tap.sock, bp, buf_len); 
 	}
 
 	/*
@@ -246,8 +240,8 @@ int inner_loop(vxi *v)
 	struct sockaddr_in dst;
 
 	/* For vxlan instance declaration */
-	device dev = v->dev;
-	int rsoc = dev.sock;
+	device tap = v->tap;
+	int rsoc = tap.sock;
 	if (rsoc < 0) log_cexit("socket: Bad descripter\n");
 
 	vxlan_h *vh = (vxlan_h *)buf;
@@ -277,4 +271,14 @@ int inner_loop(vxi *v)
 	 * Cannot reach here.
 	 */
 	return 0;
+}
+
+
+
+/*
+ * Getter
+ */
+int get_usoc(void)
+{
+	return usoc;
 }
