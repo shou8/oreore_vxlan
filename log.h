@@ -29,8 +29,9 @@ extern void log_crit(const char *fmt, ...);
 extern void log_perr(const char *str);
 extern void log_pcrit(const char *str);
 
-extern void log_exit(int status, const char *fmt, ...);
-extern void log_pexit(int status, const char *str);
+extern void log_iexit(const char *fmt, ...);
+extern void log_cexit(const char *fmt, ...);
+extern void log_pcexit(const char *str);
 
 
 #endif /* LOG_H_INCLUDED */

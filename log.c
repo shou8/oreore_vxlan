@@ -37,6 +37,7 @@ static int _debug_mode = DEBUG_ENABLE;
 
 
 static void _print_log(int level, const char *fmt, ...);
+static void _print_log_v(int level, const char *fmt, va_list ap);
 
 
 
@@ -81,7 +82,7 @@ void init_log(void)
 	_pid = getpid();
 
 	if (gethostname(_h_name, sizeof(_h_name)) != 0)
-		log_pexit(EXIT_FAILURE, NULL);
+		log_pcexit(NULL);
 
 	disable_syslog();
 
@@ -115,20 +116,26 @@ void disable_syslog(void)
 
 void log_stderr(const char *fmt, ...)
 {
+	va_list ap;
 	int mode = _syslog_mode;
 	
+	va_start(ap, fmt);
 	disable_syslog();
-	_print_log(LOG_DEBUG, fmt);
+	_print_log_v(LOG_DEBUG, fmt, ap);
 	if (mode == SYSLOG_ENABLE)
 		enable_syslog();
+	va_end(ap);
 }
 
 
 
 void log_debug(const char *fmt, ...)
 {
+	va_list ap;
+	va_start(ap, fmt);
 	if (_debug_mode == DEBUG_ENABLE)
-		_print_log(LOG_DEBUG, fmt);
+		_print_log_v(LOG_DEBUG, fmt, ap);
+	va_end(ap);
 }
 
 #endif /* DEBUG */
@@ -137,29 +144,40 @@ void log_debug(const char *fmt, ...)
 
 void log_info(const char *fmt, ...)
 {
-	printf(fmt);
-	_print_log(LOG_INFO, fmt);
+	va_list ap;
+	va_start(ap, fmt);
+	_print_log_v(LOG_INFO, fmt, ap);
+	va_end(ap);
 }
 
 
 
 void log_warn(const char *fmt, ...)
 {
-	_print_log(LOG_WARNING, fmt);
+	va_list ap;
+	va_start(ap, fmt);
+	_print_log_v(LOG_WARNING, fmt, ap);
+	va_end(ap);
 }
 
 
 
 void log_err(const char *fmt, ...)
 {
-	_print_log(LOG_ERR, fmt);
+	va_list ap;
+	va_start(ap, fmt);
+	_print_log_v(LOG_ERR, fmt, ap);
+	va_end(ap);
 }
 
 
 
 void log_crit(const char *fmt, ...)
 {
-	_print_log(LOG_CRIT, fmt);
+	va_list ap;
+	va_start(ap, fmt);
+	_print_log_v(LOG_CRIT, fmt, ap);
+	va_end(ap);
 }
 
 
@@ -184,19 +202,38 @@ void log_pcrit(const char *str)
 
 
 
-void log_exit(int status, const char *fmt, ...)
+void log_iexit(const char *fmt, ...)
 {
-	log_crit(fmt);
-	exit(status);
+	va_list ap;
+	va_start(ap, fmt);
+	_print_log_v(LOG_INFO, fmt, ap);
+	va_end(ap);
+	exit(EXIT_SUCCESS);
 }
 
 
 
-void log_pexit(int status, const char *str)
+void log_cexit(const char *fmt, ...)
 {
-	log_pcrit(str);
-	exit(status);
+	va_list ap;
+	va_start(ap, fmt);
+	_print_log_v(LOG_CRIT, fmt, ap);
+	va_end(ap);
+	exit(EXIT_FAILURE);
 }
+
+
+
+void log_pcexit(const char *str)
+{
+	if(str == NULL)
+		_print_log(LOG_CRIT, "%s\n", strerror(errno));
+	else
+		_print_log(LOG_CRIT, "%s: %s\n", str, strerror(errno));
+
+	exit(EXIT_FAILURE);
+}
+
 
 
 
@@ -230,6 +267,36 @@ static void _print_log(int level, const char *fmt, ...)
 #endif /* DEBUG */
 
 	va_end(ap);
+}
+
+
+
+static void _print_log_v(int level, const char *fmt, va_list ap)
+{
+	char line[LOG_LINELEN];
+
+#ifndef DEBUG
+	if (_syslog_mode == SYSLOG_ENABLE)
+	{
+		openlog(DAEMON_NAME, LOG_CONS | LOG_PID, level);
+		vsnprintf(line, LOG_LINELEN, fmt, ap);
+		syslog(level, line);
+		close(log);
+	} else {
+#endif /* DEBUG */
+		time_t t;
+
+		time(&t);
+		strncpy(line, ctime(&t), sizeof(line));
+
+		int len = strlen(line);
+		line[len-1] = '\0';
+		fprintf(stderr, "%s %s "DAEMON_NAME"[%d]: ", line, _h_name, _pid);
+		vfprintf(stderr, fmt, ap);
+#ifndef DEBUG
+	}
+#endif /* DEBUG */
+
 }
 
 

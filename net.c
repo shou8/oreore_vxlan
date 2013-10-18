@@ -160,7 +160,7 @@ int init_udp_mcast_sock(unsigned short port, char *mcast_addr, char *if_name)
 
 
 
-int outer_loop(int udp_soc)
+int outer_loop(int usoc)
 {
 	int buf_len, len;
 	char *bp, *p;
@@ -168,9 +168,11 @@ int outer_loop(int udp_soc)
 	struct sockaddr_in src;
 	socklen_t addr_len = sizeof(src);
 
+	if (usoc < 0) log_cexit("socket: Bad descripter\n");
+
 	while (1)
 	{
-		if ((buf_len = recvfrom(udp_soc, buf, sizeof(buf)-1, 0,
+		if ((buf_len = recvfrom(usoc, buf, sizeof(buf)-1, 0,
 						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("recvfrom");
 
@@ -246,6 +248,8 @@ int inner_loop(vxi *v)
 	/* For vxlan instance declaration */
 	device dev = v->dev;
 	int rsoc = dev.sock;
+	if (rsoc < 0) log_cexit("socket: Bad descripter\n");
+
 	vxlan_h *vh = (vxlan_h *)buf;
 	mac_tbl *data;
 

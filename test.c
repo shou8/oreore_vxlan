@@ -20,12 +20,12 @@ void test_vxlan_table(void);
 
 void test(void)
 {
-	test_log();
+//	test_log();
 //	test_mpool();
 //	test_table();
 //	test_vxlan();
 //	test_vxlan_table();
-//	test_net();
+	test_net();
 }
 
 
@@ -33,6 +33,7 @@ void test(void)
 char buf2[32] = {'t', 'e', 's', 't', '\0'};
 
 
+/*
 #include <stdarg.h>
 void loglog(const char *fmt, ...)
 {
@@ -47,6 +48,7 @@ void loglog2(const char *fmt, ...)
 {
 	loglog(fmt);
 }
+*/
 
 
 
@@ -54,8 +56,8 @@ void test_log(void)
 {
 	char buf[32] = {'t', 'e', 's', 't', '\0'};
 
-	loglog("%d:%s\n", 1, buf);
-	loglog2("%d:%s\n", 2, buf);
+	log_info("%d:%s\n", 1, buf);
+	log_warn("%d:%s\n", 2, buf);
 }
 /*
 void test_mpool(void)

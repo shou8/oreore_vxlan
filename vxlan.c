@@ -27,11 +27,11 @@ static device create_vxlan_if(uint8_t *vni);
 vxi ****init_vxlan(void)
 {
 	vxlan = (vxi ****)malloc(sizeof(vxi ***) * VXI_MAX);
-	if (vxlan == NULL) log_pexit(EXIT_FAILURE, "malloc");
+	if (vxlan == NULL) log_pcexit("malloc");
 	vxlan[0] = (vxi ***)malloc(sizeof(vxi **) * VXI_MAX * VXI_MAX);
-	if (vxlan[0] == NULL) log_pexit(EXIT_FAILURE, "malloc");
+	if (vxlan[0] == NULL) log_pcexit("malloc");
 	vxlan[0][0] = (vxi **)malloc(sizeof(vxi *) * VXI_MAX * VXI_MAX * VXI_MAX);
-	if ( vxlan[0][0] == NULL ) log_pexit(EXIT_FAILURE, "malloc");
+	if ( vxlan[0][0] == NULL ) log_pcexit("malloc");
 
 	int i,j;
 	for (i=0; i<VXI_MAX; i++) {
@@ -80,7 +80,7 @@ void add_vxi(uint8_t *vni, char *addr)
 	}
 
 	vxi *v = (vxi *)malloc(sizeof(vxi));
-	if (v == NULL) log_pexit(EXIT_FAILURE, "malloc");
+	if (v == NULL) log_pcexit("malloc");
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(TABLE_SIZE);
 	v->dev = create_vxlan_if(vni);
