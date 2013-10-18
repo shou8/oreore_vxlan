@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>	
 #include <fcntl.h>
 #include <errno.h>
@@ -18,7 +19,7 @@ int tap_alloc(char *dev)
 	struct ifreq ifr;
  
 	if ( (fd = open("/dev/net/tun", O_RDWR)) < 0)
-		log_pexit("open");
+		log_pexit(EXIT_FAILURE, "open");
 
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;

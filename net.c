@@ -101,7 +101,7 @@ int init_udp_sock(unsigned short port)
 
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
 	{
-		log_pexit("bind");
+		log_pcrit("bind");
 		close(sock);
 		return -1;
 	}
@@ -125,9 +125,16 @@ int init_udp_mcast_sock(unsigned short port, char *mcast_addr, char *if_name)
 	memset(&mreq, 0, sizeof(mreq));
 	if (mcast_addr == NULL) {
 		struct in_addr tmp_addr;
+		char addr_str[32];
+	
 		tmp_addr.s_addr = htonl(maddr);
-		mcast_addr = inet_ntoa(tmp_addr);
-		log_warn("Multicast address is generated automatically: %s", mcast_addr);
+		if( inet_ntop(AF_INET, &tmp_addr.s_addr, addr_str, sizeof(addr_str)) == NULL ) {
+			log_perr("Invalid address");
+			return -1;
+		}
+
+		mcast_addr = addr_str;
+		log_warn("Multicast address is automatically generated: %s\n", mcast_addr);
 		maddr++;
 	}
 

@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "log.h"
 #include "table.h"
 #include "net.h"
 #include "vxlan.h"
 
 
 
+void test_log(void);
 //void test_mpool(void);
 void test_table(void);
 void test_net(void);
@@ -18,15 +20,43 @@ void test_vxlan_table(void);
 
 void test(void)
 {
+	test_log();
 //	test_mpool();
 //	test_table();
 //	test_vxlan();
-	test_vxlan_table();
-	test_net();
+//	test_vxlan_table();
+//	test_net();
 }
 
 
 
+char buf2[32] = {'t', 'e', 's', 't', '\0'};
+
+
+#include <stdarg.h>
+void loglog(const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	vfprintf(stderr, fmt, ap);
+	va_end(ap);
+}
+
+void loglog2(const char *fmt, ...)
+{
+	loglog(fmt);
+}
+
+
+
+void test_log(void)
+{
+	char buf[32] = {'t', 'e', 's', 't', '\0'};
+
+	loglog("%d:%s\n", 1, buf);
+	loglog2("%d:%s\n", 2, buf);
+}
 /*
 void test_mpool(void)
 {
@@ -144,6 +174,9 @@ void test_net(void)
 	//int usoc = init_udp_sock();
 	//outer_loop(usoc);
 	
+	vxlan = init_vxlan();
+	uint8_t vni[3] = {1, 0, 0};
+	add_vxi(vni, NULL);
 	inner_loop(vxlan[1][0][0]);
 }
 

@@ -81,7 +81,7 @@ void init_log(void)
 	_pid = getpid();
 
 	if (gethostname(_h_name, sizeof(_h_name)) != 0)
-		log_pexit(NULL);
+		log_pexit(EXIT_FAILURE, NULL);
 
 	disable_syslog();
 
@@ -137,6 +137,7 @@ void log_debug(const char *fmt, ...)
 
 void log_info(const char *fmt, ...)
 {
+	printf(fmt);
 	_print_log(LOG_INFO, fmt);
 }
 
@@ -183,18 +184,18 @@ void log_pcrit(const char *str)
 
 
 
-void log_exit(const char *fmt, ...)
+void log_exit(int status, const char *fmt, ...)
 {
 	log_crit(fmt);
-	exit(EXIT_FAILURE);
+	exit(status);
 }
 
 
 
-void log_pexit(const char *str)
+void log_pexit(int status, const char *str)
 {
 	log_pcrit(str);
-	exit(EXIT_FAILURE);
+	exit(status);
 }
 
 
@@ -230,4 +231,6 @@ static void _print_log(int level, const char *fmt, ...)
 
 	va_end(ap);
 }
+
+
 
