@@ -56,15 +56,15 @@ uint32_t get_addr(char *if_name)
 {
 	int fd;
 	struct ifreq ifr;
-	struct in_addr *addr;
+	struct sockaddr_in *addr;
 
 	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
 	{
-		log_pperr("socket");
+		log_perr("socket");
 		return INADDR_ANY;
 	}
 
-	memset(&ifr, 0, sizeof(struct ifr));
+	memset(&ifr, 0, sizeof(struct ifreq));
 	strncpy(ifr.ifr_name, if_name, IF_NAMESIZE-1);
 	if (ioctl(fd, SIOCGIFADDR, &ifr) == -1)
 	{
@@ -75,8 +75,8 @@ uint32_t get_addr(char *if_name)
 
 	close(fd);
 
-	addr = (struct sockaddr_in)ifr.ifr_addr;
-	return addr->sin_addr;
+	addr = (struct sockaddr_in *)&ifr.ifr_addr;
+	return addr->sin_addr.s_addr;
 }
 
 

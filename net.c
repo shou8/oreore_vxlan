@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <net/ethernet.h>
 #include <netpacket/packet.h>
+#include <arpa/inet.h>
 
 #include "base.h"
 #include "log.h"
@@ -22,6 +23,8 @@
 #define BUF_SIZE	65536
 
 #define VXLAN_FLAG_MASK 0x08
+
+#define MCAST_DEFAULT_ADDR 0xef12b500
 
 
 
@@ -111,17 +114,29 @@ int init_udp_sock(unsigned short port)
 /*
  * Multicast Settings
  */
-int init_udp_mcast_sock(unsigned short port, uint32_t mcast_addr, char *if_name)
+int init_udp_mcast_sock(unsigned short port, char *mcast_addr, char *if_name)
 {
 	int sock;
 	struct ip_mreq mreq;
+	static uint32_t maddr = MCAST_DEFAULT_ADDR;
 
 	sock = init_udp_sock(port);
 
 	memset(&mreq, 0, sizeof(mreq));
-	mreq.imr_address.s_addr = mcast_addr;
-	mreq.imr_interface = htonl((if_name == NULL) ? INADDR_ANY : get_addr(if_name));
+	if (mcast_addr == NULL) {
+		struct in_addr tmp_addr;
+		tmp_addr.s_addr = htonl(maddr);
+		mcast_addr = inet_ntoa(tmp_addr);
+		log_warn("Multicast address is generated automatically: %s", mcast_addr);
+		maddr++;
+	}
 
+	if (inet_aton(mcast_addr, &mreq.imr_multiaddr) == 0) {
+		log_err("Invalid multicast address: %s", mcast_addr);
+		return -1;
+	}
+
+	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? INADDR_ANY : get_addr(if_name));
 	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
 		log_perr("setsockopt");
 		return -1;

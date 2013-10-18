@@ -3,10 +3,6 @@
 
 
 
-#include <net/ethernet.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-
 #include "base.h"
 #include "table.h"
 
@@ -33,7 +29,7 @@ extern vxi ****vxlan;
 
 vxi ****init_vxlan(void);
 void destroy_vxlan(void);
-void add_vxi(uint8_t *vni);
+void add_vxi(uint8_t *vni, char *addr);
 void del_vxi(uint8_t *vni);
 void show_vxi(void);
 

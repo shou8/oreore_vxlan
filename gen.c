@@ -17,6 +17,8 @@
 
 #define VXLAN_PORT	4789
 
+#define MCAST_DEFAULT_ADDR 0xef12b500
+
 typedef struct _vxlan_h_
 {
 	char flag;
@@ -101,12 +103,18 @@ void sendUdp(void)
 	int len;
 	int sock;
 	struct sockaddr_in addr;
+	struct ip_mreq mreq;
 
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(VXLAN_PORT);
 	inet_pton(AF_INET, "192.168.2.11", &addr.sin_addr.s_addr);
 //	inet_pton(AF_INET, "192.168.2.12", &addr.sin_addr.s_addr);
+
+	memset(&mreq, 0, sizeof(mreq));
+	inet_aton(MCAST_DEFAULT_ADDR, &mreq.imr_multiaddr);
+	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+	setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
 
 	while (1)
 	{
@@ -115,10 +123,12 @@ void sendUdp(void)
 		int len = make_vxlan_header(buf);
 		make_l2_dran_packet(buf + len);
 		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&addr, sizeof(addr));
+		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&mreq.imr_multiaddr, sizeof(mreq.imr_multiaddr));
 		if (len < 0 ) {
 			perror("sendto");
 		}
-		usleep(1000);
+	//	usleep(1000);
+		sleep(1);
 	}
 }
 

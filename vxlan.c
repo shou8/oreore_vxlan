@@ -3,6 +3,7 @@
 #include <string.h>
 #include <limits.h>
 #include <inttypes.h>
+#include <netinet/in.h>
 
 #include "base.h"
 #include "log.h"
@@ -69,7 +70,7 @@ static device create_vxlan_if(uint8_t *vni)
 
 
 
-void add_vxi(uint8_t *vni, uint32_t mcast_addr)
+void add_vxi(uint8_t *vni, char *addr)
 {
 	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL)
 	{
@@ -83,7 +84,14 @@ void add_vxi(uint8_t *vni, uint32_t mcast_addr)
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(TABLE_SIZE);
 	v->dev = create_vxlan_if(vni);
-	v->mcast_usoc = init_udp_mcast_sock(0, mcast_addr, INADDR_ANY);
+	v->mcast_usoc = init_udp_mcast_sock(0, addr, INADDR_ANY);
+
+	if (v->mcast_usoc == -1) {
+		log_perr("Cannot initialize socket");
+		free(v);
+		return;
+	}
+
 	vxlan[vni[0]][vni[1]][vni[2]] = v;
 }
 

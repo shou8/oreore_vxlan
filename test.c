@@ -155,21 +155,21 @@ void test_vxlan(void)
 	uint8_t vni[3];
 	memset(vni, 0, 3);
 	vxlan = init_vxlan();
-	add_vxi(vni);
+	add_vxi(vni, NULL);
 
 	vni[2] = 1;
-	add_vxi(vni);
+	add_vxi(vni, NULL);
 
 	vni[2] = 2;
-	add_vxi(vni);
+	add_vxi(vni, NULL);
 
 	vni[2] = 3;
-	add_vxi(vni);
+	add_vxi(vni, NULL);
 
 	vni[0] = 1;
 	vni[1] = 1;
 	vni[2] = 1;
-	add_vxi(vni);
+	add_vxi(vni, NULL);
 
 	del_vxi(vni);
 	del_vxi(vni);
@@ -177,12 +177,12 @@ void test_vxlan(void)
 	vni[0] = UINT8_MAX;
 	vni[1] = UINT8_MAX;
 	vni[2] = UINT8_MAX;
-	add_vxi(vni);
+	add_vxi(vni, NULL);
 
 	vni[0] = 1;
 	vni[1] = 0;
 	vni[2] = 0;
-	add_vxi(vni);
+	add_vxi(vni, NULL);
 
 	uint8_t hw[6];
 	hw[0] = 0x11;
@@ -212,7 +212,7 @@ void test_vxlan_table(void)
 	memset(hw, 0, 6);
 
 	vni[0] = 1;
-	add_vxi(vni);
+	add_vxi(vni, NULL);
 	vxi *v = vxlan[1][0][0];
 
 	add_data(v->table, hw, 0); 
@@ -228,6 +228,6 @@ void test_vxlan_table(void)
 	hw[5] = 0x11;
 
 
-	add_data(v->table, hw, 3232235777); 
+	add_data(v->table, hw, 0xc0a80101);
 	show_table(v->table);
 }
