@@ -13,8 +13,8 @@
 
 
 
-int tap_alloc(char *dev)  
-{
+int tap_alloc(char *dev) {
+
 	int fd;
 	struct ifreq ifr;
  
@@ -36,8 +36,8 @@ int tap_alloc(char *dev)
 
 
 
-int tap_up(char *dev)
-{
+int tap_up(char *dev) {
+
 	int fd;
 	struct ifreq ifr;
 

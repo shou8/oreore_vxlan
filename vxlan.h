@@ -3,6 +3,8 @@
 
 
 
+#include <netinet/in.h>
+
 #include "base.h"
 #include "table.h"
 
@@ -17,7 +19,7 @@ typedef struct _vxlan_instance_
 {
 	uint8_t vni[VNI_BYTE];
 	uint32_t mcast_addr;
-	int mcast_usoc;
+	int usoc;
 	device tap;
 	list **table;
 } vxi;

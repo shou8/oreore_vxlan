@@ -27,16 +27,16 @@
 
 
 
-typedef struct _mpool_pool_t_
-{
+typedef struct _mpool_pool_t_ {
+
 	void					*pool;	// Real memory space
 	struct _mpool_pool_t_	*next;
 } mpool_pool_t;
 
 
 
-typedef struct mpool_t
-{
+typedef struct mpool_t {
+
 	mpool_pool_t	*head;			// Memory pool head
 	void			*begin; 		// Data for internal conduct
 	size_t			usize;			// Used pool size

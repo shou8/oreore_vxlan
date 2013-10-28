@@ -17,8 +17,7 @@
 #define IF_NAME_LEN		256
 
 
-typedef struct _device_
-{
+typedef struct _device_ {
 	int sock;
 	char name[IF_NAME_LEN];
 	uint8_t hwaddr[MAC_LEN];

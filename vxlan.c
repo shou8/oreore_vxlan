@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <inttypes.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #include "base.h"
 #include "log.h"
@@ -84,9 +85,15 @@ void add_vxi(uint8_t *vni, char *addr)
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(TABLE_SIZE);
 	v->tap = create_vxlan_if(vni);
-	v->mcast_usoc = join_mcast_group(get_usoc(), 0, addr, NULL);
+	v->usoc = join_mcast_group(get_usoc(), 0, addr, NULL);
 
-	if (v->mcast_usoc == -1) {
+	if(inet_pton(AF_INET, addr, &v->mcast_addr) != 1) {
+		log_err("inet_pton: Cannot translate.");
+		free(v);
+		return;
+	}
+
+	if (v->usoc == -1) {
 		log_perr("Cannot initialize socket");
 		free(v);
 		return;

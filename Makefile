@@ -4,7 +4,7 @@ SRCS=${OBJS:%.o=%.c}
 CFLAGS=-Wall
 #LDLIBS=-lpthread
 TARGET=vxland
-DEBUG_FLAG=-DDEBUG
+DEBUG_FLAG=-g -DDEBUG
 
 
 
