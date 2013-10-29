@@ -20,6 +20,7 @@
 
 #define MCAST_DEFAULT_ADDR 0xef12b500
 
+/*
 typedef struct _vxlan_h_
 {
 	char flag;
@@ -27,12 +28,13 @@ typedef struct _vxlan_h_
 	char vni[3];
 	char reserve2;
 } vxlan_h;
+*/
 
 
 void sendRaw(void);
 void sendUdp(void);
 int make_arp_packet(char *buf);
-void make_l2_dran_packet(char *buf);
+int make_l2_dran_packet(char *buf);
 int make_l2_packet(char *buf);
 int make_vxlan_header(char *buf);
 
@@ -190,7 +192,7 @@ int make_vxlan_header(char *buf)
 	return sizeof(vxlan_h);
 }
 
-void make_l2_dran_packet(char *buf)
+int make_l2_dran_packet(char *buf)
 {
 	struct ether_header *eh = (struct ether_header *)buf;
 	uint8_t *addr = eh->ether_dhost;
@@ -213,4 +215,6 @@ void make_l2_dran_packet(char *buf)
 	addr[5] = rand() % 256;
 
 	buf[sizeof(struct ether_header) + 1] = '\0';
+
+	return sizeof(struct ether_header);
 }

@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <net/ethernet.h>
 #include <netpacket/packet.h>
+#include <netinet/if_ether.h>
 #include <errno.h>
 
 #include "net.h"
@@ -31,7 +32,8 @@ typedef struct _vxlan_h_ {
 
 void sendRaw(void);
 void sendUdp(void);
-void make_l2_dran_packet(char *buf);
+int make_arp_packet(char *buf);
+int make_l2_dran_packet(char *buf);
 int make_l2_packet(char *buf);
 int make_vxlan_header(char *buf);
 
@@ -124,7 +126,7 @@ void sendUdp(void) {
 		char buf[128];
 		memset(buf, 0, 128);
 		int len = make_vxlan_header(buf);
-		make_l2_dran_packet(buf + len);
+		make_arp_packet(buf + len);
 		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&addr, sizeof(addr));
 		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&maddr, sizeof(maddr));
 		if (len < 0 ) {
@@ -166,6 +168,17 @@ int make_l2_packet(char *buf) {
 
 
 
+int make_arp_packet(char *buf) {
+
+	int len = make_l2_dran_packet(buf);
+	struct ether_arp *arp = (struct ether_arp *)(buf + len);
+	arp->arp_op = ARPOP_REQUEST;
+
+	return len + sizeof(struct ether_arp);
+}
+
+
+
 // VNI: 100
 int make_vxlan_header(char *buf) {
 
@@ -179,7 +192,7 @@ int make_vxlan_header(char *buf) {
 	return sizeof(vxlan_h);
 }
 
-void make_l2_dran_packet(char *buf) {
+int make_l2_dran_packet(char *buf) {
 
 	struct ether_header *eh = (struct ether_header *)buf;
 	uint8_t *addr = eh->ether_dhost;
@@ -202,4 +215,6 @@ void make_l2_dran_packet(char *buf) {
 	addr[5] = rand() % 256;
 
 	buf[sizeof(struct ether_header) + 1] = '\0';
+
+	return sizeof(struct ether_header);
 }
