@@ -21,10 +21,5 @@ ${TARGET}:${OBJS}
 debug:
 	${MAKE} DEBUG_FLAG="-DDEBUG" OBJS="${OBJS} test.o"
 
-#test:
-#	${MAKE} ${DEBUG_FLAG} OBJS=${OBJS} test.o"
-#	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -c test.c
-#	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -o $@ $^ test.o ${LDLIBS}
-
 clean:
 	@rm -f *.o ${TARGET}
