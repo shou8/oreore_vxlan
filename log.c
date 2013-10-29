@@ -26,13 +26,10 @@
 // Logging on syslog or stderr
 static int _syslog_mode = SYSLOG_ENABLE;
 
-#ifdef DEBUG
 // Using for message information
 static int _pid;						// Process ID
 static char _h_name[HOST_NAME_MAX];		// Host Name
-
-static int _debug_mode = DEBUG_ENABLE;
-#endif /* DEBUG */
+static int _debug_mode = DEBUG_DISABLE;
 
 
 
@@ -51,7 +48,6 @@ void log_pcirt(const char *str);
  * Chage log mode
  *
  */
-#ifdef DEBUG
 
 void enable_debug(void) {
 
@@ -65,8 +61,6 @@ void disable_debug(void) {
 	_debug_mode = DEBUG_DISABLE;
 }
 
-#endif /* DEBUG */
-
 
 
 /*
@@ -75,9 +69,6 @@ void disable_debug(void) {
 void init_log(void) {
 
 	enable_syslog();
-
-#ifdef DEBUG
-
 	_pid = getpid();
 
 	if (gethostname(_h_name, sizeof(_h_name)) != 0)
@@ -85,7 +76,6 @@ void init_log(void) {
 
 	disable_syslog();
 
-#endif /* DEBUG */
 }
 
 
@@ -111,8 +101,6 @@ void disable_syslog(void) {
 
 
 
-#ifdef DEBUG
-
 void log_stderr(const char *fmt, ...) {
 
 	va_list ap;
@@ -130,14 +118,14 @@ void log_stderr(const char *fmt, ...) {
 
 void log_debug(const char *fmt, ...) {
 
+#ifdef DEBUG
 	va_list ap;
 	va_start(ap, fmt);
 	if (_debug_mode == DEBUG_ENABLE)
 		_print_log_v(LOG_DEBUG, fmt, ap);
 	va_end(ap);
-}
-
 #endif /* DEBUG */
+}
 
 
 
@@ -278,7 +266,7 @@ static void _print_log_v(int level, const char *fmt, va_list ap) {
 		openlog(DAEMON_NAME, LOG_CONS | LOG_PID, level);
 		vsnprintf(line, LOG_LINELEN, fmt, ap);
 		syslog(level, line);
-		close(log);
+		closelog();
 	} else {
 #endif /* DEBUG */
 		time_t t;

@@ -172,8 +172,6 @@ void del_data(list **table, unsigned int key)
 
 
 
-#ifdef DEBUG
-
 void show_table(list **table)
 {
 	list **tp = table;
@@ -198,4 +196,3 @@ void show_table(list **table)
 	printf("Count: %d\n", cnt);
 }
 
-#endif

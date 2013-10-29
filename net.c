@@ -156,7 +156,7 @@ int outer_loop(void) {
 	int buf_len;
 	//int len;
 	//char *p;
-	char *bp, buf[BUF_SIZE];
+	char buf[BUF_SIZE], *bp;
 	struct sockaddr_in src;
 	socklen_t addr_len = sizeof(src);
 
@@ -171,8 +171,11 @@ int outer_loop(void) {
 			log_perr("recvfrom");
 
 		vxlan_h *vh = (vxlan_h *)buf;
-		bp += sizeof(vxlan_h);
+		bp = buf + sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
+#ifdef DEBUG
+		print_vxl_h(vh, stdout);
+#endif
 
 		vxi *v = vxlan[vh->vni[0]][vh->vni[1]][vh->vni[2]];
 		if (v == NULL) continue;
@@ -187,8 +190,13 @@ int outer_loop(void) {
 		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
 
 #ifdef DEBUG
-//		print_eth_h(eh, stdout);
+		print_eth_h(eh, stdout);
 #endif
+		/*
+		 * This function is called by "thread_create".
+		 * And this have "while loop", so we have to use "thread_cancel" to stop this.
+		 * But, we don't have to worry to use it, because pthread's "canceltype" is "DEFERRED" by default.
+		 */
 
 //		write(v->tap.sock, bp, buf_len); 
 	}

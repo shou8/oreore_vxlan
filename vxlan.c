@@ -25,8 +25,8 @@ static device create_vxlan_if(uint8_t *vni);
 
 
 
-vxi ****init_vxlan(void)
-{
+vxi ****init_vxlan(void) {
+
 	vxlan = (vxi ****)malloc(sizeof(vxi ***) * VXI_MAX);
 	if (vxlan == NULL) log_pcexit("malloc");
 	vxlan[0] = (vxi ***)malloc(sizeof(vxi **) * VXI_MAX * VXI_MAX);
@@ -48,8 +48,8 @@ vxi ****init_vxlan(void)
 
 
 
-void destroy_vxlan(void)
-{
+void destroy_vxlan(void) {
+
 	free(vxlan[0][0]);
 	free(vxlan[0]);
 	free(vxlan);
@@ -57,12 +57,15 @@ void destroy_vxlan(void)
 
 
 
-static device create_vxlan_if(uint8_t *vni)
-{
+static device create_vxlan_if(uint8_t *vni) {
+
 	device tap;
-	uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
+	//uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
+	uint32_t vni32 = To32ex(vni);
 
 	snprintf(tap.name, IF_NAME_LEN, "vxlan%"PRIo32, vni32);
+	log_debug("VNI: %"PRIu8".%"PRIu8".%"PRIu8"\n", vni[0], vni[1], vni[2]);
+	log_info("Tap interface \"%s\" is created (VNI: %"PRIo32").\n", tap.name);
 	tap.sock = init_raw_sock(tap.name);
 	get_mac(tap.sock, tap.name, tap.hwaddr);
 
@@ -71,13 +74,12 @@ static device create_vxlan_if(uint8_t *vni)
 
 
 
-void add_vxi(uint8_t *vni, char *addr)
-{
-	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL)
-	{
-		uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
+vxi *add_vxi(uint8_t *vni, char *addr) {
+
+	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL) {
+		uint32_t vni32 = To32ex(vni);
 		log_err("VNI: %"PRIo32" has already exist\n", vni32);
-		return;
+		return NULL;
 	}
 
 	vxi *v = (vxi *)malloc(sizeof(vxi));
@@ -87,28 +89,38 @@ void add_vxi(uint8_t *vni, char *addr)
 	v->tap = create_vxlan_if(vni);
 	v->usoc = join_mcast_group(get_usoc(), 0, addr, NULL);
 
-	if(inet_pton(AF_INET, addr, &v->mcast_addr) != 1) {
-		log_err("inet_pton: Cannot translate.");
+	if (inet_pton(AF_INET, addr, &v->mcast_addr) != 1) {
+		log_err("inet_pton: Cannot translate (%s).", addr);
 		free(v);
-		return;
+		return NULL;
 	}
 
 	if (v->usoc == -1) {
-		log_perr("Cannot initialize socket");
+		log_err("Cannot initialize socket (%d)", v->usoc);
+		log_perr("socket");
 		free(v);
-		return;
+		return NULL;
 	}
 
 	vxlan[vni[0]][vni[1]][vni[2]] = v;
+
+	return v;
 }
 
 
 
-void del_vxi(uint8_t *vni)
-{
-	if (vxlan[vni[0]][vni[1]][vni[2]] == NULL)
-	{
-		uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
+void create_vxi(uint8_t *vni, char *addr, pthread_t th) {
+
+	vxi *v = add_vxi(vni, addr);
+	if (v != NULL) v->th = th;
+}
+
+
+
+void del_vxi(uint8_t *vni) {
+
+	if (vxlan[vni[0]][vni[1]][vni[2]] == NULL) {
+		uint32_t vni32 = To32ex(vni);
 		log_err("VNI: %"PRIo32" does not exist\n", vni32);
 		return;
 	}
@@ -119,21 +131,23 @@ void del_vxi(uint8_t *vni)
 
 
 
-//int add_data(vxi vi, uint8_t *hw_addr, uint32_t vtep_addr)
-//{
-//		return 0;
-//}
+void destroy_vxi(uint8_t *vni) {
+
+	pthread_t th = (vxlan[vni[0]][vni[1]][vni[2]])->th;
+	pthread_cancel(th);
+	del_vxi(vni);
+}
 
 
 
-void show_vxi(void)
-{
+void show_vxi(void) {
+
 	int i,j,k;
 	for (i=0; i<VXI_MAX; i++)
 		for (j=0; j<VXI_MAX; j++)
 			for (k=0; k<VXI_MAX; k++)
 				if (vxlan[i][j][k] != NULL) {
-					uint32_t vni32 = i << 16 | j << 8 | k;
+					uint32_t vni32 = To32(i, j, k);
 					printf("vxlan[%02X][%02X][%02X]: 0x%06X: %p\n", i, j, k, vni32, vxlan[i][j][k]);
 				}
 }

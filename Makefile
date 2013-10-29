@@ -1,11 +1,12 @@
 CC=gcc
-OBJS=main.o netutil.o log.o iftap.o table.o net.o vxlan.o #mpool.o 
+OBJS=main.o netutil.o log.o iftap.o table.o net.o vxlan.o #test.o mpool.o 
 SRCS=${OBJS:%.o=%.c}
-CFLAGS=-Wall
-#LDLIBS=-lpthread
+LDLIBS=-lpthread
 TARGET=vxland
-DEBUG_FLAG=-g -DDEBUG
+DEBUG_FLAG=-DDEBUG
+CFLAGS=-Wall -g
 
+TEST=test
 
 
 .SUFFIXES: .c .o
@@ -20,10 +21,10 @@ all:${TARGET}
 ${TARGET}:${OBJS}
 	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
-debug:
-	${MAKE} "CFLAGS=${CFLAGS}" ${DEBUG_FLAG} "OBJS=${OBJS} test.o"
+#debug:
+#	${MAKE} "CFLAGS=${CFLAGS}" ${DEBUG_FLAG} "OBJS=${OBJS} test.o"
 
-test:${OBJS}
+${TEST}:${OBJS}
 	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -c test.c
 	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -o $@ $^ test.o ${LDLIBS}
 

@@ -9,18 +9,14 @@
  */
 void init_log(void);
 
-#ifdef DEBUG
-
 void enable_debug(void);
 void disable_debug(void);
 void log_stderr(const char *fmt, ...);
-void log_debug(const char *fmt, ...);
-
-#endif /* DEBUG */
 
 void enable_syslog(void);
 void disable_syslog(void);
 
+void log_debug(const char *fmt, ...);
 void log_info(const char *fmt, ...);
 void log_warn(const char *fmt, ...);
 void log_err(const char *fmt, ...);

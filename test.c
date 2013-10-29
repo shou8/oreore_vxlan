@@ -18,8 +18,8 @@ void test_vxlan_table(void);
 
 
 
-void test(void)
-{
+void test(void) {
+
 //	test_log();
 //	test_mpool();
 //	test_table();
@@ -180,8 +180,8 @@ void test_net(void)
 
 //	int usoc = join_mcast_group(4789, buf, NULL);
 
-//	inner_loop(vxlan[1][0][0]);
-	outer_loop();
+	inner_loop(vxlan[1][0][0]);
+//	outer_loop();
 	
 }
 
