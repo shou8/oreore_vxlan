@@ -175,12 +175,12 @@ void test_net(void)
 {
 	char buf[] = "239.18.181.0\0";
 	vxlan = init_vxlan();
-	uint8_t vni[3] = {1, 0, 0};
+	uint8_t vni[3] = {0, 0, 1};
 	add_vxi(vni, buf);
 
 //	int usoc = join_mcast_group(4789, buf, NULL);
 
-	inner_loop(vxlan[1][0][0]);
+	inner_loop(vxlan[0][0][1]);
 //	outer_loop();
 	
 }
