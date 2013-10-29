@@ -30,6 +30,7 @@ typedef struct _ilt_arg_ {
 int main(int argc, char *argv[]) {
 
 #ifdef DEBUG
+	enable_debug();
 //	test();
 #endif /* DEUBG */
 

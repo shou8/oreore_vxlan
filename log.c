@@ -125,6 +125,7 @@ void log_debug(const char *fmt, ...) {
 		_print_log_v(LOG_DEBUG, fmt, ap);
 	va_end(ap);
 #endif /* DEBUG */
+
 }
 
 

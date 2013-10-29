@@ -63,9 +63,10 @@ static device create_vxlan_if(uint8_t *vni) {
 	//uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
 	uint32_t vni32 = To32ex(vni);
 
-	snprintf(tap.name, IF_NAME_LEN, "vxlan%"PRIo32, vni32);
-	log_debug("VNI: %"PRIu8".%"PRIu8".%"PRIu8"\n", vni[0], vni[1], vni[2]);
-	log_info("Tap interface \"%s\" is created (VNI: %"PRIo32").\n", tap.name);
+	snprintf(tap.name, IF_NAME_LEN, "vxlan%"PRIx32, vni32);
+	log_debug("VNI: %"PRIx8".%"PRIx8".%"PRIx8"\n", vni[0], vni[1], vni[2]);
+	log_debug("VNI: %"PRIx32"\n", (uint32_t)vni[0] << 16 | (uint32_t)vni[1] << 8 | (uint32_t)vni[2]);
+	log_info("Tap interface \"%s\" is created (VNI: %"PRIx32").\n", tap.name);
 	tap.sock = init_raw_sock(tap.name);
 	get_mac(tap.sock, tap.name, tap.hwaddr);
 
@@ -78,7 +79,7 @@ vxi *add_vxi(uint8_t *vni, char *addr) {
 
 	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL) {
 		uint32_t vni32 = To32ex(vni);
-		log_err("VNI: %"PRIo32" has already exist\n", vni32);
+		log_err("VNI: %"PRIx32" has already exist\n", vni32);
 		return NULL;
 	}
 
@@ -121,7 +122,7 @@ void del_vxi(uint8_t *vni) {
 
 	if (vxlan[vni[0]][vni[1]][vni[2]] == NULL) {
 		uint32_t vni32 = To32ex(vni);
-		log_err("VNI: %"PRIo32" does not exist\n", vni32);
+		log_err("VNI: %"PRIx32" does not exist\n", vni32);
 		return;
 	}
 

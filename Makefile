@@ -6,13 +6,10 @@ TARGET=vxland
 DEBUG_FLAG=-DDEBUG
 CFLAGS=-Wall -g
 
-TEST=test
-
-
 .SUFFIXES: .c .o
 
 .c.o:
-	${CC} ${CFLAGS} ${LDFLAGS} ${DEBUG_FLAG} -c $<
+	${CC} ${CFLAGS} ${LDFLAGS} -c $<
 
 .PHONY: all clean debug
 
@@ -24,7 +21,7 @@ ${TARGET}:${OBJS}
 #debug:
 #	${MAKE} "CFLAGS=${CFLAGS}" ${DEBUG_FLAG} "OBJS=${OBJS} test.o"
 
-${TEST}:${OBJS}
+test:${OBJS}
 	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -c test.c
 	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -o $@ $^ test.o ${LDLIBS}
 
