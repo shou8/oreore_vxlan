@@ -19,12 +19,14 @@
 
 #define MCAST_DEFAULT_ADDR 0xef12b500
 
+/*
 typedef struct _vxlan_h_ {
 	char flag;
 	char reserve1[3];
 	char vni[3];
 	char reserve2;
 } vxlan_h;
+*/
 
 
 void sendRaw(void);
@@ -112,10 +114,10 @@ void sendUdp(void) {
 
 	maddr.sin_family = AF_INET;
 	maddr.sin_port = htons(VXLAN_PORT);
-	inet_pton(AF_INET, "239.18.181.0", &maddr.sin_addr.s_addr);
+//	inet_pton(AF_INET, "239.18.181.0", &maddr.sin_addr.s_addr);
 //	inet_ntoa(MCAST_DEFAULT_ADDR, &maddr.sin_addr.s_addr);
-//	inet_ntoa(MCAST_DEFAULT_ADDR, &mreq.multicast_addr);
-//	setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
+	inet_ntoa(MCAST_DEFAULT_ADDR, &mreq.imr_multiaddr);
+	setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
 
 	while (1) {
 
