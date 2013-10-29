@@ -116,19 +116,24 @@ void sendUdp(void) {
 
 	maddr.sin_family = AF_INET;
 	maddr.sin_port = htons(VXLAN_PORT);
-//	inet_pton(AF_INET, "239.18.181.0", &maddr.sin_addr.s_addr);
+	inet_pton(AF_INET, "239.18.181.0", &maddr.sin_addr.s_addr);
 //	inet_ntoa(MCAST_DEFAULT_ADDR, &maddr.sin_addr.s_addr);
-	inet_ntoa(MCAST_DEFAULT_ADDR, &mreq.imr_multiaddr);
-	setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
+//	inet_ntoa(MCAST_DEFAULT_ADDR, &mreq.imr_multiaddr);
+//	setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
+
+	char buf1[128];
+	char buf2[128];
 
 	while (1) {
 
-		char buf[128];
-		memset(buf, 0, 128);
-		int len = make_vxlan_header(buf);
-		make_arp_packet(buf + len);
-		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&addr, sizeof(addr));
-		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&maddr, sizeof(maddr));
+		memset(buf1, 0, 128);
+		memset(buf2, 0, 128);
+		int len1 = make_vxlan_header(buf1);
+		int len2 = make_vxlan_header(buf2);
+		make_l2_dran_packet(buf1 + len1);
+		make_arp_packet(buf2 + len2);
+		len = sendto(sock, buf1, 128, 0, (struct sockaddr *)&addr, sizeof(addr));
+		len = sendto(sock, buf2, 128, 0, (struct sockaddr *)&maddr, sizeof(maddr));
 		if (len < 0 ) {
 			perror("sendto");
 		}
