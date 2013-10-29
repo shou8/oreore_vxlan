@@ -38,8 +38,8 @@ int make_vxlan_header(char *buf);
 
 int main(int argc, char *argv[])
 {
-	//sendUdp();
-	sendRaw();
+	sendUdp();
+	//sendRaw();
     return 0;
 }
 
@@ -102,7 +102,7 @@ void sendUdp(void)
 {
 	int len;
 	int sock;
-	struct sockaddr_in addr;
+	struct sockaddr_in addr, maddr;
 	struct ip_mreq mreq;
 
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -111,10 +111,12 @@ void sendUdp(void)
 	inet_pton(AF_INET, "192.168.2.11", &addr.sin_addr.s_addr);
 //	inet_pton(AF_INET, "192.168.2.12", &addr.sin_addr.s_addr);
 
-	memset(&mreq, 0, sizeof(mreq));
-	inet_aton(MCAST_DEFAULT_ADDR, &mreq.imr_multiaddr);
-	mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-	setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
+	maddr.sin_family = AF_INET;
+	maddr.sin_port = htons(VXLAN_PORT);
+	inet_pton(AF_INET, "239.18.181.0", &maddr.sin_addr.s_addr);
+//	inet_ntoa(MCAST_DEFAULT_ADDR, &maddr.sin_addr.s_addr);
+//	inet_ntoa(MCAST_DEFAULT_ADDR, &mreq.multicast_addr);
+//	setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
 
 	while (1)
 	{
@@ -123,7 +125,7 @@ void sendUdp(void)
 		int len = make_vxlan_header(buf);
 		make_l2_dran_packet(buf + len);
 		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&addr, sizeof(addr));
-		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&mreq.imr_multiaddr, sizeof(mreq.imr_multiaddr));
+		len = sendto(sock, buf, 128, 0, (struct sockaddr *)&maddr, sizeof(maddr));
 		if (len < 0 ) {
 			perror("sendto");
 		}
