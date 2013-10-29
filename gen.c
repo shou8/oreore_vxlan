@@ -62,7 +62,7 @@ void sendRaw(void) {
 		printf("sock: %d\n", sock);
 	}
 	memset(&ifreq, 0, sizeof(struct ifreq));
-	strncpy(ifreq.ifr_name, "vxlan200000", IFNAMSIZ-1);
+	strncpy(ifreq.ifr_name, "vxlan1", IFNAMSIZ-1);
 	ret = ioctl(sock, SIOCGIFINDEX, &ifreq);
 	if (ret < 0) { 
 		perror("ioctl");
@@ -184,15 +184,15 @@ int make_arp_packet(char *buf) {
 
 
 
-// VNI: 100
+// VNI: 001
 int make_vxlan_header(char *buf) {
 
 	static char c = 0;
 	vxlan_h *v = (vxlan_h *)buf;
 	v->flag = 0x08;
-	v->vni[0] = 1;
+	v->vni[0] = 0;
 	v->vni[1] = 0;
-	v->vni[2] = 0;
+	v->vni[2] = 1;
 
 	return sizeof(vxlan_h);
 }
