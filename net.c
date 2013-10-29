@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <net/if.h>
-#include <netinet/in.h>
+//#include <netinet/in.h>
 #include <net/ethernet.h>
 #include <netpacket/packet.h>
 #include <arpa/inet.h>
@@ -16,29 +17,20 @@
 #include "netutil.h"
 #include "table.h"
 #include "vxlan.h"
+#include "net.h"
 
 
 
 #define VXLAN_PORT	4789
 #define BUF_SIZE	65536
 
-#define VXLAN_FLAG_MASK 0x08
+#define VXLAN_FLAG_MASK		0x08
 
-#define MCAST_DEFAULT_ADDR 0xef12b500
-
-
-
-typedef struct _vxlan_h_
-{
-	uint8_t flag;
-	uint8_t reserve1[3];
-	uint8_t vni[3];
-	uint8_t reserve2;
-} vxlan_h;
+#define MCAST_DEFAULT_ADDR	0xef12b500
 
 
 
-static int usoc;
+static int usoc = -1;
 
 
 
@@ -48,8 +40,8 @@ static int usoc;
 
 
 
-int init_raw_sock(char *dev)
-{
+int init_raw_sock(char *dev) {
+
 	struct ifreq ifreq;
 	struct sockaddr_ll sa;
 	int sock;
@@ -57,16 +49,14 @@ int init_raw_sock(char *dev)
 	tap_alloc(dev);
 	tap_up(dev);
 
-	if ((sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0)
-	{
+	if ((sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
 		log_pcrit("socket");
 		return -1;
 	}
 
 	memset(&ifreq, 0, sizeof(struct ifreq));
 	strncpy(ifreq.ifr_name, dev, IFNAMSIZ-1);
-	if (ioctl(sock, SIOCGIFINDEX, &ifreq) < 0)
-	{
+	if (ioctl(sock, SIOCGIFINDEX, &ifreq) < 0) {
 		log_pcrit("ioctl");
 		close(sock);
 		return -1;
@@ -76,8 +66,7 @@ int init_raw_sock(char *dev)
 	sa.sll_protocol = htons(ETH_P_ALL);
 	sa.sll_ifindex = ifreq.ifr_ifindex;
 
-	if (bind(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0)
-	{
+	if (bind(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
 		log_pcrit("bind");
 		close(sock);
 		return -1;
@@ -88,13 +77,12 @@ int init_raw_sock(char *dev)
 
 
 
-int init_udp_sock(unsigned short port)
-{
+int init_udp_sock(unsigned short port) {
+
 	int sock;
 	struct sockaddr_in addr;
 
-	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-	{
+	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		log_pcrit("socket");
 		return -1;
 	}
@@ -103,8 +91,7 @@ int init_udp_sock(unsigned short port)
 	addr.sin_port = htons(port);
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-	{
+	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		log_pcrit("bind");
 		close(sock);
 		return -1;
@@ -119,8 +106,8 @@ int init_udp_sock(unsigned short port)
  * Multicast Settings
  */
 
-int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_name)
-{
+int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_name) {
+
 	struct ip_mreq mreq;
 	static uint32_t maddr = MCAST_DEFAULT_ADDR;
 
@@ -164,24 +151,25 @@ int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_n
  * Network Loop Function
  */
 
-int outer_loop(void)
-{
-	int buf_len, len;
-	char *bp, *p;
-	char buf[BUF_SIZE];
+int outer_loop(void) {
+
+	int buf_len;
+	//int len;
+	//char *p;
+	char *bp, buf[BUF_SIZE];
 	struct sockaddr_in src;
 	socklen_t addr_len = sizeof(src);
 
+	bp = buf;
 	usoc = init_udp_sock(VXLAN_PORT);
 	if (usoc < 0) log_cexit("socket: Bad descripter\n");
 
-	while (1)
-	{
+	while (1) {
+
 		if ((buf_len = recvfrom(usoc, buf, sizeof(buf)-1, 0,
 						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("recvfrom");
 
-		bp = buf;
 		vxlan_h *vh = (vxlan_h *)buf;
 		bp += sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
@@ -190,12 +178,10 @@ int outer_loop(void)
 		if (v == NULL) continue;
 
 		struct ether_header *eh = (struct ether_header *)bp;
-		p = bp + sizeof(struct ether_header);
-		len = len - sizeof(struct ether_header);
 
+		/* Store VTEP information */
 		if (eh->ether_type == ETH_P_ARP) {
 			add_data(v->table, eh->ether_shost, src.sin_addr.s_addr);
-//			show_table(v->table);
 		}
 
 		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
@@ -204,7 +190,7 @@ int outer_loop(void)
 //		print_eth_h(eh, stdout);
 #endif
 
-		write(v->tap.sock, bp, buf_len); 
+//		write(v->tap.sock, bp, buf_len); 
 	}
 
 	/*
@@ -215,21 +201,12 @@ int outer_loop(void)
 
 
 
-//int packet_analyze(char *buf, int buf_len)
-//{
-//	struct ether_header *eh;
-//}
-#include <inttypes.h>
-
-
-
-int inner_loop(vxi *v)
-{
+int inner_loop(vxi *v) {
 
 	/* Common declaration */
 	char buf[BUF_SIZE];
-	char *rp = buf + sizeof(vxi);
-	int rlen = sizeof(buf) - sizeof(vxi) - 1;
+	char *rp = buf + sizeof(vxlan_h);
+	int rlen = sizeof(buf) - sizeof(vxlan_h) - 1;
 	int len;
 
 	/* For RAW socket declaration (Read) */
@@ -237,34 +214,49 @@ int inner_loop(vxi *v)
 	socklen_t addr_len = sizeof(src);
 
 	/* For UDP socket declaration (Write) */
+	if (usoc < 0) usoc = init_udp_sock(VXLAN_PORT);
+	if (usoc < 0) log_cexit("socket: Bad descripter\n");
 	struct sockaddr_in dst;
+	dst.sin_port = VXLAN_PORT;
 
 	/* For vxlan instance declaration */
 	device tap = v->tap;
 	int rsoc = tap.sock;
 	if (rsoc < 0) log_cexit("socket: Bad descripter\n");
 
-	vxlan_h *vh = (vxlan_h *)buf;
 	mac_tbl *data;
 
-	while (1)
-	{
+	/* Initialize vxlan header */
+	vxlan_h *vh = (vxlan_h *)buf;
+
+	while (1) {
+
 		if ((len = recvfrom(rsoc, rp, rlen, 0,
 						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("recvfrom");
 
+		memset(vh, 0, sizeof(vxlan_h));
+		vh->flag = VXLAN_FLAG_MASK;
+		memcpy(vh->vni, v->vni, VNI_BYTE);
+
+#ifdef DEBUG
+		print_vxl_h(vh, stdout);
+#endif
+
 		struct ether_header *eh = (struct ether_header *)rp;
+		if (eh->ether_type == ETH_P_ARP) {
+			dst.sin_addr.s_addr = v->mcast_addr;
+			if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
+				log_perr("sendto");
+			continue;
+		}
 
 		if ((data = find_data(v->table, eh->ether_dhost)) == NULL)
 			continue;
 
-		uint32_t addr = ntohl(data->vtep_addr);
-		uint8_t *p = (uint8_t *)&addr;
-		printf("vtep: %"PRIu8, *(p++));
-		printf(".%"PRIu8, *(p++));
-		printf(".%"PRIu8, *(p++));
-		printf(".%"PRIu8"\n", *(p++));
-
+		dst.sin_addr.s_addr = htonl(data->vtep_addr);
+		if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
+			log_perr("sendto");
 	}
 
 	/*
@@ -278,7 +270,18 @@ int inner_loop(vxi *v)
 /*
  * Getter
  */
-int get_usoc(void)
-{
+int get_usoc(void) {
+
 	return usoc;
+}
+
+
+
+void print_vxl_h(vxlan_h *vh, FILE *fp) {
+
+	fprintf(fp, "vxlan_header =====\n");
+	fprintf(fp, "flag: %08X\n", vh->flag);
+	fprintf(fp, "rsv1: %08X.%08X.%08X\n", vh->rsv1[0], vh->rsv1[1], vh->rsv1[2]);
+	fprintf(fp, "vni : %08X.%08X.%08X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
+	fprintf(fp, "rsv2: %08X\n", vh->rsv2);
 }

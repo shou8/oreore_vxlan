@@ -27,8 +27,8 @@
 
 
 /* For Debug: MAC address to String */
-void mtos(char *str, uint8_t hwaddr[MAC_LEN] )
-{
+void mtos(char *str, uint8_t hwaddr[MAC_LEN]) {
+
 	sprintf(str, "%x:%x:%x:%x:%x:%x", hwaddr[0], hwaddr[1],
 								hwaddr[2], hwaddr[3],
 								hwaddr[4], hwaddr[5]);
@@ -36,8 +36,7 @@ void mtos(char *str, uint8_t hwaddr[MAC_LEN] )
 
 
 
-int cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] )
-{
+int cmp_mac(uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN]) {
 	return memcmp(hwaddr1, hwaddr2, MAC_LEN);
 }
 
@@ -52,22 +51,20 @@ int cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] )
  *		uint32_t: INADDR_ANY(e.g. 0): No interface or Some error.
  *		uint32_t: Not 0				: Interface's Address
  */
-uint32_t get_addr(char *if_name)
-{
+uint32_t get_addr(char *if_name) {
+
 	int fd;
 	struct ifreq ifr;
 	struct sockaddr_in *addr;
 
-	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-	{
+	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
 		log_perr("socket");
 		return INADDR_ANY;
 	}
 
 	memset(&ifr, 0, sizeof(struct ifreq));
 	strncpy(ifr.ifr_name, if_name, IF_NAMESIZE-1);
-	if (ioctl(fd, SIOCGIFADDR, &ifr) == -1)
-	{
+	if (ioctl(fd, SIOCGIFADDR, &ifr) == -1) {
 		log_perr("ioctl");
 		close(fd);
 		return INADDR_ANY;
@@ -81,14 +78,13 @@ uint32_t get_addr(char *if_name)
 
 
 
-uint8_t *get_mac(int sock, char *name, uint8_t *hwaddr)
-{
+uint8_t *get_mac(int sock, char *name, uint8_t *hwaddr) {
+
 	struct ifreq ifreq;
 	uint8_t *addr;
 
 	strncpy(ifreq.ifr_name, name, sizeof(ifreq.ifr_name) - 1);
-	if ( ioctl(sock, SIOCGIFHWADDR, &ifreq) == -1 )
-	{
+	if ( ioctl(sock, SIOCGIFHWADDR, &ifreq) == -1 ) {
 		log_pcrit("ioctl");
 		close(sock);
 		return NULL;
@@ -109,8 +105,8 @@ uint8_t *get_mac(int sock, char *name, uint8_t *hwaddr)
 /*
  * Get random mac address for DEBUG
  */
-void get_ran_mac( uint8_t hwaddr[MAC_LEN] )
-{
+void get_ran_mac( uint8_t hwaddr[MAC_LEN] ) {
+
 	int i = 0;
 	for (i=0; i<MAC_LEN; i++)
 		hwaddr[i] = rand() % 0xFF;
@@ -118,16 +114,16 @@ void get_ran_mac( uint8_t hwaddr[MAC_LEN] )
 
 
 
-char *eth_ntoa(uint8_t *hwaddr, char *buf, size_t size)
-{
+char *eth_ntoa(uint8_t *hwaddr, char *buf, size_t size) {
+
 	snprintf(buf, size, "%02X:%02X:%02X:%02X:%02X:%02X", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5]);
 	return buf;
 }
 
 
 
-void print_eth_h(struct ether_header *eh, FILE *fp)
-{
+void print_eth_h(struct ether_header *eh, FILE *fp) {
+
 	char buf[128];
 
 	fprintf(fp, "ether_header -----\n");
@@ -135,8 +131,7 @@ void print_eth_h(struct ether_header *eh, FILE *fp)
 	fprintf(fp, "ether_shost: %s\n", eth_ntoa(eh->ether_shost, buf, sizeof(buf)));
 	fprintf(fp, "ether_type : %02X", ntohs(eh->ether_type));
 
-	switch(eh->ether_type)
-	{
+	switch(eh->ether_type) {
 		case ETH_P_IP:
 			fprintf(fp, "(IP)\n");
 			break;
