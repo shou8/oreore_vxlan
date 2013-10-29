@@ -177,11 +177,11 @@ void test_net(void)
 	vxlan = init_vxlan();
 	uint8_t vni[3] = {1, 0, 0};
 	add_vxi(vni, buf);
-	inner_loop(vxlan[1][0][0]);
 
 //	int usoc = join_mcast_group(4789, buf, NULL);
 
-	//outer_loop();
+//	inner_loop(vxlan[1][0][0]);
+	outer_loop();
 	
 }
 
