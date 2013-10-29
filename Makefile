@@ -3,27 +3,28 @@ OBJS=main.o netutil.o log.o iftap.o table.o net.o vxlan.o #test.o mpool.o
 SRCS=${OBJS:%.o=%.c}
 LDLIBS=-lpthread
 TARGET=vxland
-DEBUG_FLAG=-DDEBUG
+#DEBUG_FLAG=-DDEBUG
 CFLAGS=-Wall -g
 
 .SUFFIXES: .c .o
 
 .c.o:
-	${CC} ${CFLAGS} ${LDFLAGS} -c $<
+	${CC} ${CFLAGS} ${LDFLAGS} ${DEBUG_FLAG} -c $<
 
-.PHONY: all clean debug
+.PHONY: all clean test
 
 all:${TARGET}
 
 ${TARGET}:${OBJS}
 	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
-#debug:
-#	${MAKE} "CFLAGS=${CFLAGS}" ${DEBUG_FLAG} "OBJS=${OBJS} test.o"
+debug:
+	${MAKE} DEBUG_FLAG="-DDEBUG" OBJS="${OBJS} test.o"
 
-test:${OBJS}
-	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -c test.c
-	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -o $@ $^ test.o ${LDLIBS}
+#test:
+#	${MAKE} ${DEBUG_FLAG} OBJS=${OBJS} test.o"
+#	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -c test.c
+#	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -o $@ $^ test.o ${LDLIBS}
 
 clean:
 	@rm -f *.o ${TARGET}
