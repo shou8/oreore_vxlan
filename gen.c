@@ -62,7 +62,7 @@ void sendRaw(void) {
 		printf("sock: %d\n", sock);
 	}
 	memset(&ifreq, 0, sizeof(struct ifreq));
-	strncpy(ifreq.ifr_name, "vxlan200000", IFNAMSIZ-1);
+	strncpy(ifreq.ifr_name, "vxlan1", IFNAMSIZ-1);
 	ret = ioctl(sock, SIOCGIFINDEX, &ifreq);
 	if (ret < 0) { 
 		perror("ioctl");
