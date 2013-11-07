@@ -1,10 +1,10 @@
 CC=gcc
-OBJ1=gen.o
-OBJ2=gen2.o
+OBJ1=udpgen.o
+OBJ2=rawgen.o
 #SRCS1=${OBJ1:%.o=%.c}
 #SRCS2=${OBJ2:%.o=%.c}
-TARGET1=gen
-TARGET2=gen2
+TARGET1=udpgen
+TARGET2=rawgen
 TARGETS=${TARGET1} ${TARGET2}
 LDFLAGS=
 
