@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <malloc.h>
 
 #include "base.h"
 #include "log.h"
