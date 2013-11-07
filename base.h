@@ -16,6 +16,9 @@
 
 #define IF_NAME_LEN		256
 
+#define DEFAULT_UNIXSOCK_PATH		"/tmp/vxlan.sock"
+
+
 
 typedef struct _device_ {
 	int sock;

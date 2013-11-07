@@ -10,6 +10,7 @@
 #include <net/ethernet.h>
 #include <netpacket/packet.h>
 #include <arpa/inet.h>
+#include <sys/un.h>
 
 #include "base.h"
 #include "log.h"
@@ -31,119 +32,6 @@
 
 
 static int usoc = -1;
-
-
-
-/*
- * Socket Settings
- */
-
-
-
-int init_raw_sock(char *dev) {
-
-	struct ifreq ifreq;
-	struct sockaddr_ll sa;
-	int sock;
-
-	tap_alloc(dev);
-	tap_up(dev);
-
-	if ((sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
-		log_pcrit("socket");
-		return -1;
-	}
-
-	memset(&ifreq, 0, sizeof(struct ifreq));
-	strncpy(ifreq.ifr_name, dev, IFNAMSIZ-1);
-	if (ioctl(sock, SIOCGIFINDEX, &ifreq) < 0) {
-		log_pcrit("ioctl");
-		close(sock);
-		return -1;
-	}
-
-	sa.sll_family = AF_PACKET;
-	sa.sll_protocol = htons(ETH_P_ALL);
-	sa.sll_ifindex = ifreq.ifr_ifindex;
-
-	if (bind(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-		log_pcrit("bind");
-		close(sock);
-		return -1;
-	}
-
-	return sock;
-}
-
-
-
-int init_udp_sock(unsigned short port) {
-
-	int sock;
-	struct sockaddr_in addr;
-
-	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-		log_pcrit("socket");
-		return -1;
-	}
-
-	addr.sin_family = AF_INET;
-	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
-	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		log_pcrit("bind");
-		close(sock);
-		return -1;
-	}
-
-	return sock;
-}
-
-
-
-/*
- * Multicast Settings
- */
-
-int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_name) {
-
-	struct ip_mreq mreq;
-	static uint32_t maddr = MCAST_DEFAULT_ADDR;
-
-	if (sock <= 0) sock = init_udp_sock(port);
-
-	memset(&mreq, 0, sizeof(mreq));
-	if (mcast_addr == NULL) {
-		struct in_addr tmp_addr;
-		char addr_str[32];
-	
-		tmp_addr.s_addr = htonl(maddr);
-		if( inet_ntop(AF_INET, &tmp_addr.s_addr, addr_str, sizeof(addr_str)) == NULL ) {
-			log_perr("Invalid address");
-			return -1;
-		}
-
-		mcast_addr = addr_str;
-		log_warn("Multicast address is automatically generated: %s\n", mcast_addr);
-		maddr++;
-	}
-
-	if (inet_aton(mcast_addr, &mreq.imr_multiaddr) == 0) {
-		log_err("Invalid multicast address: %s", mcast_addr);
-		return -1;
-	}
-
-	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? INADDR_ANY : get_addr(if_name));
-	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
-		log_perr("setsockopt");
-		return -1;
-	}
-
-	log_info("Multicast address is set: %s\n", mcast_addr);
-
-	return sock;
-}
 
 
 
@@ -173,6 +61,7 @@ int outer_loop(void) {
 		vxlan_h *vh = (vxlan_h *)buf;
 		bp = buf + sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
+
 #ifdef DEBUG
 		print_vxl_h(vh, stdout);
 #endif
@@ -223,14 +112,21 @@ int inner_loop(vxi *v) {
 
 	/* For UDP socket declaration (Write) */
 	if (usoc < 0) usoc = init_udp_sock(VXLAN_PORT);
-	if (usoc < 0) log_cexit("socket: Bad descripter\n");
+	if (usoc < 0) {
+		log_crit("socket: Bad descripter\n");
+		return -1;
+	}
+
 	struct sockaddr_in dst;
 	dst.sin_port = VXLAN_PORT;
 
 	/* For vxlan instance declaration */
 	device tap = v->tap;
 	int rsoc = tap.sock;
-	if (rsoc < 0) log_cexit("socket: Bad descripter\n");
+	if (rsoc < 0) {
+		log_crit("socket: Bad descripter\n");
+		return -1;
+	}
 
 	mac_tbl *data;
 
@@ -252,6 +148,11 @@ int inner_loop(vxi *v) {
 #endif
 
 		struct ether_header *eh = (struct ether_header *)rp;
+
+#ifdef DEBUG
+		print_eth_h(eh, stdout);
+#endif
+
 		if (eh->ether_type == ETH_P_ARP) {
 			dst.sin_addr.s_addr = v->mcast_addr;
 			if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)

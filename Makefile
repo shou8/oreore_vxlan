@@ -1,10 +1,12 @@
 CC=gcc
-OBJS=main.o netutil.o log.o iftap.o table.o net.o vxlan.o #test.o mpool.o 
+OBJS=netutil.o log.o iftap.o table.o sock.o vxlan.o net.o main.o#test.o mpool.o 
 SRCS=${OBJS:%.o=%.c}
 LDLIBS=-lpthread
 TARGET=vxland
 #DEBUG_FLAG=-DDEBUG
 CFLAGS=-Wall -g
+CONTROLER=vxlanctl
+CONTROLER_OBJS=vxlanctl.o sock.o log.o netutil.o
 
 .SUFFIXES: .c .o
 
@@ -13,9 +15,12 @@ CFLAGS=-Wall -g
 
 .PHONY: all clean test
 
-all:${TARGET}
+all:${TARGET} ${CONTROLER}
 
 ${TARGET}:${OBJS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+
+${CONTROLER}:${CONTROLER_OBJS}
 	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 debug:

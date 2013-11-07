@@ -14,16 +14,7 @@
 
 
 
-void *inner_loop_thread(void *args);
 void *outer_loop_thread(void *args);
-
-
-
-// Inner Loop Argument
-typedef struct _ilt_arg_ {
-	uint8_t *vni;
-	char *addr;
-} ilt_arg;
 
 
 
@@ -44,26 +35,6 @@ int main(int argc, char *argv[]) {
 #endif /* DEUBG */
 
     return 0;
-}
-
-
-
-void *inner_loop_thread(void *args) {
-
-	ilt_arg *a = (ilt_arg *)args;
-
-	create_vxi(a->vni, a->addr, pthread_self());
-	inner_loop(vxlan[a->vni[0]][a->vni[1]][a->vni[2]]);
-
-	/*
-	 * "inner_loop" function infinite loop.
-	 * So we don'nt have to care memory location.
-	 *
-	 * If inner_loop is not infinite loop,
-	 * you have to use "malloc" to allocate to heap area.
-	 */
-
-	return NULL;
 }
 
 

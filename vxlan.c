@@ -10,6 +10,7 @@
 #include "log.h"
 #include "vxlan.h"
 #include "iftap.h"
+#include "sock.h"
 #include "net.h"
 #include "netutil.h"
 
@@ -67,6 +68,9 @@ static device create_vxlan_if(uint8_t *vni) {
 	log_debug("VNI: %"PRIx8".%"PRIx8".%"PRIx8"\n", vni[0], vni[1], vni[2]);
 	log_debug("VNI: %"PRIx32"\n", (uint32_t)vni[0] << 16 | (uint32_t)vni[1] << 8 | (uint32_t)vni[2]);
 	log_info("Tap interface \"%s\" is created (VNI: %"PRIx32").\n", tap.name);
+
+	tap_alloc(tap.name);
+	tap_up(tap.name);
 	tap.sock = init_raw_sock(tap.name);
 	get_mac(tap.sock, tap.name, tap.hwaddr);
 
