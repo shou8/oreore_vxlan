@@ -12,7 +12,7 @@
 #include <netinet/if_ether.h>
 #include <errno.h>
 
-#include "net.h"
+//#include "net.h"
 
 
 
@@ -20,7 +20,6 @@
 
 #define MCAST_DEFAULT_ADDR 0xef12b500
 
-/*
 typedef struct _vxlan_h_
 {
 	char flag;
@@ -28,7 +27,6 @@ typedef struct _vxlan_h_
 	char vni[3];
 	char reserve2;
 } vxlan_h;
-*/
 
 
 void sendRaw(void);

@@ -17,6 +17,7 @@
 #include "iftap.h"
 #include "netutil.h"
 #include "table.h"
+#include "sock.h"
 #include "vxlan.h"
 #include "net.h"
 
@@ -31,7 +32,20 @@
 
 
 
+typedef struct _vxlan_h_ {
+	uint8_t flag;
+	uint8_t rsv1[3];
+	uint8_t vni[VNI_BYTE];
+	uint8_t rsv2;
+} vxlan_h;
+
+
+
 static int usoc = -1;
+
+#ifdef DEBUG
+	static void print_vxl_h(vxlan_h *vh, FILE *fp);
+#endif
 
 
 
