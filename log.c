@@ -236,7 +236,7 @@ static void _print_log(int level, const char *fmt, ...) {
 	if (_syslog_mode == SYSLOG_ENABLE) {
 		openlog(DAEMON_NAME, LOG_CONS | LOG_PID, level);
 		vsnprintf(line, LOG_LINELEN, fmt, ap);
-		syslog(level, line);
+		syslog(level, "%s", line);
 		closelog();
 	} else {
 #endif /* DEBUG */
@@ -266,7 +266,7 @@ static void _print_log_v(int level, const char *fmt, va_list ap) {
 	if (_syslog_mode == SYSLOG_ENABLE) {
 		openlog(DAEMON_NAME, LOG_CONS | LOG_PID, level);
 		vsnprintf(line, LOG_LINELEN, fmt, ap);
-		syslog(level, line);
+		syslog(level, "%s", line);
 		closelog();
 	} else {
 #endif /* DEBUG */

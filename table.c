@@ -4,7 +4,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <limits.h>
-#include <malloc.h>
+//#include <malloc.h>
 
 #include "netutil.h"
 #include "table.h"
@@ -33,7 +33,7 @@ list **init_table(unsigned int size) // hash table size
 	unsigned int mem_size = table_size * sizeof(list *);
 	list **table = (list **)malloc(mem_size);
 	if (table == NULL) log_pcexit("malloc");
-	memset(table, (int)NULL, mem_size);
+	memset(table, 0, mem_size);
 
 	return table;
 }

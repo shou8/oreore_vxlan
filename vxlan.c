@@ -5,7 +5,8 @@
 #include <inttypes.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <malloc.h>
+//#include <malloc.h>
+//#include <memory.h>
 
 #include "base.h"
 #include "log.h"
@@ -43,7 +44,7 @@ vxi ****init_vxlan(void) {
 			vxlan[i][j] = vxlan[0][0] + i * VXI_MAX * VXI_MAX + j * VXI_MAX;
 	}
 
-	memset(vxlan[0][0], (int)NULL, sizeof(vxi *) * VXI_MAX * VXI_MAX * VXI_MAX);
+	memset(vxlan[0][0], 0, sizeof(vxi *) * VXI_MAX * VXI_MAX * VXI_MAX);
 
 	return vxlan;
 }
