@@ -21,6 +21,8 @@
 
 #define MCAST_DEFAULT_ADDR	0xef12b500
 
+#define CON_NUM	5
+
 
 
 int init_raw_sock(char *dev) {
@@ -29,15 +31,16 @@ int init_raw_sock(char *dev) {
 	struct sockaddr_ll sa;
 	int sock;
 
+	memset(&sa, 0, sizeof(sa));
 	if ((sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
-		log_pcrit("socket");
+		log_pcrit("raw.socket");
 		return -1;
 	}
 
-	memset(&ifreq, 0, sizeof(struct ifreq));
+	memset(&ifreq, 0, sizeof(ifreq));
 	strncpy(ifreq.ifr_name, dev, IFNAMSIZ-1);
 	if (ioctl(sock, SIOCGIFINDEX, &ifreq) < 0) {
-		log_pcrit("ioctl");
+		log_pcrit("raw.ioctl");
 		close(sock);
 		return -1;
 	}
@@ -47,7 +50,7 @@ int init_raw_sock(char *dev) {
 	sa.sll_ifindex = ifreq.ifr_ifindex;
 
 	if (bind(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-		log_pcrit("bind");
+		log_pcrit("raw.bind");
 		close(sock);
 		return -1;
 	}
@@ -62,8 +65,9 @@ int init_udp_sock(unsigned short port) {
 	int sock;
 	struct sockaddr_in addr;
 
+	memset(&addr, 0, sizeof(addr));
 	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-		log_pcrit("socket");
+		log_pcrit("udp.socket");
 		return -1;
 	}
 
@@ -72,7 +76,7 @@ int init_udp_sock(unsigned short port) {
 	addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		log_pcrit("bind");
+		log_pcrit("udp.bind");
 		close(sock);
 		return -1;
 	}
@@ -82,24 +86,47 @@ int init_udp_sock(unsigned short port) {
 
 
 
-int init_unix_sock(char *path) {
+int init_unix_sock(char *dom, int csflag) {
 
 	int sock;
 	struct sockaddr_un addr;
 
-	if ((sock = socket(AF_UNIX, SOCK_DGRAM, 0)) < 0) {
-		log_pcrit("socket");
+	memset(&addr, 0, sizeof(addr));
+	addr.sun_family = AF_UNIX; // AF_UNIX
+	if (dom == NULL)
+		strncpy(addr.sun_path, DEFAULT_UNIX_DOMAIN, strlen(DEFAULT_UNIX_DOMAIN));
+	else
+		strncpy(addr.sun_path, dom, strlen(dom));
+
+	if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
+		log_pcrit("unix.socket");
 		return -1;
 	}
 
-	addr.sun_family = AF_UNIX; // AF_LOCAL
-	strncpy(addr.sun_path, path, sizeof(path) - 1);
-	unlink(addr.sun_path);
+	if (csflag == 0) {
 
-	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		log_pcrit("bind");
-		close(sock);
-		return -1;
+		unlink(addr.sun_path);
+
+		if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+			log_pcrit("unix.bind");
+			close(sock);
+			return -1;
+		}
+
+/*
+		if (listen(sock, CON_NUM) < 0) {
+			log_pcrit("unix.listen");
+			close(sock);
+			return -1;
+		}
+*/
+
+	} else {
+		if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
+			log_pcrit("unix.connect");
+			close(sock);
+			return -1;
+		}
 	}
 
 	return sock;

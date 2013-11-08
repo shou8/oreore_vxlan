@@ -3,7 +3,7 @@
 
 
 
-void ctl_loop(void);
+void ctl_loop(char *dom);
 
 
 

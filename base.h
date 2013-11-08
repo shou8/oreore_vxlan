@@ -16,7 +16,8 @@
 
 #define IF_NAME_LEN		256
 
-#define DEFAULT_UNIXSOCK_PATH		"/tmp/vxlan.sock"
+#define UNIX_DOMAIN_LEN			1024
+#define DEFAULT_UNIX_DOMAIN		"/var/run/vxlan.sock"
 
 
 

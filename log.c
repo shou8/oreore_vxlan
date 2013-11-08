@@ -38,7 +38,10 @@ static void _print_log_v(int level, const char *fmt, va_list ap);
 
 
 
+void enable_debug(void);
+void disable_debug(void);
 void enable_syslog(void);
+void disable_syslog(void);
 void log_crit(const char *fmt, ...);
 void log_pcirt(const char *str);
 

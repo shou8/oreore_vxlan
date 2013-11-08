@@ -64,7 +64,7 @@ int outer_loop(void) {
 
 	bp = buf;
 	usoc = init_udp_sock(VXLAN_PORT);
-	if (usoc < 0) log_cexit("socket: Bad descripter\n");
+	if (usoc < 0) log_cexit("outer_loop.socket: Bad descripter\n");
 
 	while (1) {
 
@@ -127,7 +127,7 @@ int inner_loop(vxi *v) {
 	/* For UDP socket declaration (Write) */
 	if (usoc < 0) usoc = init_udp_sock(VXLAN_PORT);
 	if (usoc < 0) {
-		log_crit("socket: Bad descripter\n");
+		log_crit("inner_loop.socket: Bad descripter\n");
 		return -1;
 	}
 
@@ -138,7 +138,7 @@ int inner_loop(vxi *v) {
 	device tap = v->tap;
 	int rsoc = tap.sock;
 	if (rsoc < 0) {
-		log_crit("socket: Bad descripter\n");
+		log_crit("inner_loop.socket: Bad descripter\n");
 		return -1;
 	}
 
@@ -151,7 +151,7 @@ int inner_loop(vxi *v) {
 
 		if ((len = recvfrom(rsoc, rp, rlen, 0,
 						(struct sockaddr *)&src, &addr_len)) < 0)
-			log_perr("recvfrom");
+			log_perr("inner_loop.recvfrom");
 
 		memset(vh, 0, sizeof(vxlan_h));
 		vh->flag = VXLAN_FLAG_MASK;
@@ -170,7 +170,7 @@ int inner_loop(vxi *v) {
 		if (eh->ether_type == ETH_P_ARP) {
 			dst.sin_addr.s_addr = v->mcast_addr;
 			if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
-				log_perr("sendto");
+				log_perr("inner_loop.sendto");
 			continue;
 		}
 
@@ -179,7 +179,7 @@ int inner_loop(vxi *v) {
 
 		dst.sin_addr.s_addr = htonl(data->vtep_addr);
 		if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
-			log_perr("sendto");
+			log_perr("inner_loop.sendto");
 	}
 
 	/*

@@ -42,8 +42,8 @@ int main(int argc, char *argv[]) {
 
 #ifdef DEBUG
 //	test();
-	ctl_loop();
 #endif /* DEUBG */
+	ctl_loop(NULL); /* TODO */
 
     return 0;
 }
