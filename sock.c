@@ -21,7 +21,7 @@
 
 #define MCAST_DEFAULT_ADDR	0xef12b500
 
-#define CON_NUM	5
+#define CON_NUM		1
 
 
 
@@ -92,7 +92,7 @@ int init_unix_sock(char *dom, int csflag) {
 	struct sockaddr_un addr;
 
 	memset(&addr, 0, sizeof(addr));
-	addr.sun_family = AF_UNIX; // AF_UNIX
+	addr.sun_family = AF_UNIX; // AF_LOCAL
 	if (dom == NULL)
 		strncpy(addr.sun_path, DEFAULT_UNIX_DOMAIN, strlen(DEFAULT_UNIX_DOMAIN));
 	else
@@ -113,15 +113,14 @@ int init_unix_sock(char *dom, int csflag) {
 			return -1;
 		}
 
-/*
 		if (listen(sock, CON_NUM) < 0) {
 			log_pcrit("unix.listen");
 			close(sock);
 			return -1;
 		}
-*/
 
 	} else {
+
 		if (connect(sock, (struct sockaddr *)&addr, sizeof(addr)) != 0) {
 			log_pcrit("unix.connect");
 			close(sock);

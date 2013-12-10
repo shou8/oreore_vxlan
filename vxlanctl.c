@@ -20,7 +20,7 @@ void usage(char *bin);
 
 
 static struct option options[] = {
-	{"domain", required_argument, NULL, 'd'},
+	{"socket", required_argument, NULL, 's'},
 #ifdef DEBUG
 	{"Debug", no_argument, NULL, 'D'},
 #endif
@@ -44,9 +44,9 @@ int main(int argc, char *argv[]) {
 	if (argc == 1)
 		usage(bin);
 
-	while((opt = getopt_long(argc, argv, "d:hadv", options, NULL)) != -1) {
+	while((opt = getopt_long(argc, argv, ":s:hadv", options, NULL)) != -1) {
 		switch(opt) {
-			case 'd':
+			case 's':
 				dom = optarg;
 				break;
 			case 'v':
@@ -60,6 +60,9 @@ int main(int argc, char *argv[]) {
 	if ((sock = init_unix_sock(dom, UNIX_SOCK_CLIENT)) < 0)
 		exit(EXIT_FAILURE);
 
+	write(sock, argv[1], strlen(argv[1]));
+
+/*
 #ifdef DEBUG
 	char buf[BUFSIZ];
 	while (1) {
@@ -73,6 +76,7 @@ int main(int argc, char *argv[]) {
 		printf("---\n");
 	}
 #endif
+*/
 
     return 0;
 }
@@ -80,11 +84,12 @@ int main(int argc, char *argv[]) {
 
 
 void usage(char *bin) {
-	fprintf(stderr, "Usage: %s [-h|-d]\n", bin);
+	fprintf(stderr, "Usage: %s [-h|-v] [-s <socket path>]\n", bin);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "		-h,    --help: Show this usage.\n");
 	fprintf(stderr, "		-v, --version: Show software version.\n");
+	fprintf(stderr, "		-s,  --socket: socket path.\n");
 	fprintf(stderr, "\n");
 	exit(EXIT_FAILURE);
 }

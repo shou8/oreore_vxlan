@@ -4,6 +4,7 @@
 
 
 void ctl_loop(char *dom);
+void *outer_loop_thread(void *args);
 
 
 
