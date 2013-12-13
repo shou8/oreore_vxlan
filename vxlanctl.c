@@ -17,6 +17,7 @@
 
 
 void usage(char *bin);
+int argv_to1str(char *buf, int argc, char **argv);
 
 
 
@@ -37,13 +38,14 @@ int main(int argc, char *argv[]) {
 	int opt, sock;
 	extern int optind;
 	extern char *optarg;
-	char *bin = argv[0];
 	char *dom = NULL;
+	char buf[CTL_BUF_LEN];
+	int len;
 
 	disable_syslog();
 
 	if (argc == 1)
-		usage(bin);
+		usage(argv[0]);
 
 	while((opt = getopt_long(argc, argv, ":s:hadv", options, NULL)) != -1) {
 		switch(opt) {
@@ -54,31 +56,24 @@ int main(int argc, char *argv[]) {
 				fprintf(stderr, "Version: "CLIENT_VERSION".\n");
 				exit(EXIT_SUCCESS);
 			case 'h':
-				usage(bin);
+				usage(argv[0]);
 		}
 	}
 
 	if ((sock = init_unix_sock(dom, UNIX_SOCK_CLIENT)) < 0)
 		exit(EXIT_FAILURE);
 
-	/* TODO */
-	write(sock, argv+1, CTL_BUF_LEN);
-
-/*
-#ifdef DEBUG
-	char buf[BUFSIZ];
-	while (1) {
-		printf("===\n");
-		read(0, buf, BUFSIZ);
-		write(sock, buf, BUFSIZ);
-		printf("%s", buf);
-		printf("---\n");
-		read(sock, buf, BUFSIZ);
-		write(1, buf, BUFSIZ);
-		printf("---\n");
+	len = argv_to1str(buf, argc-1, argv+1);
+	switch (len) {
+		case 0:
+		case -1:
+			fprintf(stderr, "ERROR: Nothing to be done (No operation).\n\n");
+			usage(argv[0]);
+		case -2:
+			fprintf(stderr, "ERROR: Too long arguments (Over %d characters).\n\n", CTL_BUF_LEN);
+			usage(argv[0]);
 	}
-#endif
-*/
+	write(sock, buf, CTL_BUF_LEN);
 
     return 0;
 }
@@ -95,3 +90,27 @@ void usage(char *bin) {
 	fprintf(stderr, "\n");
 	exit(EXIT_FAILURE);
 }
+
+
+
+int argv_to1str(char *buf, int argc, char **argv) {
+
+	int i, len;
+	char *p = buf;
+
+	if (argc < 1) return -1;
+
+	for (i=0; i<argc; i++) {
+		if (p - buf > CTL_BUF_LEN) return -2;
+		len = strlen(argv[i]);
+		strncpy(p, argv[i], len);
+		p[len] = ' ';
+		p += len + 1;
+	}
+	*(--p) = '\0';
+
+	return (int)(p - buf);
+}
+
+
+
