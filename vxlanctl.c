@@ -12,6 +12,7 @@
 
 
 #define CLIENT_VERSION	"1.0"
+#define CTL_BUF_LEN LOG_LINELEN
 
 
 
@@ -60,7 +61,8 @@ int main(int argc, char *argv[]) {
 	if ((sock = init_unix_sock(dom, UNIX_SOCK_CLIENT)) < 0)
 		exit(EXIT_FAILURE);
 
-	write(sock, argv[1], strlen(argv[1]));
+	/* TODO */
+	write(sock, argv+1, CTL_BUF_LEN);
 
 /*
 #ifdef DEBUG

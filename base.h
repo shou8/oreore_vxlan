@@ -29,5 +29,13 @@ typedef struct _device_ {
 
 
 
+enum status {
+	SUCCESS,
+	CMD_FAILED,
+	SRV_FAILED
+};
+
+
+
 #endif /* BASE_H_INCLUDED */
 

@@ -3,6 +3,10 @@
 
 
 
+#define LOG_LINELEN		256
+
+
+
 /*
  * You must use this function to initialize
  * logging information.
@@ -22,12 +26,21 @@ void log_warn(const char *fmt, ...);
 void log_err(const char *fmt, ...);
 void log_crit(const char *fmt, ...);
 
+/*
+ * Using perror
+ */
 void log_perr(const char *str);
 void log_pcrit(const char *str);
+
+/*
+ * Logging and Copy to "buf"
+ */
+void log_berr(char *buf, const char *fmt, ...);
 
 void log_iexit(const char *fmt, ...);
 void log_cexit(const char *fmt, ...);
 void log_pcexit(const char *str);
+
 
 
 #endif /* LOG_H_INCLUDED */

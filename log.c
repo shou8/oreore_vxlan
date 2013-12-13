@@ -13,8 +13,6 @@
 
 
 
-#define LOG_LINELEN		256
-
 #define DEBUG_DISABLE	0x00	// Include DEBUG facility (default)
 #define DEBUG_ENABLE	0x01	// Exclude DEBUG facility
 
@@ -31,6 +29,7 @@ static int _pid;						// Process ID
 static char _h_name[HOST_NAME_MAX];		// Host Name
 static int _debug_mode = DEBUG_DISABLE;
 
+static char line[LOG_LINELEN];
 
 
 static void _print_log(int level, const char *fmt, ...);
@@ -227,10 +226,19 @@ void log_pcexit(const char *str) {
 
 
 
+void log_berr(char *buf, const char *fmt, ...) {
+
+	va_list ap;
+	va_start(ap, fmt);
+	_print_log_v(LOG_ERR, fmt, ap);
+	strncpy(buf, line, strlen(line));
+	va_end(ap);
+}
+
+
 
 static void _print_log(int level, const char *fmt, ...) {
 
-	char line[LOG_LINELEN];
 	va_list ap;
 
 	va_start(ap, fmt);
@@ -262,8 +270,6 @@ static void _print_log(int level, const char *fmt, ...) {
 
 
 static void _print_log_v(int level, const char *fmt, va_list ap) {
-
-	char line[LOG_LINELEN];
 
 #ifndef DEBUG
 	if (_syslog_mode == SYSLOG_ENABLE) {

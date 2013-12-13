@@ -9,6 +9,7 @@
 //#include <memory.h>
 
 #include "base.h"
+#include "util.h"
 #include "log.h"
 #include "vxlan.h"
 #include "iftap.h"
@@ -28,6 +29,9 @@ static device create_vxlan_if(uint8_t *vni);
 
 
 
+/*
+ * Create 3 Demention Matrix
+ */
 vxi ****init_vxlan(void) {
 
 	vxlan = (vxi ****)malloc(sizeof(vxi ***) * VXI_MAX);
@@ -81,13 +85,7 @@ static device create_vxlan_if(uint8_t *vni) {
 
 
 
-vxi *add_vxi(uint8_t *vni, char *addr) {
-
-	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL) {
-		uint32_t vni32 = To32ex(vni);
-		log_err("VNI: %"PRIx32" has already exist\n", vni32);
-		return NULL;
-	}
+vxi *add_vxi(char *buf, uint8_t *vni, char *addr) {
 
 	vxi *v = (vxi *)malloc(sizeof(vxi));
 	if (v == NULL) log_pcexit("malloc");
@@ -97,13 +95,13 @@ vxi *add_vxi(uint8_t *vni, char *addr) {
 	v->usoc = join_mcast_group(get_usoc(), 0, addr, NULL);
 
 	if (inet_pton(AF_INET, addr, &v->mcast_addr) != 1) {
-		log_err("inet_pton: Cannot translate (%s).", addr);
+		log_err("inet_pton: Cannot translate (%s).\n", addr);
 		free(v);
 		return NULL;
 	}
 
 	if (v->usoc == -1) {
-		log_err("Cannot initialize socket (%d)", v->usoc);
+		log_err("Cannot initialize socket (%d).\n", v->usoc);
 		log_perr("socket");
 		free(v);
 		return NULL;
@@ -116,21 +114,7 @@ vxi *add_vxi(uint8_t *vni, char *addr) {
 
 
 
-void create_vxi(uint8_t *vni, char *addr, pthread_t th) {
-
-	vxi *v = add_vxi(vni, addr);
-	if (v != NULL) v->th = th;
-}
-
-
-
 void del_vxi(uint8_t *vni) {
-
-	if (vxlan[vni[0]][vni[1]][vni[2]] == NULL) {
-		uint32_t vni32 = To32ex(vni);
-		log_err("VNI: %"PRIx32" does not exist\n", vni32);
-		return;
-	}
 
 	free(vxlan[vni[0]][vni[1]][vni[2]]);
 	vxlan[vni[0]][vni[1]][vni[2]] = NULL;

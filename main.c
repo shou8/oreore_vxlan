@@ -15,6 +15,10 @@
 
 
 
+void *outer_loop_thread(void *args);
+
+
+
 int main(int argc, char *argv[]) {
 
 #ifdef DEBUG
@@ -31,11 +35,16 @@ int main(int argc, char *argv[]) {
 //	test();
 #endif /* DEUBG */
 
-	ctl_loop(NULL); /* TODO */
+	ctl_loop(NULL);
 
     return 0;
 }
 
 
 
+void *outer_loop_thread(void *args) {
 
+	outer_loop();
+
+	return NULL;
+}
