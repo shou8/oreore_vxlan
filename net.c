@@ -77,7 +77,8 @@ int outer_loop(void) {
 		buf_len -= sizeof(vxlan_h);
 
 #ifdef DEBUG
-		print_vxl_h(vh, stdout);
+		if (get_status())
+			print_vxl_h(vh, stdout);
 #endif
 
 		vxi *v = vxlan[vh->vni[0]][vh->vni[1]][vh->vni[2]];
@@ -93,7 +94,8 @@ int outer_loop(void) {
 		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
 
 #ifdef DEBUG
-		print_eth_h(eh, stdout);
+		if (get_status())
+			print_eth_h(eh, stdout);
 #endif
 		/*
 		 * This function is called by "thread_create".
@@ -158,13 +160,15 @@ int inner_loop(vxi *v) {
 		memcpy(vh->vni, v->vni, VNI_BYTE);
 
 #ifdef DEBUG
-		print_vxl_h(vh, stdout);
+		if (get_status())
+			print_vxl_h(vh, stdout);
 #endif
 
 		struct ether_header *eh = (struct ether_header *)rp;
 
 #ifdef DEBUG
-		print_eth_h(eh, stdout);
+		if (get_status())
+			print_eth_h(eh, stdout);
 #endif
 
 		if (eh->ether_type == ETH_P_ARP) {

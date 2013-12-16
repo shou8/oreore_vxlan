@@ -26,7 +26,8 @@ ${CONTROLER}:${CONTROLER_OBJS}
 
 test: debug
 debug:
-	${MAKE} DEBUG_FLAG="-DDEBUG -g" OBJS="${OBJS} test.o"
+#	${MAKE} DEBUG_FLAG="-DDEBUG -g" OBJS="${OBJS} test.o"
+	${MAKE} DEBUG_FLAG="-DDEBUG -g" OBJS="${OBJS}"
 	@cd test && ${MAKE}
 
 clean:

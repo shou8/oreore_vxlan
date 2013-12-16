@@ -13,8 +13,8 @@
 
 
 
-#define DEBUG_DISABLE	0x00	// Include DEBUG facility (default)
-#define DEBUG_ENABLE	0x01	// Exclude DEBUG facility
+#define DEBUG_DISABLE	0x00
+#define DEBUG_ENABLE	0x01
 
 #define SYSLOG_ENABLE	0x00	// Log on syslog (default)
 #define SYSLOG_DISABLE	0x01	// Log on stderr
@@ -61,6 +61,13 @@ void enable_debug(void) {
 void disable_debug(void) {
 
 	_debug_mode = DEBUG_DISABLE;
+}
+
+
+
+int get_status(void) {
+
+	return _debug_mode;
 }
 
 
@@ -233,6 +240,14 @@ void log_berr(char *buf, const char *fmt, ...) {
 	_print_log_v(LOG_ERR, fmt, ap);
 	strncpy(buf, line, strlen(line));
 	va_end(ap);
+}
+
+
+
+void log_bperr(char *buf, const char *str) {
+
+	log_perr(str);
+	strncpy(buf, line, strlen(line));
 }
 
 

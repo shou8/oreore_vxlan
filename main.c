@@ -22,9 +22,9 @@ void *outer_loop_thread(void *args);
 int main(int argc, char *argv[]) {
 
 #ifdef DEBUG
-	enable_debug();
-//	test();
+//	enable_debug();
 #endif /* DEUBG */
+disable_debug();
 
 	vxlan = init_vxlan();	// Global variable (declared in "vxlan.c")
 

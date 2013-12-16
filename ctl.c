@@ -26,7 +26,7 @@ struct cmd_entry {
 
 
 void *inner_loop_thread(void *args);
-int order_parse(int sock, char *buf);
+int order_parse(char *rbuf, char *wbuf);
 
 int cmd_add_vxi(char *buf, int argc, char *argv[]);
 int cmd_del_vxi(char *buf, int argc, char *argv[]);
@@ -44,7 +44,8 @@ int cmd_len = sizeof(cmd_t) / sizeof(struct cmd_entry);
 void ctl_loop(char *dom) {
 
 	int usoc, asoc, len;
-	char buf[CTL_BUF_LEN];
+	char rbuf[CTL_BUF_LEN];
+	char wbuf[CTL_BUF_LEN];
 
 	if ((usoc = init_unix_sock(dom, UNIX_SOCK_SERVER)) < 0)
 		log_pcexit("ctl_loop.init_unix_sock");
@@ -56,14 +57,15 @@ void ctl_loop(char *dom) {
 			continue;
 		}
 
-		if ((len = read(asoc, buf, CTL_BUF_LEN)) < 0) {
+		if ((len = read(asoc, rbuf, CTL_BUF_LEN)) < 0) {
 			log_perr("ctl_loop.read");
 			continue;
 		}
 
-printf("%s\n", buf);
-		buf[len] = '\0';
-		order_parse(asoc, buf);
+		rbuf[len] = '\0';
+		order_parse(rbuf, wbuf);
+		len = write(asoc, wbuf, strlen(wbuf));
+		if (len < 0) log_perr("write");
 	}
 }
 
@@ -88,49 +90,61 @@ void *inner_loop_thread(void *args) {
 
 
 
-int order_parse(int sock, char *buf) {
+int order_parse(char *rbuf, char *wbuf) {
 
-	int i;
+	int i, argc;
 	char *p;
+	char *argv[CTL_BUF_LEN];
 
-	p = strtok(buf, " ");
+	p = strtok(rbuf, " ");
 	for (i = 0; i < cmd_len; i++)
 		if (strncmp(cmd_t[i].name, p, strlen(cmd_t[i].name)) == 0) break;
 
 	if (i == cmd_len) return CMD_FAILED;
 
-	while (p != NULL) {
-//	while ((p = strtok(NULL, "\t"))) {
-		printf("%s\n", p);
+	for (argc = 0; p != NULL; argc++) {
+		argv[argc] = p;
 		p = strtok(NULL, " ");
 	}
 
-	return SUCCESS;
+	return ((cmd_t[i].exec)(wbuf, argc, argv));
 }
 
 
 
 int cmd_add_vxi(char *buf, int argc, char *argv[]) {
 
-	if (argc < 2) {
-		strncpy(buf, "add <VNI> <Multicast Address>", CTL_BUF_LEN);
+	if (argc < 3) {
+		snprintf(buf, CTL_BUF_LEN, "add <VNI> <Multicast Address>\n");
 		return CMD_FAILED;
 	}
 
-	char *vni_s = argv[0];
-	char *addr = argv[1];
+	char *vni_s = argv[1];
+	char *addr = argv[2];
 	uint8_t vni[VNI_BYTE];
 
-	str2uint8arr(vni_s, vni);
+	if (str2uint8arr(vni_s, vni) < 0) {
+		snprintf(buf, CTL_BUF_LEN, "Invalid VNI: %s\n", vni_s);
+		return CMD_FAILED;
+	}
+
+	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL) {
+		snprintf(buf, CTL_BUF_LEN, "Instance (VNI: %s) has already existed.\n", vni_s);
+		return SRV_FAILED;
+	}
+
 	vxi *v = add_vxi(buf, vni, addr);
 	if (v == NULL) {
-		strncpy(buf, "error is occured in server, please refer \"syslog\".", CTL_BUF_LEN);
+		snprintf(buf, CTL_BUF_LEN, "error is occured in server, please refer \"syslog\".\n");
 		return SRV_FAILED;
 	}
 
 	pthread_t th;
 	pthread_create(&th, NULL, inner_loop_thread, vni);
 	v->th = th;
+
+	snprintf(buf, CTL_BUF_LEN, "=== Set ===\nVNI\t\t: %s\nMCAST ADDR\t: %s\n", vni_s, addr);
+	printf("%s", buf);
 
 	return SUCCESS;
 }
@@ -139,16 +153,18 @@ int cmd_add_vxi(char *buf, int argc, char *argv[]) {
 
 int cmd_del_vxi(char *buf, int argc, char *argv[]) {
 
-	if (argc < 1) {
-		strncpy(buf, "del <VNI>", CTL_BUF_LEN);
+	if (argc < 2) {
+		snprintf(buf, CTL_BUF_LEN, "del <VNI>\n");
 		return CMD_FAILED;
 	}
 
+	char *vni_s = argv[1];
+
 	uint8_t vni[VNI_BYTE];
+	str2uint8arr(vni_s, vni);
 
 	if (vxlan[vni[0]][vni[1]][vni[2]] == NULL) {
-		uint32_t vni32 = To32ex(vni);
-		snprintf(buf, CTL_BUF_LEN, "VNI: %"PRIu32" does not exist.\n", vni32);
+		snprintf(buf, CTL_BUF_LEN, "VNI: %s does not exist.\n", vni_s);
 		return SRV_FAILED;
 	}
 

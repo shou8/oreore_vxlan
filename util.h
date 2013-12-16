@@ -9,7 +9,7 @@
 
 
 void split_32to8(uint32_t val, uint8_t *arr);
-void str2uint8arr(char *str, uint8_t *arr);
+int str2uint8arr(char *str, uint8_t *arr);
 
 
 

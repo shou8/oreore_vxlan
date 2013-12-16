@@ -67,13 +67,11 @@ void destroy_vxlan(void) {
 static device create_vxlan_if(uint8_t *vni) {
 
 	device tap;
-	//uint32_t vni32 = vni[0] << 16 | vni[1] << 8 | vni[2];
 	uint32_t vni32 = To32ex(vni);
 
-	snprintf(tap.name, IF_NAME_LEN, "vxlan%"PRIx32, vni32);
-	log_debug("VNI: %"PRIx8".%"PRIx8".%"PRIx8"\n", vni[0], vni[1], vni[2]);
-	log_debug("VNI: %"PRIx32"\n", (uint32_t)vni[0] << 16 | (uint32_t)vni[1] << 8 | (uint32_t)vni[2]);
-	log_info("Tap interface \"%s\" is created (VNI: %"PRIx32").\n", tap.name);
+	snprintf(tap.name, IF_NAME_LEN, "vxlan%"PRIu32, vni32);
+	log_debug("VNI: %"PRIu8".%"PRIu8".%"PRIu8"\n", vni[0], vni[1], vni[2], vni32);
+	log_info("Tap interface \"%s\" is created (VNI: %"PRIu32").\n", tap.name, vni32);
 
 	tap_alloc(tap.name);
 	tap_up(tap.name);
@@ -95,14 +93,14 @@ vxi *add_vxi(char *buf, uint8_t *vni, char *addr) {
 	v->usoc = join_mcast_group(get_usoc(), 0, addr, NULL);
 
 	if (inet_pton(AF_INET, addr, &v->mcast_addr) != 1) {
-		log_err("inet_pton: Cannot translate (%s).\n", addr);
+		log_berr(buf, "inet_pton: Cannot translate (%s).\n", addr);
 		free(v);
 		return NULL;
 	}
 
 	if (v->usoc == -1) {
-		log_err("Cannot initialize socket (%d).\n", v->usoc);
-		log_perr("socket");
+		log_berr(buf, "Cannot initialize socket (%d).\n", v->usoc);
+		log_bperr(buf, "socket");
 		free(v);
 		return NULL;
 	}

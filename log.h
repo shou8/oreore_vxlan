@@ -15,6 +15,8 @@ void init_log(void);
 
 void enable_debug(void);
 void disable_debug(void);
+int get_status(void);
+
 void log_stderr(const char *fmt, ...);
 
 void enable_syslog(void);
@@ -36,6 +38,7 @@ void log_pcrit(const char *str);
  * Logging and Copy to "buf"
  */
 void log_berr(char *buf, const char *fmt, ...);
+void log_bperr(char *buf, const char *str);
 
 void log_iexit(const char *fmt, ...);
 void log_cexit(const char *fmt, ...);

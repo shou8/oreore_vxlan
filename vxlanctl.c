@@ -39,7 +39,8 @@ int main(int argc, char *argv[]) {
 	extern int optind;
 	extern char *optarg;
 	char *dom = NULL;
-	char buf[CTL_BUF_LEN];
+	char wbuf[CTL_BUF_LEN];
+	char rbuf[CTL_BUF_LEN];
 	int len;
 
 	disable_syslog();
@@ -63,7 +64,7 @@ int main(int argc, char *argv[]) {
 	if ((sock = init_unix_sock(dom, UNIX_SOCK_CLIENT)) < 0)
 		exit(EXIT_FAILURE);
 
-	len = argv_to1str(buf, argc-1, argv+1);
+	len = argv_to1str(wbuf, argc-1, argv+1);
 	switch (len) {
 		case 0:
 		case -1:
@@ -73,7 +74,9 @@ int main(int argc, char *argv[]) {
 			fprintf(stderr, "ERROR: Too long arguments (Over %d characters).\n\n", CTL_BUF_LEN);
 			usage(argv[0]);
 	}
-	write(sock, buf, CTL_BUF_LEN);
+	write(sock, wbuf, len);
+	len = read(sock, rbuf, CTL_BUF_LEN);
+	write(1, rbuf, len);
 
     return 0;
 }
