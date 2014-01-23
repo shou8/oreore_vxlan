@@ -33,12 +33,14 @@ int cmd_del_vxi(char *buf, int argc, char *argv[]);
 
 
 
+int cmd_len = sizeof(cmd_t) / sizeof(struct cmd_entry);
+
+
+
 struct cmd_entry cmd_t[] = {
 	{ "add", cmd_add_vxi },
 	{ "del", cmd_del_vxi },
 };
-
-int cmd_len = sizeof(cmd_t) / sizeof(struct cmd_entry);
 
 
 void ctl_loop(char *dom) {
