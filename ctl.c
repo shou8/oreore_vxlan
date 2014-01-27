@@ -38,10 +38,7 @@ struct cmd_entry cmd_t[] = {
 	{ "del", cmd_del_vxi },
 };
 
-
-
 int cmd_len = sizeof(cmd_t) / sizeof(struct cmd_entry);
-
 
 
 void ctl_loop(char *dom) {
