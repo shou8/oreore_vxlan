@@ -134,7 +134,7 @@ int inner_loop(vxi *v) {
 	}
 
 	struct sockaddr_in dst;
-	dst.sin_port = VXLAN_PORT;
+	dst.sin_port = htons(VXLAN_PORT);
 
 	/* For vxlan instance declaration */
 	device tap = v->tap;
