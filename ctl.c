@@ -82,8 +82,10 @@ void *inner_loop_thread(void *args) {
 
 	uint8_t *vni = (uint8_t *)args;
 	inner_loop(vxlan[vni[0]][vni[1]][vni[2]]);
+
+	/* Cannot Reach */
 	log_crit("The instance (VNI: %"PRIx32") is doen.", To32ex(vni));
-	del_vxi(vni);
+	del_vxi(NULL, vni);
 
 	return NULL;
 }
@@ -170,7 +172,7 @@ int cmd_del_vxi(char *buf, int argc, char *argv[]) {
 
 	pthread_t th = (vxlan[vni[0]][vni[1]][vni[2]])->th;
 	pthread_cancel(th);
-	del_vxi(vni);
+	del_vxi(buf, vni);
 
 	return SUCCESS;
 }

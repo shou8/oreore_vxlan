@@ -90,7 +90,6 @@ vxi *add_vxi(char *buf, uint8_t *vni, char *addr) {
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(TABLE_SIZE);
 	v->tap = create_vxlan_if(vni);
-	v->usoc = join_mcast_group(get_usoc(), 0, addr, NULL);
 
 	if (inet_pton(AF_INET, addr, &v->mcast_addr) != 1) {
 		log_berr(buf, "inet_pton: Cannot translate (%s).\n", addr);
@@ -98,8 +97,8 @@ vxi *add_vxi(char *buf, uint8_t *vni, char *addr) {
 		return NULL;
 	}
 
-	if (v->usoc == -1) {
-		log_berr(buf, "Cannot initialize socket (%d).\n", v->usoc);
+	if (join_mcast_group(get_usoc(), 0, addr, NULL) < 0) {
+		log_berr(buf, "Cannot initialize socket (%d).\n", get_usoc());
 		log_bperr(buf, "socket");
 		free(v);
 		return NULL;
@@ -112,19 +111,17 @@ vxi *add_vxi(char *buf, uint8_t *vni, char *addr) {
 
 
 
-void del_vxi(uint8_t *vni) {
+void del_vxi(char *buf, uint8_t *vni) {
+
+	vxi *v = vxlan[vni[0]][vni[1]][vni[2]];
+	if (leave_mcast_group(get_usoc(), v->mcast_addr, (v->tap).name) < 0) {
+		log_berr(buf, "Cannot initialize socket (%d).\n", get_usoc());
+		log_bperr(buf, "socket");
+		free(v);
+	}
 
 	free(vxlan[vni[0]][vni[1]][vni[2]]);
 	vxlan[vni[0]][vni[1]][vni[2]] = NULL;
-}
-
-
-
-void destroy_vxi(uint8_t *vni) {
-
-	pthread_t th = (vxlan[vni[0]][vni[1]][vni[2]])->th;
-	pthread_cancel(th);
-	del_vxi(vni);
 }
 
 

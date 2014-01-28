@@ -22,7 +22,6 @@ typedef struct _vxlan_instance_ {
 	pthread_t th;
 	uint8_t vni[VNI_BYTE];
 	uint32_t mcast_addr;
-	int usoc;
 	device tap;
 	list **table;
 } vxi;
@@ -36,8 +35,7 @@ vxi ****init_vxlan(void);
 //void destroy_vxlan(void);
 //void create_vxi(char *buf, uint8_t *vni, char *addr, pthread_t th);
 vxi *add_vxi(char *buf, uint8_t *vni, char *addr);
-void del_vxi(uint8_t *vni);
-void destroy_vxi(uint8_t *vni);
+void del_vxi(char *buf, uint8_t *vni);
 void show_vxi(void);
 
 

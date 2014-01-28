@@ -173,8 +173,25 @@ int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_n
 
 	log_info("Multicast address is set: %s\n", mcast_addr);
 
-	return sock;
+	return 0;
 }
 
 
 
+int leave_mcast_group(int sock, uint32_t mcast_addr, char *if_name) {
+
+	struct ip_mreq mreq;
+
+	memset(&mreq, 0, sizeof(mreq));
+	mreq.imr_multiaddr.s_addr = mcast_addr;
+
+	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? INADDR_ANY : get_addr(if_name));
+	if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
+		log_perr("setsockopt");
+		return -1;
+	}
+
+	log_info("Multicast address is unset: %s\n", mcast_addr);
+
+	return 0;
+}
