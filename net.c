@@ -87,7 +87,7 @@ int outer_loop(void) {
 		struct ether_header *eh = (struct ether_header *)bp;
 
 		/* Store VTEP information */
-		if (eh->ether_type == ETH_P_ARP) {
+		if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
 			add_data(v->table, eh->ether_shost, src.sin_addr.s_addr);
 		}
 
@@ -171,15 +171,17 @@ int inner_loop(vxi *v) {
 			print_eth_h(eh, stdout);
 #endif
 
-		if (eh->ether_type == ETH_P_ARP) {
+		if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
 			dst.sin_addr.s_addr = v->mcast_addr;
 			if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 				log_perr("inner_loop.sendto");
 			continue;
 		}
 
-		if ((data = find_data(v->table, eh->ether_dhost)) == NULL)
+		if ((data = find_data(v->table, eh->ether_dhost)) == NULL) {
+			printf("No target...\n");
 			continue;
+		}
 
 		dst.sin_addr.s_addr = htonl(data->vtep_addr);
 		if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)

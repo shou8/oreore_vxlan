@@ -4,6 +4,7 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <net/ethernet.h>
 
 #include "netutil.h"
 #include "log.h"
@@ -124,22 +125,47 @@ char *eth_ntoa(uint8_t *hwaddr, char *buf, size_t size) {
 
 void print_eth_h(struct ether_header *eh, FILE *fp) {
 
+	uint16_t eth_type = ntohs(eh->ether_type);
 	char buf[128];
 
 	fprintf(fp, "ether_header -----\n");
 	fprintf(fp, "ether_dhost: %s\n", eth_ntoa(eh->ether_dhost, buf, sizeof(buf)));
 	fprintf(fp, "ether_shost: %s\n", eth_ntoa(eh->ether_shost, buf, sizeof(buf)));
-	fprintf(fp, "ether_type : %02X", ntohs(eh->ether_type));
+	fprintf(fp, "ether_type : %02X", eth_type);
 
-	switch(eh->ether_type) {
-		case ETH_P_IP:
+	switch(eth_type) {
+		case ETHERTYPE_PUP:
+			fprintf(fp, "(PUP)\n");
+			break;
+		case ETHERTYPE_SPRITE:
+			fprintf(fp, "(SPRITE)\n");
+			break;
+		case ETHERTYPE_IP:
 			fprintf(fp, "(IP)\n");
 			break;
-		case ETH_P_IPV6:
+		case ETHERTYPE_ARP:
+			fprintf(fp, "(ARP)\n");
+			break;
+		case ETHERTYPE_REVARP:
+			fprintf(fp, "(REVARP)\n");
+			break;
+		case ETHERTYPE_AT:
+			fprintf(fp, "(AT)\n");
+			break;
+		case ETHERTYPE_AARP:
+			fprintf(fp, "(AARP)\n");
+			break;
+		case ETHERTYPE_VLAN:
+			fprintf(fp, "(VLAN)\n");
+			break;
+		case ETHERTYPE_IPX:
+			fprintf(fp, "(IPX)\n");
+			break;
+		case ETHERTYPE_IPV6:
 			fprintf(fp, "(IPv6)\n");
 			break;
-		case ETH_P_ARP:
-			fprintf(fp, "(ARP)\n");
+		case ETHERTYPE_LOOPBACK:
+			fprintf(fp, "(LOOPBACK)\n");
 			break;
 		default:
 			fprintf(fp, "(unknown)\n");
