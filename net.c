@@ -72,9 +72,13 @@ int outer_loop(void) {
 						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("recvfrom");
 
+printf("raw buf_len: %d\n", buf_len);
+
 		vxlan_h *vh = (vxlan_h *)buf;
 		bp = buf + sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
+
+printf("aft buf_len: %d\n", buf_len);
 
 #ifdef DEBUG
 		if (get_status())
@@ -91,7 +95,8 @@ int outer_loop(void) {
 			add_data(v->table, eh->ether_shost, src.sin_addr.s_addr);
 		}
 
-		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
+//		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
+		write(v->tap.sock, bp, buf_len); 
 
 #ifdef DEBUG
 		if (get_status())
