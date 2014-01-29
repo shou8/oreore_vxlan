@@ -1,2 +1,4 @@
 *.o
 vxland
+test/rawgen
+test/udpgen
