@@ -83,7 +83,7 @@ static device create_vxlan_if(uint8_t *vni) {
 
 
 
-vxi *add_vxi(char *buf, uint8_t *vni, char *addr) {
+vxi *add_vxi(char *buf, uint8_t *vni, char *addr, char *if_name) {
 
 	vxi *v = (vxi *)malloc(sizeof(vxi));
 	if (v == NULL) log_pcexit("malloc");
@@ -97,7 +97,7 @@ vxi *add_vxi(char *buf, uint8_t *vni, char *addr) {
 		return NULL;
 	}
 
-	if (join_mcast_group(get_usoc(), 0, addr, NULL) < 0) {
+	if (join_mcast_group(get_usoc(), 0, addr, if_name) < 0) {
 		log_berr(buf, "Cannot initialize socket (%d).\n", get_usoc());
 		log_bperr(buf, "socket");
 		free(v);

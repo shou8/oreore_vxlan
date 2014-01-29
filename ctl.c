@@ -135,7 +135,7 @@ int cmd_add_vxi(char *buf, int argc, char *argv[]) {
 		return SRV_FAILED;
 	}
 
-	vxi *v = add_vxi(buf, vni, addr);
+	vxi *v = add_vxi(buf, vni, addr, NULL);
 	if (v == NULL) {
 		snprintf(buf, CTL_BUF_LEN, "error is occured in server, please refer \"syslog\".\n");
 		return SRV_FAILED;

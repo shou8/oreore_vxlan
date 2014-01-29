@@ -28,8 +28,6 @@
 
 #define VXLAN_FLAG_MASK		0x08
 
-#define MCAST_DEFAULT_ADDR	0xef12b500
-
 
 
 typedef struct _vxlan_h_ {

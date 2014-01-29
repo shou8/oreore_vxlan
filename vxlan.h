@@ -34,7 +34,7 @@ extern vxi ****vxlan;
 vxi ****init_vxlan(void);
 //void destroy_vxlan(void);
 //void create_vxi(char *buf, uint8_t *vni, char *addr, pthread_t th);
-vxi *add_vxi(char *buf, uint8_t *vni, char *addr);
+vxi *add_vxi(char *buf, uint8_t *vni, char *addr, char *if_name);
 void del_vxi(char *buf, uint8_t *vni);
 void show_vxi(void);
 

@@ -3,6 +3,10 @@
 
 
 
+#define MCAST_DEFAULT_ADDR	0xef12b500
+
+
+
 #include "vxlan.h"
 
 

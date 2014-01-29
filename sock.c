@@ -25,6 +25,13 @@
 
 
 
+struct vxland_info v_info = {
+	MCAST_DEFAULT_ADDR,
+	"eth0"
+};
+
+
+
 int init_raw_sock(char *dev) {
 
 	struct ifreq ifreq;
@@ -140,32 +147,20 @@ int init_unix_sock(char *dom, int csflag) {
 int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_name) {
 
 	struct ip_mreq mreq;
-	static uint32_t maddr = MCAST_DEFAULT_ADDR;
-
-	if (sock <= 0) sock = init_udp_sock(port);
-
-	memset(&mreq, 0, sizeof(mreq));
-	if (mcast_addr == NULL) {
-		struct in_addr tmp_addr;
-		char addr_str[32];
 	
-		tmp_addr.s_addr = htonl(maddr);
-		if( inet_ntop(AF_INET, &tmp_addr.s_addr, addr_str, sizeof(addr_str)) == NULL ) {
-			log_perr("Invalid address");
+	if (sock <= 0) sock = init_udp_sock(port);
+	memset(&mreq, 0, sizeof(mreq));
+
+	if (mcast_addr == NULL) {
+		mcast_addr = v_info.mcast_addr;
+	} else {
+		if (inet_aton(mcast_addr, &mreq.imr_multiaddr) == 0) {
+			log_err("Invalid multicast address: %s", mcast_addr);
 			return -1;
 		}
-
-		mcast_addr = addr_str;
-		log_warn("Multicast address is automatically generated: %s\n", mcast_addr);
-		maddr++;
 	}
 
-	if (inet_aton(mcast_addr, &mreq.imr_multiaddr) == 0) {
-		log_err("Invalid multicast address: %s", mcast_addr);
-		return -1;
-	}
-
-	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? INADDR_ANY : get_addr(if_name));
+	mreq.imr_interface.s_addr = (if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name);
 	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
 		log_perr("setsockopt");
 		return -1;
@@ -185,7 +180,7 @@ int leave_mcast_group(int sock, uint32_t mcast_addr, char *if_name) {
 	memset(&mreq, 0, sizeof(mreq));
 	mreq.imr_multiaddr.s_addr = mcast_addr;
 
-	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? INADDR_ANY : get_addr(if_name));
+	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name));
 	if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
 		log_perr("setsockopt");
 		return -1;
