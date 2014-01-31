@@ -153,7 +153,7 @@ int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_n
 	memset(&mreq, 0, sizeof(mreq));
 
 	if (mcast_addr == NULL) {
-		mreq.imr_multiaddr.s_addr = htonl(v_info.mcast_addr);
+		mreq.imr_multiaddr.s_addr = v_info.mcast_addr;
 	} else {
 		if (inet_aton(mcast_addr, &mreq.imr_multiaddr) == 0) {
 			log_err("Invalid multicast address: %s", mcast_addr);
@@ -161,7 +161,7 @@ int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_n
 		}
 	}
 
-	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name));
+	mreq.imr_interface.s_addr = (if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name);
 	
 	printf("sock : %d\n", sock);
 	printf("iaddr: %"PRIu32"\n", mreq.imr_interface.s_addr);
@@ -184,9 +184,9 @@ int leave_mcast_group(int sock, uint32_t mcast_addr, char *if_name) {
 	struct ip_mreq mreq;
 
 	memset(&mreq, 0, sizeof(mreq));
-	mreq.imr_multiaddr.s_addr = htonl(mcast_addr);
+	mreq.imr_multiaddr.s_addr = mcast_addr;
 
-	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name));
+	mreq.imr_interface.s_addr = (if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name);
 	if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
 		log_perr("setsockopt");
 		return -1;
