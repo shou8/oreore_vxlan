@@ -162,7 +162,6 @@ int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_n
 
 	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name));
 	
-	mreq.imr_interface.s_addr = inet_addr("192.168.2.11");
 	printf("sock : %d\n", sock);
 	printf("iaddr: %lu\n", mreq.imr_interface.s_addr);
 	printf("maddr: %lu\n", mreq.imr_multiaddr.s_addr);
