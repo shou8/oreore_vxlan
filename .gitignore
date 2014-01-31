@@ -2,3 +2,5 @@
 vxland
 test/rawgen
 test/udpgen
+vxlanctl
+core.*

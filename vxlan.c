@@ -91,11 +91,13 @@ vxi *add_vxi(char *buf, uint8_t *vni, char *addr, char *if_name) {
 	v->table = init_table(TABLE_SIZE);
 	v->tap = create_vxlan_if(vni);
 
+/*
 	if (inet_pton(AF_INET, addr, &v->mcast_addr) != 1) {
 		log_berr(buf, "inet_pton: Cannot translate (%s).\n", addr);
 		free(v);
 		return NULL;
 	}
+*/
 
 	if (join_mcast_group(get_usoc(), 0, addr, if_name) < 0) {
 		log_berr(buf, "Cannot initialize socket (%d).\n", get_usoc());
