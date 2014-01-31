@@ -29,12 +29,6 @@ static device create_vxlan_if(uint8_t *vni);
 
 
 
-struct vxland_info v_info = {
-	MCAST_DEFAULT_ADDR,
-	"eth0"
-};
-
-
 
 /*
  * Create 3 Demention Matrix

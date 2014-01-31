@@ -15,6 +15,13 @@
 
 
 
+struct vxland_info v_info = {
+	DEFAULT_MCAST_ADDR,
+	"eth0"
+};
+
+
+
 void *outer_loop_thread(void *args);
 
 

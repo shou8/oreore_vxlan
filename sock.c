@@ -20,8 +20,6 @@
 
 
 
-#define MCAST_DEFAULT_ADDR	0xef12b500
-
 #define CON_NUM		1
 
 
@@ -149,20 +147,24 @@ int join_mcast_group(int sock, uint32_t maddr, char *if_name) {
 	mreq.imr_interface.s_addr = get_addr(if_name);
 
 	if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, (char *)&mreq, sizeof(mreq)) != 0) {
-		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
 		log_perr("setsockopt");
 		log_err("Fail to set IP_MULTICAST_IF\n");
 		log_err("socket    : %d\n", sock);
+		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
 		log_err("mcast_addr: %s\n", maddr_s);
+		inet_ntop(AF_INET, &mreq.imr_interface, maddr_s, sizeof(maddr_s));
+		log_err("if_addr   : %s\n", maddr_s);
 		return -1;
 	}
 	
 	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
-		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
 		log_perr("setsockopt");
 		log_err("Fail to set IP_ADD_MEMBERSHIP\n");
 		log_err("socket    : %d\n", sock);
+		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
 		log_err("mcast_addr: %s\n", maddr_s);
+		inet_ntop(AF_INET, &mreq.imr_interface, maddr_s, sizeof(maddr_s));
+		log_err("if_addr   : %s\n", maddr_s);
 		return -1;
 	}
 

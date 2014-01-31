@@ -18,6 +18,7 @@
 
 #define UNIX_DOMAIN_LEN			1024
 #define DEFAULT_UNIX_DOMAIN		"/var/run/vxlan.sock"
+#define DEFAULT_MCAST_ADDR	0x010000e0
 
 
 
