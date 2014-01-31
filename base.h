@@ -37,16 +37,5 @@ enum status {
 
 
 
-struct vxland_info {
-	uint32_t mcast_addr;
-	char if_name[IF_NAME_LEN];
-};
-
-
-
-extern struct vxland_info v_info;
-
-
-
 #endif /* BASE_H_INCLUDED */
 

@@ -26,13 +26,6 @@
 
 
 
-struct vxland_info v_info = {
-	MCAST_DEFAULT_ADDR,
-	"eth0"
-};
-
-
-
 int init_raw_sock(char *dev) {
 
 	struct ifreq ifreq;
@@ -89,6 +82,7 @@ int init_udp_sock(unsigned short port) {
 		return -1;
 	}
 
+printf("outer socket: %d\n", sock);
 	return sock;
 }
 
@@ -145,54 +139,55 @@ int init_unix_sock(char *dom, int csflag) {
  * Multicast Settings
  */
 
-int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_name) {
+int join_mcast_group(int sock, uint32_t maddr, char *if_name) {
 
 	struct ip_mreq mreq;
-	
-	if (sock <= 0) sock = init_udp_sock(port);
+	char maddr_s[16];
+
 	memset(&mreq, 0, sizeof(mreq));
+	mreq.imr_multiaddr.s_addr = maddr;
+	mreq.imr_interface.s_addr = get_addr(if_name);
 
-	if (mcast_addr == NULL) {
-		mreq.imr_multiaddr.s_addr = v_info.mcast_addr;
-	} else {
-		if (inet_aton(mcast_addr, &mreq.imr_multiaddr) == 0) {
-			log_err("Invalid multicast address: %s", mcast_addr);
-			return -1;
-		}
-	}
-
-	mreq.imr_interface.s_addr = (if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name);
-	
-	printf("sock : %d\n", sock);
-	printf("iaddr: %"PRIu32"\n", mreq.imr_interface.s_addr);
-	printf("maddr: %"PRIu32"\n", mreq.imr_multiaddr.s_addr);
-
-	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
+	if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, (char *)&mreq, sizeof(mreq)) != 0) {
+		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
 		log_perr("setsockopt");
+		log_err("Fail to set IP_MULTICAST_IF\n");
+		log_err("socket    : %d\n", sock);
+		log_err("mcast_addr: %s\n", maddr_s);
 		return -1;
 	}
-
-	log_info("Multicast address is set: %s\n", mcast_addr);
+	
+	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
+		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
+		log_perr("setsockopt");
+		log_err("Fail to set IP_ADD_MEMBERSHIP\n");
+		log_err("socket    : %d\n", sock);
+		log_err("mcast_addr: %s\n", maddr_s);
+		return -1;
+	}
 
 	return 0;
 }
 
 
 
-int leave_mcast_group(int sock, uint32_t mcast_addr, char *if_name) {
+int leave_mcast_group(int sock, uint32_t maddr, char *if_name) {
 
 	struct ip_mreq mreq;
+	char maddr_s[16];
 
 	memset(&mreq, 0, sizeof(mreq));
-	mreq.imr_multiaddr.s_addr = mcast_addr;
+	mreq.imr_multiaddr.s_addr = maddr;
+	mreq.imr_interface.s_addr = get_addr(if_name);
 
-	mreq.imr_interface.s_addr = (if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name);
 	if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
+		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
 		log_perr("setsockopt");
+		log_err("Fail to set IP_ADD_MEMBERSHIP\n");
+		log_err("socket    : %d\n", sock);
+		log_err("mcast_addr: %s\n", maddr_s);
 		return -1;
 	}
-
-	log_info("Multicast address is unset: %s\n", mcast_addr);
 
 	return 0;
 }

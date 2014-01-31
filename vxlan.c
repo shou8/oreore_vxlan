@@ -29,6 +29,13 @@ static device create_vxlan_if(uint8_t *vni);
 
 
 
+struct vxland_info v_info = {
+	MCAST_DEFAULT_ADDR,
+	"eth0"
+};
+
+
+
 /*
  * Create 3 Demention Matrix
  */
@@ -83,28 +90,13 @@ static device create_vxlan_if(uint8_t *vni) {
 
 
 
-vxi *add_vxi(char *buf, uint8_t *vni, char *addr, char *if_name) {
+vxi *add_vxi(char *buf, uint8_t *vni) {
 
 	vxi *v = (vxi *)malloc(sizeof(vxi));
 	if (v == NULL) log_pcexit("malloc");
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(TABLE_SIZE);
 	v->tap = create_vxlan_if(vni);
-
-/*
-	if (inet_pton(AF_INET, addr, &v->mcast_addr) != 1) {
-		log_berr(buf, "inet_pton: Cannot translate (%s).\n", addr);
-		free(v);
-		return NULL;
-	}
-*/
-
-	if (join_mcast_group(get_usoc(), 0, addr, if_name) < 0) {
-		log_berr(buf, "Cannot initialize socket (%d).\n", get_usoc());
-		log_bperr(buf, "socket");
-		free(v);
-		return NULL;
-	}
 
 	vxlan[vni[0]][vni[1]][vni[2]] = v;
 
@@ -114,13 +106,6 @@ vxi *add_vxi(char *buf, uint8_t *vni, char *addr, char *if_name) {
 
 
 void del_vxi(char *buf, uint8_t *vni) {
-
-	vxi *v = vxlan[vni[0]][vni[1]][vni[2]];
-	if (leave_mcast_group(get_usoc(), v->mcast_addr, (v->tap).name) < 0) {
-		log_berr(buf, "Cannot initialize socket (%d).\n", get_usoc());
-		log_bperr(buf, "socket");
-		free(v);
-	}
 
 	free(vxlan[vni[0]][vni[1]][vni[2]]);
 	vxlan[vni[0]][vni[1]][vni[2]] = NULL;

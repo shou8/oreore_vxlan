@@ -50,7 +50,6 @@ static int usoc = -1;
 /*
  * Network Loop Function
  */
-
 int outer_loop(void) {
 
 	int buf_len;
@@ -63,6 +62,12 @@ int outer_loop(void) {
 	bp = buf;
 	usoc = init_udp_sock(VXLAN_PORT);
 	if (usoc < 0) log_cexit("outer_loop.socket: Bad descripter\n");
+
+	if (join_mcast_group(usoc, v_info.mcast_addr, v_info.if_name) < 0) {
+		log_berr(buf, "Cannot initialize socket (%d).\n", get_usoc());
+		log_bperr(buf, "socket");
+		exit(EXIT_FAILURE);
+	}
 
 	while (1) {
 
@@ -175,9 +180,10 @@ int inner_loop(vxi *v) {
 #endif
 
 		if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
-			dst.sin_addr.s_addr = v->mcast_addr;
+			dst.sin_addr.s_addr = v_info.mcast_addr;
 			if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 				log_perr("inner_loop.sendto");
+printf("mcast: %d\n", usoc);
 			continue;
 		}
 
@@ -189,6 +195,7 @@ int inner_loop(vxi *v) {
 		dst.sin_addr.s_addr = htonl(data->vtep_addr);
 		if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 			log_perr("inner_loop.sendto");
+printf("ucast: %d\n", usoc);
 	}
 
 	/*

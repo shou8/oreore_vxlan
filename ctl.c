@@ -117,43 +117,13 @@ int order_parse(char *rbuf, char *wbuf) {
 
 int cmd_add_vxi(char *buf, int argc, char *argv[]) {
 
-	int opt;
-	extern int optind;
-	extern char *optarg;
-	char *vni_s = NULL;
-	char *if_name = NULL;
-	char *maddr = NULL;
-	uint8_t vni[VNI_BYTE];
-
-	struct option addopt[] = {
-		{"help", no_argument, NULL, 'h'},
-		{"interface", required_argument, NULL, 'i'},
-		{"mcastaddr", required_argument, NULL, 'm'},
-		{0, 0, 0, 0}
-	};
-
-	char usage[] = "add [-i <interface_name>] [-m <Multicast Address>] <VNI>";
-
-	while((opt = getopt_long(argc, argv, "i:m:", addopt, NULL)) != -1) {
-		switch(opt) {
-			case 'i':
-				if_name = optarg;
-				break;
-			case 'm':
-				maddr = optarg;
-				break;
-			case '?':
-				snprintf(buf, CTL_BUF_LEN, "%s\n", usage);
-				return CMD_FAILED;
-		}
-	}
-
-	if (optind >= argc) {
-		snprintf(buf, CTL_BUF_LEN, "%s\n", usage);
+	if (argc != 2) {
+		snprintf(buf, CTL_BUF_LEN, "add <VNI>\n");
 		return CMD_FAILED;
 	}
 
-	vni_s = argv[optind];
+	char *vni_s = argv[1];
+	uint8_t vni[VNI_BYTE];
 
 	if (str2uint8arr(vni_s, vni) < 0) {
 		snprintf(buf, CTL_BUF_LEN, "Invalid VNI: %s\n", vni_s);
@@ -165,7 +135,7 @@ int cmd_add_vxi(char *buf, int argc, char *argv[]) {
 		return SRV_FAILED;
 	}
 
-	vxi *v = add_vxi(buf, vni, maddr, if_name);
+	vxi *v = add_vxi(buf, vni);
 	if (v == NULL) {
 		snprintf(buf, CTL_BUF_LEN, "error is occured in server, please refer \"syslog\".\n");
 		return SRV_FAILED;
@@ -175,7 +145,7 @@ int cmd_add_vxi(char *buf, int argc, char *argv[]) {
 	pthread_create(&th, NULL, inner_loop_thread, vni);
 	v->th = th;
 
-	snprintf(buf, CTL_BUF_LEN, "=== Set ===\nVNI\t\t: %s\nMCAST ADDR\t: %s\n", vni_s, maddr);
+	snprintf(buf, CTL_BUF_LEN, "=== Set ===\nVNI\t\t: %s\n", vni_s);
 	printf("%s", buf);
 
 	return SUCCESS;
