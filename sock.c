@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <net/if.h>
 #include <net/ethernet.h>
@@ -163,8 +164,8 @@ int join_mcast_group(int sock, unsigned short port, char *mcast_addr, char *if_n
 	mreq.imr_interface.s_addr = htonl((if_name == NULL) ? get_addr(v_info.if_name) : get_addr(if_name));
 	
 	printf("sock : %d\n", sock);
-	printf("iaddr: %lu\n", mreq.imr_interface.s_addr);
-	printf("maddr: %lu\n", mreq.imr_multiaddr.s_addr);
+	printf("iaddr: %"PRIu32"\n", mreq.imr_interface.s_addr);
+	printf("maddr: %"PRIu32"\n", mreq.imr_multiaddr.s_addr);
 
 	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
 		log_perr("setsockopt");
