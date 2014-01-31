@@ -93,8 +93,8 @@ printf("aft buf_len: %d\n", buf_len);
 			add_data(v->table, eh->ether_shost, src.sin_addr.s_addr);
 		}
 
-//		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
-		write(v->tap.sock, bp, buf_len); 
+		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
+//		write(v->tap.sock, bp, buf_len); 
 
 #ifdef DEBUG
 		if (get_status())
