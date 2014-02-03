@@ -23,7 +23,7 @@
 
 
 
-#define VXLAN_PORT	4789
+//#define VXLAN_PORT	4789
 #define VXLAN_PORT	60000
 #define BUF_SIZE	65536
 
@@ -136,11 +136,13 @@ int inner_loop(vxlan_i *v) {
 	socklen_t addr_len = sizeof(src);
 
 	/* For UDP socket declaration (Write) */
+/*
 	if (vxlan.usoc < 0) vxlan.usoc = init_udp_sock(VXLAN_PORT);
 	if (vxlan.usoc < 0) {
 		log_crit("inner_loop.socket: Bad descripter\n");
 		return -1;
 	}
+*/
 
 	struct sockaddr_in dst;
 	dst.sin_port = htons(VXLAN_PORT);
