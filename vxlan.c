@@ -83,9 +83,11 @@ static device create_vxlan_if(uint8_t *vni) {
 	log_debug("VNI: %"PRIu8".%"PRIu8".%"PRIu8"\n", vni[0], vni[1], vni[2], vni32);
 	log_info("Tap interface \"%s\" is created (VNI: %"PRIu32").\n", tap.name, vni32);
 
-	tap_alloc(tap.name);
+//	tap_alloc(tap.name);
+//	tap_up(tap.name);
+//	tap.sock = init_raw_sock(tap.name);
+	tap.sock = tap_alloc(tap.name);
 	tap_up(tap.name);
-	tap.sock = init_raw_sock(tap.name);
 	get_mac(tap.sock, tap.name, tap.hwaddr);
 
 	return tap;

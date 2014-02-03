@@ -126,8 +126,8 @@ int inner_loop(vxlan_i *v) {
 	int len;
 
 	/* For RAW socket declaration (Read) */
-	struct sockaddr_in src;
-	socklen_t addr_len = sizeof(src);
+//	struct sockaddr_in src;
+//	socklen_t addr_len = sizeof(src);
 
 	struct sockaddr_in dst;
 	dst.sin_port = htons(VXLAN_PORT);
@@ -145,8 +145,11 @@ int inner_loop(vxlan_i *v) {
 
 	while (1) {
 
-		if ((len = recvfrom(rsoc, rp, rlen, 0,
-						(struct sockaddr *)&src, &addr_len)) < 0)
+printf("%d\n", rsoc);
+sleep(1);
+		if ((len = read(rsoc, rp, rlen)) < 0)
+//		if ((len = recvfrom(rsoc, rp, rlen, 0,
+//						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("inner_loop.recvfrom");
 
 		memset(vh, 0, sizeof(vxlan_h));
@@ -175,14 +178,18 @@ printf("inner aft buf_len: %d\n", len);
 			dst.sin_addr.s_addr = vxlan.mcast_addr;
 			if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 				log_perr("inner_loop.sendto");
-printf("mcast: %d\n", vxlan.usoc);
+char dest[32];
+inet_ntop(AF_INET, (struct sockaddr *)&dst, dest, sizeof(struct sockaddr));
+printf("mcast: %s\n", dest);
 			continue;
 		}
 
 		dst.sin_addr.s_addr = data->vtep_addr;
 		if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 			log_perr("inner_loop.sendto");
-printf("ucast: %d\n", vxlan.usoc);
+char dest[32];
+inet_ntop(AF_INET, (struct sockaddr *)&dst, dest, sizeof(struct sockaddr));
+printf("ucast: %s\n", dest);
 	}
 
 	/*

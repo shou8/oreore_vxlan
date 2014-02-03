@@ -65,7 +65,7 @@ int init_udp_sock(unsigned short port) {
 	struct sockaddr_in addr;
 
 	memset(&addr, 0, sizeof(addr));
-	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+	if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
 		log_pcrit("udp.socket");
 		return -1;
 	}
