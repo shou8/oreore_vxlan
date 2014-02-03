@@ -24,6 +24,7 @@
 
 
 #define VXLAN_PORT	4789
+#define VXLAN_PORT	60000
 #define BUF_SIZE	65536
 
 #define VXLAN_FLAG_MASK		0x08
