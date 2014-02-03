@@ -72,7 +72,7 @@ int init_udp_sock(unsigned short port) {
 
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
-	addr.sin_addr.s_addr = htonl(INADDR_ANY);
+	addr.sin_addr.s_addr = INADDR_ANY;
 
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		log_pcrit("udp.bind");
@@ -80,7 +80,6 @@ int init_udp_sock(unsigned short port) {
 		return -1;
 	}
 
-printf("outer socket: %d\n", sock);
 	return sock;
 }
 
@@ -136,7 +135,6 @@ int init_unix_sock(char *dom, int csflag) {
 /*
  * Multicast Settings
  */
-
 int join_mcast_group(int sock, uint32_t maddr, char *if_name) {
 
 	struct ip_mreq mreq;
@@ -145,10 +143,10 @@ int join_mcast_group(int sock, uint32_t maddr, char *if_name) {
 	memset(&mreq, 0, sizeof(mreq));
 	mreq.imr_multiaddr.s_addr = maddr;
 	mreq.imr_interface.s_addr = get_addr(if_name);
-
-	if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, (char *)&mreq, sizeof(mreq)) != 0) {
+	
+	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) < 0) {
 		log_perr("setsockopt");
-		log_err("Fail to set IP_MULTICAST_IF\n");
+		log_err("Fail to set IP_ADD_MEMBERSHIP\n");
 		log_err("socket    : %d\n", sock);
 		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
 		log_err("mcast_addr: %s\n", maddr_s);
@@ -156,10 +154,10 @@ int join_mcast_group(int sock, uint32_t maddr, char *if_name) {
 		log_err("if_addr   : %s\n", maddr_s);
 		return -1;
 	}
-	
-	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
+
+	if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, (char *)&mreq.imr_interface, sizeof(mreq.imr_interface)) < 0) {
 		log_perr("setsockopt");
-		log_err("Fail to set IP_ADD_MEMBERSHIP\n");
+		log_err("Fail to set IP_MULTICAST_IF\n");
 		log_err("socket    : %d\n", sock);
 		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
 		log_err("mcast_addr: %s\n", maddr_s);
@@ -182,7 +180,7 @@ int leave_mcast_group(int sock, uint32_t maddr, char *if_name) {
 	mreq.imr_multiaddr.s_addr = maddr;
 	mreq.imr_interface.s_addr = get_addr(if_name);
 
-	if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) != 0) {
+	if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) < 0) {
 		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
 		log_perr("setsockopt");
 		log_err("Fail to set IP_ADD_MEMBERSHIP\n");

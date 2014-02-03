@@ -82,7 +82,7 @@ void ctl_loop(char *dom) {
 void *inner_loop_thread(void *args) {
 
 	uint8_t *vni = (uint8_t *)args;
-	inner_loop(vxlan[vni[0]][vni[1]][vni[2]]);
+	inner_loop(vxlan.vxi[vni[0]][vni[1]][vni[2]]);
 
 	/* Cannot Reach */
 	log_crit("The instance (VNI: %"PRIx32") is doen.", To32ex(vni));
@@ -130,12 +130,12 @@ int cmd_add_vxi(char *buf, int argc, char *argv[]) {
 		return CMD_FAILED;
 	}
 
-	if (vxlan[vni[0]][vni[1]][vni[2]] != NULL) {
+	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] != NULL) {
 		snprintf(buf, CTL_BUF_LEN, "Instance (VNI: %s) has already existed.\n", vni_s);
 		return SRV_FAILED;
 	}
 
-	vxi *v = add_vxi(buf, vni);
+	vxlan_i *v = add_vxi(buf, vni);
 	if (v == NULL) {
 		snprintf(buf, CTL_BUF_LEN, "error is occured in server, please refer \"syslog\".\n");
 		return SRV_FAILED;
@@ -165,12 +165,12 @@ int cmd_del_vxi(char *buf, int argc, char *argv[]) {
 	uint8_t vni[VNI_BYTE];
 	str2uint8arr(vni_s, vni);
 
-	if (vxlan[vni[0]][vni[1]][vni[2]] == NULL) {
+	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] == NULL) {
 		snprintf(buf, CTL_BUF_LEN, "VNI: %s does not exist.\n", vni_s);
 		return SRV_FAILED;
 	}
 
-	pthread_t th = (vxlan[vni[0]][vni[1]][vni[2]])->th;
+	pthread_t th = (vxlan.vxi[vni[0]][vni[1]][vni[2]])->th;
 	pthread_cancel(th);
 	del_vxi(buf, vni);
 

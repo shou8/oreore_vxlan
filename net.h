@@ -8,8 +8,8 @@
 
 
 int outer_loop(void);
-int inner_loop(vxi *v);
-int get_usoc(void);
+int inner_loop(vxlan_i *v);
+//int get_usoc(void);
 
 
 

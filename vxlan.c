@@ -23,7 +23,14 @@
 
 
 
-vxi ****vxlan;
+//vxlan_i ****vxlan;
+vxland vxlan = {
+	-1,
+	-1,
+	DEFAULT_MCAST_ADDR,
+	"eth0",
+	NULL
+};
 //static int cmp_vni(uint8_t *vni1, uint8_t *vni2);
 static device create_vxlan_if(uint8_t *vni);
 
@@ -33,34 +40,33 @@ static device create_vxlan_if(uint8_t *vni);
 /*
  * Create 3 Demention Matrix
  */
-vxi ****init_vxlan(void) {
+void init_vxlan(void) {
 
-	vxlan = (vxi ****)malloc(sizeof(vxi ***) * VXI_MAX);
-	if (vxlan == NULL) log_pcexit("malloc");
-	vxlan[0] = (vxi ***)malloc(sizeof(vxi **) * VXI_MAX * VXI_MAX);
-	if (vxlan[0] == NULL) log_pcexit("malloc");
-	vxlan[0][0] = (vxi **)malloc(sizeof(vxi *) * VXI_MAX * VXI_MAX * VXI_MAX);
-	if ( vxlan[0][0] == NULL ) log_pcexit("malloc");
+	vxlan.vxi = (vxlan_i ****)malloc(sizeof(vxlan_i ***) * VXI_MAX);
+	if (vxlan.vxi == NULL) log_pcexit("malloc");
+	vxlan.vxi[0] = (vxlan_i ***)malloc(sizeof(vxlan_i **) * VXI_MAX * VXI_MAX);
+	if (vxlan.vxi[0] == NULL) log_pcexit("malloc");
+	vxlan.vxi[0][0] = (vxlan_i **)malloc(sizeof(vxlan_i *) * VXI_MAX * VXI_MAX * VXI_MAX);
+	if ( vxlan.vxi[0][0] == NULL ) log_pcexit("malloc");
 
 	int i,j;
 	for (i=0; i<VXI_MAX; i++) {
-		vxlan[i] = vxlan[0] + i * VXI_MAX;
+		vxlan.vxi[i] = vxlan.vxi[0] + i * VXI_MAX;
 		for (j=0; j<VXI_MAX; j++)
-			vxlan[i][j] = vxlan[0][0] + i * VXI_MAX * VXI_MAX + j * VXI_MAX;
+			vxlan.vxi[i][j] = vxlan.vxi[0][0] + i * VXI_MAX * VXI_MAX + j * VXI_MAX;
 	}
 
-	memset(vxlan[0][0], 0, sizeof(vxi *) * VXI_MAX * VXI_MAX * VXI_MAX);
-
-	return vxlan;
+	memset(vxlan.vxi[0][0], 0, sizeof(vxlan_i *) * VXI_MAX * VXI_MAX * VXI_MAX);
 }
 
 
 
 void destroy_vxlan(void) {
 
-	free(vxlan[0][0]);
-	free(vxlan[0]);
-	free(vxlan);
+	free(vxlan.vxi[0][0]);
+	free(vxlan.vxi[0]);
+	free(vxlan.vxi);
+	vxlan.vxi = NULL;
 }
 
 
@@ -84,15 +90,15 @@ static device create_vxlan_if(uint8_t *vni) {
 
 
 
-vxi *add_vxi(char *buf, uint8_t *vni) {
+vxlan_i *add_vxi(char *buf, uint8_t *vni) {
 
-	vxi *v = (vxi *)malloc(sizeof(vxi));
+	vxlan_i *v = (vxlan_i *)malloc(sizeof(vxlan_i));
 	if (v == NULL) log_pcexit("malloc");
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(TABLE_SIZE);
 	v->tap = create_vxlan_if(vni);
 
-	vxlan[vni[0]][vni[1]][vni[2]] = v;
+	vxlan.vxi[vni[0]][vni[1]][vni[2]] = v;
 
 	return v;
 }
@@ -101,21 +107,23 @@ vxi *add_vxi(char *buf, uint8_t *vni) {
 
 void del_vxi(char *buf, uint8_t *vni) {
 
-	free(vxlan[vni[0]][vni[1]][vni[2]]);
-	vxlan[vni[0]][vni[1]][vni[2]] = NULL;
+	free(vxlan.vxi[vni[0]][vni[1]][vni[2]]);
+	vxlan.vxi[vni[0]][vni[1]][vni[2]] = NULL;
 }
 
 
 
 void show_vxi(void) {
 
+	vxlan_i ****vxi = vxlan.vxi;
+
 	int i,j,k;
 	for (i=0; i<VXI_MAX; i++)
 		for (j=0; j<VXI_MAX; j++)
 			for (k=0; k<VXI_MAX; k++)
-				if (vxlan[i][j][k] != NULL) {
+				if (vxi[i][j][k] != NULL) {
 					uint32_t vni32 = To32(i, j, k);
-					printf("vxlan[%02X][%02X][%02X]: 0x%06X: %p\n", i, j, k, vni32, vxlan[i][j][k]);
+					printf("vxlan[%02X][%02X][%02X]: 0x%06X: %p\n", i, j, k, vni32, vxi[i][j][k]);
 				}
 }
 

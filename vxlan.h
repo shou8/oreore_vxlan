@@ -23,25 +23,28 @@ typedef struct _vxlan_instance_ {
 	uint8_t vni[VNI_BYTE];
 	device tap;
 	list **table;
-} vxi;
+} vxlan_i;
 
 
 
 
-struct vxland_info {
+typedef struct _vxland {
+	int port;
+	int usoc;
 	uint32_t mcast_addr;
 	char if_name[IF_NAME_LEN];
-};
+	vxlan_i ****vxi;
+} vxland;
 
 
 
-extern vxi ****vxlan;
-extern struct vxland_info v_info;
+//extern vxi ****vxlan;
+extern vxland vxlan;
 
-vxi ****init_vxlan(void);
+void init_vxlan(void);
 //void destroy_vxlan(void);
 //void create_vxi(char *buf, uint8_t *vni, char *addr, pthread_t th);
-vxi *add_vxi(char *buf, uint8_t *vni);
+vxlan_i *add_vxi(char *buf, uint8_t *vni);
 void del_vxi(char *buf, uint8_t *vni);
 void show_vxi(void);
 

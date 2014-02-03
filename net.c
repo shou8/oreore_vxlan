@@ -39,7 +39,7 @@ typedef struct _vxlan_h_ {
 
 
 
-static int usoc = -1;
+//static int usoc = -1;
 
 #ifdef DEBUG
 	static void print_vxl_h(vxlan_h *vh, FILE *fp);
@@ -60,18 +60,18 @@ int outer_loop(void) {
 	socklen_t addr_len = sizeof(src);
 
 	bp = buf;
-	usoc = init_udp_sock(VXLAN_PORT);
-	if (usoc < 0) log_cexit("outer_loop.socket: Bad descripter\n");
+	vxlan.usoc = init_udp_sock(VXLAN_PORT);
+	if (vxlan.usoc < 0) log_cexit("outer_loop.socket: Bad descripter\n");
 
-	if (join_mcast_group(usoc, v_info.mcast_addr, v_info.if_name) < 0) {
-		log_berr(buf, "Cannot initialize socket (%d).\n", get_usoc());
+	if (join_mcast_group(vxlan.usoc, vxlan.mcast_addr, vxlan.if_name) < 0) {
+		log_berr(buf, "Cannot initialize socket (%d).\n", vxlan.usoc);
 		log_bperr(buf, "socket");
 		exit(EXIT_FAILURE);
 	}
 
 	while (1) {
 
-		if ((buf_len = recvfrom(usoc, buf, sizeof(buf)-1, 0,
+		if ((buf_len = recvfrom(vxlan.usoc, buf, sizeof(buf)-1, 0,
 						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("recvfrom");
 
@@ -88,7 +88,7 @@ printf("aft buf_len: %d\n", buf_len);
 			print_vxl_h(vh, stdout);
 #endif
 
-		vxi *v = vxlan[vh->vni[0]][vh->vni[1]][vh->vni[2]];
+		vxlan_i *v = vxlan.vxi[vh->vni[0]][vh->vni[1]][vh->vni[2]];
 		if (v == NULL) continue;
 
 		struct ether_header *eh = (struct ether_header *)bp;
@@ -122,7 +122,7 @@ printf("aft buf_len: %d\n", buf_len);
 
 
 
-int inner_loop(vxi *v) {
+int inner_loop(vxlan_i *v) {
 
 	/* Common declaration */
 	char buf[BUF_SIZE];
@@ -135,8 +135,8 @@ int inner_loop(vxi *v) {
 	socklen_t addr_len = sizeof(src);
 
 	/* For UDP socket declaration (Write) */
-	if (usoc < 0) usoc = init_udp_sock(VXLAN_PORT);
-	if (usoc < 0) {
+	if (vxlan.usoc < 0) vxlan.usoc = init_udp_sock(VXLAN_PORT);
+	if (vxlan.usoc < 0) {
 		log_crit("inner_loop.socket: Bad descripter\n");
 		return -1;
 	}
@@ -180,10 +180,10 @@ int inner_loop(vxi *v) {
 #endif
 
 		if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
-			dst.sin_addr.s_addr = v_info.mcast_addr;
-			if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
+			dst.sin_addr.s_addr = vxlan.mcast_addr;
+			if (sendto(vxlan.usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 				log_perr("inner_loop.sendto");
-printf("mcast: %d\n", usoc);
+printf("mcast: %d\n", vxlan.usoc);
 			continue;
 		}
 
@@ -193,9 +193,9 @@ printf("mcast: %d\n", usoc);
 		}
 
 		dst.sin_addr.s_addr = htonl(data->vtep_addr);
-		if (sendto(usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
+		if (sendto(vxlan.usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 			log_perr("inner_loop.sendto");
-printf("ucast: %d\n", usoc);
+printf("ucast: %d\n", vxlan.usoc);
 	}
 
 	/*
@@ -209,10 +209,12 @@ printf("ucast: %d\n", usoc);
 /*
  * Getter
  */
+/*
 int get_usoc(void) {
 
 	return usoc;
 }
+*/
 
 
 

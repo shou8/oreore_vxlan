@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <string.h>
 
 #include "base.h"
 #include "log.h"
@@ -12,13 +13,6 @@
 #ifdef DEBUG
 #include "test.h"
 #endif /* DEBUG */
-
-
-
-struct vxland_info v_info = {
-	DEFAULT_MCAST_ADDR,
-	"eth0"
-};
 
 
 
@@ -34,7 +28,7 @@ enable_debug();
 disable_debug();
 #endif /* DEUBG */
 
-	vxlan = init_vxlan();	// Global variable (declared in "vxlan.c")
+	init_vxlan();	// Global variable (declared in "vxlan.c")
 
 	pthread_t oth;		// outer_loop thread
 	pthread_create(&oth, NULL, outer_loop_thread, (void *)NULL);
