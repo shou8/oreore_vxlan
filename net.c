@@ -93,7 +93,7 @@ printf("outer aft buf_len: %d\n", len);
 
 		struct ether_header *eh = (struct ether_header *)bp;
 		if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
-			add_data(v->table, eh->ether_shost, src.sin_addr.s_addr);
+			add_data(v->table, eh->ether_shost, ntohl(src.sin_addr.s_addr));
 		}
 
 		write(v->tap.sock, bp, len); 
@@ -172,14 +172,14 @@ printf("inner aft buf_len: %d\n", len);
 
 		data = find_data(v->table, eh->ether_dhost);
 		if (ntohs(eh->ether_type) == ETHERTYPE_ARP || data == NULL) {
-			dst.sin_addr.s_addr = htonl(vxlan.mcast_addr);
+			dst.sin_addr.s_addr = vxlan.mcast_addr;
 			if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 				log_perr("inner_loop.sendto");
 printf("mcast: %d\n", vxlan.usoc);
 			continue;
 		}
 
-		dst.sin_addr.s_addr = htonl(data->vtep_addr);
+		dst.sin_addr.s_addr = data->vtep_addr;
 		if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 			log_perr("inner_loop.sendto");
 printf("ucast: %d\n", vxlan.usoc);
