@@ -76,13 +76,13 @@ int outer_loop(void) {
 						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("recvfrom");
 
-printf("raw buf_len: %d\n", buf_len);
+printf("outer raw buf_len: %d\n", buf_len);
 
 		vxlan_h *vh = (vxlan_h *)buf;
 		bp = buf + sizeof(vxlan_h);
 		buf_len -= sizeof(vxlan_h);
 
-printf("aft buf_len: %d\n", buf_len);
+printf("outer aft buf_len: %d\n", buf_len);
 
 #ifdef DEBUG
 		if (get_status())
@@ -170,8 +170,9 @@ int inner_loop(vxlan_i *v) {
 		vh->flag = VXLAN_FLAG_MASK;
 		memcpy(vh->vni, v->vni, VNI_BYTE);
 
-printf("raw buf_len: %d\n", len);
-printf("aft buf_len: %d\n", sizeof(vxlan_h)+len);
+printf("inner max buf_len: %d\n", rlen);
+printf("inner raw buf_len: %d\n", len);
+printf("inner aft buf_len: %d\n", sizeof(vxlan_h)+len);
 
 #ifdef DEBUG
 		if (get_status())
