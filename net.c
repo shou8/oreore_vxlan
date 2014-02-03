@@ -93,7 +93,7 @@ printf("outer aft buf_len: %d\n", len);
 
 		struct ether_header *eh = (struct ether_header *)bp;
 		if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
-			add_data(v->table, eh->ether_shost, ntohl(src.sin_addr.s_addr));
+			add_data(v->table, eh->ether_shost, src.sin_addr.s_addr);
 		}
 
 		write(v->tap.sock, bp, len); 
@@ -146,7 +146,6 @@ int inner_loop(vxlan_i *v) {
 	while (1) {
 
 printf("%d\n", rsoc);
-sleep(1);
 		if ((len = read(rsoc, rp, rlen)) < 0)
 //		if ((len = recvfrom(rsoc, rp, rlen, 0,
 //						(struct sockaddr *)&src, &addr_len)) < 0)
