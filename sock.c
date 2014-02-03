@@ -24,6 +24,7 @@
 
 
 
+/*
 int init_raw_sock(char *dev) {
 
 	struct ifreq ifreq;
@@ -56,6 +57,7 @@ int init_raw_sock(char *dev) {
 
 	return sock;
 }
+*/
 
 
 

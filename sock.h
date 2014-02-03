@@ -8,7 +8,7 @@
 
 
 
-int init_raw_sock(char *dev);
+//int init_raw_sock(char *dev);
 int init_udp_sock(unsigned short port);
 int init_unix_sock(char *path, int csflag);
 int join_mcast_group(int sock, uint32_t maddr, char *if_name);

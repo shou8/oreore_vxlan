@@ -24,7 +24,6 @@
 
 
 #define VXLAN_PORT	4789
-//#define VXLAN_PORT	60000
 #define BUF_SIZE	65536
 
 #define VXLAN_FLAG_MASK		0x08
@@ -75,13 +74,9 @@ int outer_loop(void) {
 						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("recvfrom");
 
-printf("outer raw buf_len: %d\n", len);
-
 		vxlan_h *vh = (vxlan_h *)buf;
 		bp = buf + sizeof(vxlan_h);
 		len -= sizeof(vxlan_h);
-
-printf("outer aft buf_len: %d\n", len);
 
 #ifdef DEBUG
 		if (get_status())
@@ -125,10 +120,6 @@ int inner_loop(vxlan_i *v) {
 	int rlen = sizeof(buf) - sizeof(vxlan_h) - 1;
 	int len;
 
-	/* For RAW socket declaration (Read) */
-//	struct sockaddr_in src;
-//	socklen_t addr_len = sizeof(src);
-
 	struct sockaddr_in dst;
 	dst.sin_port = htons(VXLAN_PORT);
 
@@ -145,20 +136,13 @@ int inner_loop(vxlan_i *v) {
 
 	while (1) {
 
-printf("%d\n", rsoc);
 		if ((len = read(rsoc, rp, rlen)) < 0)
-//		if ((len = recvfrom(rsoc, rp, rlen, 0,
-//						(struct sockaddr *)&src, &addr_len)) < 0)
 			log_perr("inner_loop.recvfrom");
 
 		memset(vh, 0, sizeof(vxlan_h));
 		vh->flag = VXLAN_FLAG_MASK;
 		memcpy(vh->vni, v->vni, VNI_BYTE);
 		len += sizeof(vxlan_h);
-
-printf("inner max buf_len: %d\n", rlen);
-printf("inner raw buf_len: %d\n", len-sizeof(vxlan_h));
-printf("inner aft buf_len: %d\n", len);
 
 #ifdef DEBUG
 		if (get_status())
@@ -177,18 +161,12 @@ printf("inner aft buf_len: %d\n", len);
 			dst.sin_addr.s_addr = vxlan.mcast_addr;
 			if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 				log_perr("inner_loop.sendto");
-char dest[32];
-inet_ntop(AF_INET, (struct sockaddr *)&dst, dest, sizeof(struct sockaddr));
-printf("mcast: %s\n", dest);
 			continue;
 		}
 
 		dst.sin_addr.s_addr = data->vtep_addr;
 		if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 			log_perr("inner_loop.sendto");
-char dest[32];
-inet_ntop(AF_INET, (struct sockaddr *)&dst, dest, sizeof(struct sockaddr));
-printf("ucast: %s\n", dest);
 	}
 
 	/*
