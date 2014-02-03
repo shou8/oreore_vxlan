@@ -170,6 +170,9 @@ int inner_loop(vxlan_i *v) {
 		vh->flag = VXLAN_FLAG_MASK;
 		memcpy(vh->vni, v->vni, VNI_BYTE);
 
+printf("raw buf_len: %d\n", len);
+printf("aft buf_len: %d\n", sizeof(vxlan_h)+len);
+
 #ifdef DEBUG
 		if (get_status())
 			print_vxl_h(vh, stdout);
