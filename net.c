@@ -23,8 +23,8 @@
 
 
 
-//#define VXLAN_PORT	4789
-#define VXLAN_PORT	60000
+#define VXLAN_PORT	4789
+//#define VXLAN_PORT	60000
 #define BUF_SIZE	65536
 
 #define VXLAN_FLAG_MASK		0x08
@@ -99,8 +99,8 @@ printf("aft buf_len: %d\n", buf_len);
 			add_data(v->table, eh->ether_shost, src.sin_addr.s_addr);
 		}
 
-		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
-//		write(v->tap.sock, bp, buf_len); 
+//		send(v->tap.sock, bp, buf_len, MSG_DONTWAIT);
+		write(v->tap.sock, bp, buf_len); 
 
 #ifdef DEBUG
 		if (get_status())
@@ -182,16 +182,12 @@ int inner_loop(vxlan_i *v) {
 			print_eth_h(eh, stdout);
 #endif
 
-		if (ntohs(eh->ether_type) == ETHERTYPE_ARP) {
+		data = find_data(v->table, eh->ether_dhost);
+		if (ntohs(eh->ether_type) == ETHERTYPE_ARP || data == NULL) {
 			dst.sin_addr.s_addr = vxlan.mcast_addr;
 			if (sendto(vxlan.usoc, buf, sizeof(vxlan_h)+len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 				log_perr("inner_loop.sendto");
 printf("mcast: %d\n", vxlan.usoc);
-			continue;
-		}
-
-		if ((data = find_data(v->table, eh->ether_dhost)) == NULL) {
-			printf("No target...\n");
 			continue;
 		}
 
