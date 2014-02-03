@@ -64,7 +64,17 @@ void ctl_loop(char *dom) {
 		}
 
 		rbuf[len] = '\0';
-		order_parse(rbuf, wbuf);
+		switch(order_parse(rbuf, wbuf)) {
+			case SUCCESS:
+				break;
+			case CMD_FAILED:
+				snprintf(wbuf, CTL_BUF_LEN, "No such command: %s\n", rbuf);
+				break;
+			case SRV_FAILED:
+				break;
+			default:
+				break;
+		}
 		len = write(asoc, wbuf, strlen(wbuf));
 		if (len < 0) log_perr("write");
 	}
