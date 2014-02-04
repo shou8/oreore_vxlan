@@ -8,6 +8,7 @@
 
 
 #define DAEMON_NAME		"vxland"
+#define CONTROLLER_NAME	"vxlanctl"
 #define TAP_BASE_NAME	"vxlan"
 
 /* MAC Address Length */
@@ -15,6 +16,7 @@
 #define MAC_LEN			6		// 48bits / uint8_t = 6
 
 #define IF_NAME_LEN		256
+#define DEFAULT_BUFLEN	256
 
 #define UNIX_DOMAIN_LEN			1024
 #define DEFAULT_UNIX_DOMAIN		"/var/run/vxlan.sock"
@@ -32,6 +34,7 @@ typedef struct _device_ {
 
 enum status {
 	SUCCESS,
+	NOSUCHCMD,
 	CMD_FAILED,
 	SRV_FAILED
 };

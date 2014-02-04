@@ -6,7 +6,7 @@ TARGET=vxland
 #DEBUG_FLAG=-DDEBUG
 CFLAGS=-Wall
 CONTROLER=vxlanctl
-CONTROLER_OBJS=vxlanctl.o sock.o log.o netutil.o
+CONTROLER_OBJS=vxlanctl.o sock.o log.o netutil.o util.o
 LDFLAGS=
 
 .SUFFIXES: .c .o

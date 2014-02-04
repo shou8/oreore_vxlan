@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <inttypes.h>
 #include <getopt.h>
+#include <errno.h>
 
 #include "base.h"
 #include "util.h"
@@ -12,34 +13,41 @@
 #include "vxlan.h"
 #include "net.h"
 #include "sock.h"
+#include "ctl.h"
 
 
 
-#define CTL_BUF_LEN	LOG_LINELEN
-
-
-
-struct cmd_entry {
-	const char *name;
-	int (*exec)(char *buf, int argc, char *argv[]);
-};
+#define CTL_BUF_LEN DEFAULT_BUFLEN * 4
 
 
 
 void *inner_loop_thread(void *args);
 int order_parse(char *rbuf, char *wbuf);
+char *get_argv0(char *buf, char *argv0);
+int cmd_usage(char *buf, int cmd_i);
+int cmd_usage_all(char **buf);
 
-int cmd_add_vxi(char *buf, int argc, char *argv[]);
-int cmd_del_vxi(char *buf, int argc, char *argv[]);
+/* Comands: cmd_XXX(char *, int, int, char **); */
+int cmd_add_vxi(char *buf, int cmd_i, int argc, char *argv[]);
+int cmd_del_vxi(char *buf, int cmd_i, int argc, char *argv[]);
+int cmd_destroy(char *buf, int cmd_i, int argc, char *argv[]);
+int cmd_show(char *buf, int cmd_i, int argc, char *argv[]);
+int cmd_help(char *buf, int cmd_i, int argc, char *argv[]);
 
 
+
+static char argv0[CTL_BUF_LEN];
 
 struct cmd_entry cmd_t[] = {
-	{ "add", cmd_add_vxi },
-	{ "del", cmd_del_vxi },
+	{ "add", cmd_add_vxi, "<VNI>", "Create instance and interface (ex. add 100 => vxlan100)."},
+	{ "del", cmd_del_vxi, "<VNI>", "Delete instance and interface."},
+	{ "destroy", cmd_destroy, NULL, "Exit process."},
+	{ "show", cmd_show, "{table|mac <VNI>}", "Show instance table or MAC address table."},
+	{ "help", cmd_help, NULL, "Show this help message." },
 };
 
 int cmd_len = sizeof(cmd_t) / sizeof(struct cmd_entry);
+
 
 
 void ctl_loop(char *dom) {
@@ -47,11 +55,15 @@ void ctl_loop(char *dom) {
 	int usoc, asoc, len;
 	char rbuf[CTL_BUF_LEN];
 	char wbuf[CTL_BUF_LEN];
+	int status = 0;
+	char *rp = NULL;
 
 	if ((usoc = init_unix_sock(dom, UNIX_SOCK_SERVER)) < 0)
 		log_pcexit("ctl_loop.init_unix_sock");
 
-	while(1) {
+	while (1) {
+
+		memset(wbuf, 0, sizeof(wbuf));
 
 		if ((asoc = accept(usoc, NULL, 0)) < 0) {
 			log_perr("ctl_loop.accept");
@@ -64,17 +76,22 @@ void ctl_loop(char *dom) {
 		}
 
 		rbuf[len] = '\0';
-		switch(order_parse(rbuf, wbuf)) {
+		rp = get_argv0(rbuf, argv0);
+		status = order_parse(rp, wbuf);
+		switch (status) {
 			case SUCCESS:
 				break;
+			case NOSUCHCMD:
+				snprintf(wbuf, CTL_BUF_LEN, "No such command: %s\n", rp);
+				break;
 			case CMD_FAILED:
-				snprintf(wbuf, CTL_BUF_LEN, "No such command: %s\n", rbuf);
 				break;
 			case SRV_FAILED:
 				break;
 			default:
 				break;
 		}
+
 		len = write(asoc, wbuf, strlen(wbuf));
 		if (len < 0) log_perr("write");
 	}
@@ -103,6 +120,25 @@ void *inner_loop_thread(void *args) {
 
 
 
+char *get_argv0(char *buf, char *argv0) {
+
+	int i, optind;
+	char *p = strchr(buf, ' ');
+	*(p++) = '\0';
+	optind = atoi(buf);
+
+	char *s = p;
+	for (i=0; i<optind; i++, p++) {
+		p = strchr(p, ' ');
+	}
+	*(p - 1) = '\0';
+	strncpy(argv0, s, CTL_BUF_LEN);
+
+	return p;
+}
+
+
+
 int order_parse(char *rbuf, char *wbuf) {
 
 	int i, argc;
@@ -111,34 +147,63 @@ int order_parse(char *rbuf, char *wbuf) {
 
 	p = strtok(rbuf, " ");
 	for (i = 0; i < cmd_len; i++)
-		if (strncmp(cmd_t[i].name, p, strlen(cmd_t[i].name)) == 0) break;
+		if (str_cmp(cmd_t[i].name, p)) break;
 
-	if (i == cmd_len) return CMD_FAILED;
+	if (i == cmd_len) return NOSUCHCMD;
 
 	for (argc = 0; p != NULL; argc++) {
 		argv[argc] = p;
 		p = strtok(NULL, " ");
 	}
 
-	return ((cmd_t[i].exec)(wbuf, argc, argv));
+	return ((cmd_t[i].exec)(wbuf, i, argc, argv));
 }
 
 
 
-int cmd_add_vxi(char *buf, int argc, char *argv[]) {
+int cmd_usage(char *buf, int cmd_i) {
 
-	if (argc != 2) {
-		snprintf(buf, CTL_BUF_LEN, "add <VNI>\n");
-		return CMD_FAILED;
-	}
+	if (strlen(argv0) < 1) strncpy(argv0, CONTROLLER_NAME, strlen(CONTROLLER_NAME));
+	snprintf(buf, CTL_BUF_LEN, "Usage: \"%s\" %s %s\n", argv0, cmd_t[cmd_i].name, cmd_t[cmd_i].arg);
+	return CMD_FAILED;
+}
+
+
+
+/****************
+ ****************
+ ***          ***
+ *** Commands ***
+ ***          ***
+ ****************
+ ****************/
+
+
+
+int cmd_add_vxi(char *buf, int cmd_i, int argc, char *argv[]) {
+
+	if (argc != 2)
+		return cmd_usage(buf, cmd_i);
 
 	char *vni_s = argv[1];
 	uint8_t vni[VNI_BYTE];
+	uint32_t vni32 = str2uint8arr(vni_s, vni);
+	switch (errno) {
+		case EINVAL:
+			snprintf(buf, CTL_BUF_LEN, "Cannot convert, Not number: %s.\n", vni_s);
+			return CMD_FAILED;
+			break;
+		case ERANGE:
+			snprintf(buf, CTL_BUF_LEN, "Invalid range: %s\n", vni_s);
+			return CMD_FAILED;
+			break;
+	}
 
-	if (str2uint8arr(vni_s, vni) < 0) {
-		snprintf(buf, CTL_BUF_LEN, "Invalid VNI: %s\n", vni_s);
+	if (vni32 == 0 && !(str_cmp(vni_s, "0") || str_cmp(vni_s, "0x0"))) {
+		snprintf(buf, CTL_BUF_LEN, "Invalid number: %s\n", vni_s);
 		return CMD_FAILED;
 	}
+
 
 	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] != NULL) {
 		snprintf(buf, CTL_BUF_LEN, "Instance (VNI: %s) has already existed.\n", vni_s);
@@ -155,7 +220,7 @@ int cmd_add_vxi(char *buf, int argc, char *argv[]) {
 	pthread_create(&th, NULL, inner_loop_thread, vni);
 	v->th = th;
 
-	snprintf(buf, CTL_BUF_LEN, "=== Set ===\nVNI\t\t: %s\n", vni_s);
+	snprintf(buf, CTL_BUF_LEN, "=== Set ===\nVNI\t\t: %"PRIu32"\n", vni32);
 	printf("%s", buf);
 
 	return SUCCESS;
@@ -163,26 +228,110 @@ int cmd_add_vxi(char *buf, int argc, char *argv[]) {
 
 
 
-int cmd_del_vxi(char *buf, int argc, char *argv[]) {
+int cmd_del_vxi(char *buf, int cmd_i, int argc, char *argv[]) {
 
-	if (argc < 2) {
-		snprintf(buf, CTL_BUF_LEN, "del <VNI>\n");
-		return CMD_FAILED;
-	}
+	if (argc != 2)
+		return cmd_usage(buf, cmd_i);
 
 	char *vni_s = argv[1];
 
 	uint8_t vni[VNI_BYTE];
-	str2uint8arr(vni_s, vni);
+	uint32_t vni32 = str2uint8arr(vni_s, vni);
+	switch (errno) {
+		case EINVAL:
+			snprintf(buf, CTL_BUF_LEN, "Cannot convert, Not number: %s.\n", vni_s);
+			return CMD_FAILED;
+			break;
+		case ERANGE:
+			snprintf(buf, CTL_BUF_LEN, "Invalid range: %s\n", vni_s);
+			return CMD_FAILED;
+			break;
+	}
+
+	if (vni32 == 0 && !(str_cmp(vni_s, "0") || str_cmp(vni_s, "0x0"))) {
+		snprintf(buf, CTL_BUF_LEN, "Invalid number: %s\n", vni_s);
+		return CMD_FAILED;
+	}
 
 	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] == NULL) {
-		snprintf(buf, CTL_BUF_LEN, "VNI: %s does not exist.\n", vni_s);
+		snprintf(buf, CTL_BUF_LEN, "VNI: %"PRIu32" does not exist.\n", vni32);
 		return SRV_FAILED;
 	}
 
-	pthread_t th = (vxlan.vxi[vni[0]][vni[1]][vni[2]])->th;
-	pthread_cancel(th);
+	pthread_cancel((vxlan.vxi[vni[0]][vni[1]][vni[2]])->th);
 	del_vxi(buf, vni);
+
+	snprintf(buf, CTL_BUF_LEN, "=== Unset ===\nVNI\t\t: %"PRIu32"\n", vni32);
+	printf("%s", buf);
 
 	return SUCCESS;
 }
+
+
+
+int cmd_destroy(char *buf, int cmd_i, int argc, char *argv[]) {
+
+	if (argc != 1)
+		return cmd_usage(buf, cmd_i);
+
+	uint32_t i, j, k;
+
+	for (i=0; i<NUMOF_UINT8; i++) {
+		for (j=0; j<NUMOF_UINT8; j++) {
+			for (k=0; k<NUMOF_UINT8; k++) {
+				if (vxlan.vxi[i][j][k] != NULL) {
+					vxlan_i *v = vxlan.vxi[i][j][k];
+					pthread_cancel(v->th);
+
+					uint8_t vni[3] = {i, j, k};
+					del_vxi(NULL, vni);
+				}
+			}
+		}
+	}
+
+	destroy_vxlan();
+	log_iexit("Exit by order.");
+	return SUCCESS;
+}
+
+
+
+int cmd_show(char *buf, int cmd_i, int argc, char *argv[]) {
+
+	char *show_trgt[] = {
+		"table",
+		"mac"
+	};
+
+	if (argc < 2) {
+		return cmd_usage(buf, cmd_i);
+	}
+
+	printf("%s\n", argv[1]);
+
+	return SUCCESS;
+}
+
+
+
+int cmd_help(char *buf, int cmd_i, int argc, char *argv[]) {
+
+	int i;
+	char *p = buf;
+	char str[CTL_BUF_LEN];
+
+	snprintf(str, CTL_BUF_LEN, "\n%17s|%18s| %s", "name ", "arguments ", "comment");
+	p = pad_str(p, str);
+	p = pad_str(p, "   --------------+------------------+---------------");
+
+	for (i=0; i<cmd_len; i++) {
+		snprintf(str, CTL_BUF_LEN, "%16s %18s : %s", cmd_t[i].name, (cmd_t[i].arg == NULL)? "":cmd_t[i].arg, cmd_t[i].comment);
+		p = pad_str(p, str);
+	}
+
+	return SUCCESS;
+}
+
+
+

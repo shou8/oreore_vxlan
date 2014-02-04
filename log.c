@@ -13,6 +13,8 @@
 
 
 
+#define LOG_LINELEN		256
+
 #define DEBUG_DISABLE	0x00
 #define DEBUG_ENABLE	0x01
 

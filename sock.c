@@ -24,43 +24,6 @@
 
 
 
-/*
-int init_raw_sock(char *dev) {
-
-	struct ifreq ifreq;
-	struct sockaddr_ll sa;
-	int sock;
-
-	memset(&sa, 0, sizeof(sa));
-	if ((sock = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL))) < 0) {
-		log_pcrit("raw.socket");
-		return -1;
-	}
-
-	memset(&ifreq, 0, sizeof(ifreq));
-	strncpy(ifreq.ifr_name, dev, IFNAMSIZ-1);
-	if (ioctl(sock, SIOCGIFINDEX, &ifreq) < 0) {
-		log_pcrit("raw.ioctl");
-		close(sock);
-		return -1;
-	}
-
-	sa.sll_family = AF_PACKET;
-	sa.sll_protocol = htons(ETH_P_ALL);
-	sa.sll_ifindex = ifreq.ifr_ifindex;
-
-	if (bind(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
-		log_pcrit("raw.bind");
-		close(sock);
-		return -1;
-	}
-
-	return sock;
-}
-*/
-
-
-
 int init_udp_sock(unsigned short port) {
 
 	int sock;

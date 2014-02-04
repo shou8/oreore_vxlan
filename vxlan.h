@@ -14,6 +14,7 @@
 
 #define VNI_BIT		24
 #define VNI_BYTE	3
+#define NUMOF_UINT8 (UINT8_MAX + 1)
 
 
 
@@ -42,7 +43,7 @@ typedef struct _vxland {
 extern vxland vxlan;
 
 void init_vxlan(void);
-//void destroy_vxlan(void);
+void destroy_vxlan(void);
 //void create_vxi(char *buf, uint8_t *vni, char *addr, pthread_t th);
 vxlan_i *add_vxi(char *buf, uint8_t *vni);
 void del_vxi(char *buf, uint8_t *vni);

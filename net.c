@@ -39,8 +39,6 @@ typedef struct _vxlan_h_ {
 
 
 
-//static int usoc = -1;
-
 #ifdef DEBUG
 	static void print_vxl_h(vxlan_h *vh, FILE *fp);
 #endif
@@ -174,18 +172,6 @@ int inner_loop(vxlan_i *v) {
 	 */
 	return 0;
 }
-
-
-
-/*
- * Getter
- */
-/*
-int get_usoc(void) {
-
-	return usoc;
-}
-*/
 
 
 

@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <string.h>
+#include <getopt.h>
 
 #include "base.h"
 #include "log.h"
@@ -20,23 +21,29 @@ void *outer_loop_thread(void *args);
 
 
 
+static struct option options[] = {
+	{0, 0, 0, 0}
+};
+
+
+
 int main(int argc, char *argv[]) {
 
+	int opt;
+	extern int optind, opterr;
+	extern char *optarg;
+
+/*
 #ifdef DEBUG
 enable_debug();
 #else
 disable_debug();
-#endif /* DEUBG */
+#endif
+*/
 
-	init_vxlan();	// Global variable (declared in "vxlan.c")
-
-	pthread_t oth;		// outer_loop thread
+	init_vxlan();
+	pthread_t oth;
 	pthread_create(&oth, NULL, outer_loop_thread, (void *)NULL);
-
-#ifdef DEBUG
-//	test();
-#endif /* DEUBG */
-
 	ctl_loop(NULL);
 
     return 0;

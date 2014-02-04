@@ -3,10 +3,6 @@
 
 
 
-#define LOG_LINELEN		256
-
-
-
 /*
  * You must use this function to initialize
  * logging information.
