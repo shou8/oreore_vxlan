@@ -14,7 +14,7 @@
 
 
 #define CLIENT_VERSION	"1.0"
-#define CTL_BUF_LEN DEFAULT_BUFLEN * 4
+#define CTL_BUF_LEN DEFAULT_BUFLEN * 16
 
 #define STDOUT 1
 
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 				dom = optarg;
 				continue;
 			case 'v':
-				fprintf(stderr, "Version: "CLIENT_VERSION".\n");
+				fprintf(stderr, "VXLAN client version "CLIENT_VERSION"\n");
 				exit(EXIT_SUCCESS);
 			case 'h':
 				client_usage(argv[0]);

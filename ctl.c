@@ -17,7 +17,7 @@
 
 
 
-#define CTL_BUF_LEN DEFAULT_BUFLEN * 4
+#define CTL_BUF_LEN DEFAULT_BUFLEN * 16
 
 
 
@@ -30,7 +30,7 @@ int cmd_usage_all(char **buf);
 /* Comands: cmd_XXX(char *, int, int, char **); */
 int cmd_add_vxi(char *buf, int cmd_i, int argc, char *argv[]);
 int cmd_del_vxi(char *buf, int cmd_i, int argc, char *argv[]);
-int cmd_destroy(char *buf, int cmd_i, int argc, char *argv[]);
+int cmd_exit(char *buf, int cmd_i, int argc, char *argv[]);
 int cmd_show(char *buf, int cmd_i, int argc, char *argv[]);
 int cmd_help(char *buf, int cmd_i, int argc, char *argv[]);
 
@@ -41,7 +41,7 @@ static char argv0[CTL_BUF_LEN];
 struct cmd_entry cmd_t[] = {
 	{ "add", cmd_add_vxi, "<VNI>", "Create instance and interface (ex. add 100 => vxlan100)."},
 	{ "del", cmd_del_vxi, "<VNI>", "Delete instance and interface."},
-	{ "destroy", cmd_destroy, NULL, "Exit process."},
+	{ "exit", cmd_exit, NULL, "Exit process."},
 	{ "show", cmd_show, "{table|mac <VNI>}", "Show instance table or MAC address table."},
 	{ "help", cmd_help, NULL, "Show this help message." },
 };
@@ -163,7 +163,7 @@ int order_parse(char *rbuf, char *wbuf) {
 
 int cmd_usage(char *buf, int cmd_i) {
 
-	if (strlen(argv0) < 1) strncpy(argv0, CONTROLLER_NAME, strlen(CONTROLLER_NAME));
+	if (strlen(argv0) < 1) strncpy(argv0, CONTROLLER_NAME, CTL_BUF_LEN);
 	snprintf(buf, CTL_BUF_LEN, "Usage: \"%s\" %s %s\n", argv0, cmd_t[cmd_i].name, cmd_t[cmd_i].arg);
 	return CMD_FAILED;
 }
@@ -187,6 +187,10 @@ int cmd_add_vxi(char *buf, int cmd_i, int argc, char *argv[]) {
 
 	char *vni_s = argv[1];
 	uint8_t vni[VNI_BYTE];
+	uint32_t vni32 = 0;
+	int status = get32and8arr(buf, vni_s, &vni32, vni);
+	if (status != SUCCESS) return status;
+/*
 	uint32_t vni32 = str2uint8arr(vni_s, vni);
 	switch (errno) {
 		case EINVAL:
@@ -203,6 +207,7 @@ int cmd_add_vxi(char *buf, int cmd_i, int argc, char *argv[]) {
 		snprintf(buf, CTL_BUF_LEN, "Invalid number: %s\n", vni_s);
 		return CMD_FAILED;
 	}
+*/
 
 
 	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] != NULL) {
@@ -234,8 +239,11 @@ int cmd_del_vxi(char *buf, int cmd_i, int argc, char *argv[]) {
 		return cmd_usage(buf, cmd_i);
 
 	char *vni_s = argv[1];
-
+	uint32_t vni32 = 0;
 	uint8_t vni[VNI_BYTE];
+	int status = get32and8arr(buf, vni_s, &vni32, vni);
+	if (status != SUCCESS) return status;
+	/*
 	uint32_t vni32 = str2uint8arr(vni_s, vni);
 	switch (errno) {
 		case EINVAL:
@@ -252,6 +260,7 @@ int cmd_del_vxi(char *buf, int cmd_i, int argc, char *argv[]) {
 		snprintf(buf, CTL_BUF_LEN, "Invalid number: %s\n", vni_s);
 		return CMD_FAILED;
 	}
+	*/
 
 	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] == NULL) {
 		snprintf(buf, CTL_BUF_LEN, "VNI: %"PRIu32" does not exist.\n", vni32);
@@ -269,7 +278,7 @@ int cmd_del_vxi(char *buf, int cmd_i, int argc, char *argv[]) {
 
 
 
-int cmd_destroy(char *buf, int cmd_i, int argc, char *argv[]) {
+int cmd_exit(char *buf, int cmd_i, int argc, char *argv[]) {
 
 	if (argc != 1)
 		return cmd_usage(buf, cmd_i);
@@ -299,7 +308,7 @@ int cmd_destroy(char *buf, int cmd_i, int argc, char *argv[]) {
 
 int cmd_show(char *buf, int cmd_i, int argc, char *argv[]) {
 
-	char *show_trgt[] = {
+	char *cmd[] = {
 		"table",
 		"mac"
 	};
@@ -308,7 +317,33 @@ int cmd_show(char *buf, int cmd_i, int argc, char *argv[]) {
 		return cmd_usage(buf, cmd_i);
 	}
 
-	printf("%s\n", argv[1]);
+	int i;
+	int len = sizeof(cmd) / sizeof(*cmd);
+	int status = SUCCESS;
+	uint8_t vni[VNI_BYTE];
+	uint32_t vni32 = 0;
+
+	for (i=0; i<len; i++)
+		if (str_cmp(cmd[i], argv[1])) break;
+
+	char *p = buf;
+	switch (i) {
+		case 0:
+			p = pad_str(p, "  ----- show instances -----  \n");
+			show_vxi(p);
+			break;
+		case 1:
+			if (argc != 3)
+				return cmd_usage(buf, cmd_i);
+			p = pad_str(p, "  ----- show MAC table -----  \n");
+			status = get32and8arr(buf, argv[2], &vni32, vni);
+			if (status != SUCCESS) return status;
+			show_table(p, vxlan.vxi[vni[0]][vni[1]][vni[2]]->table);
+
+			break;
+		default:
+			return NOSUCHCMD;
+	}
 
 	return SUCCESS;
 }
@@ -321,14 +356,15 @@ int cmd_help(char *buf, int cmd_i, int argc, char *argv[]) {
 	char *p = buf;
 	char str[CTL_BUF_LEN];
 
-	snprintf(str, CTL_BUF_LEN, "\n%17s|%18s| %s", "name ", "arguments ", "comment");
+	snprintf(str, CTL_BUF_LEN, "\n%17s|%18s| %s\n", "name ", "arguments ", "comment");
 	p = pad_str(p, str);
-	p = pad_str(p, "   --------------+------------------+---------------");
+	p = pad_str(p, "   --------------+------------------+---------------\n");
 
 	for (i=0; i<cmd_len; i++) {
-		snprintf(str, CTL_BUF_LEN, "%16s %18s : %s", cmd_t[i].name, (cmd_t[i].arg == NULL)? "":cmd_t[i].arg, cmd_t[i].comment);
+		snprintf(str, CTL_BUF_LEN, "%16s %18s : %s\n", cmd_t[i].name, (cmd_t[i].arg == NULL)? "":cmd_t[i].arg, cmd_t[i].comment);
 		p = pad_str(p, str);
 	}
+	p = pad_str(p, "\n");
 
 	return SUCCESS;
 }

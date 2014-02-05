@@ -240,7 +240,7 @@ void log_berr(char *buf, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	_print_log_v(LOG_ERR, fmt, ap);
-	if (buf != NULL) strncpy(buf, line, strlen(line));
+	if (buf != NULL) strncpy(buf, line, LOG_LINELEN);
 	va_end(ap);
 }
 
@@ -249,7 +249,7 @@ void log_berr(char *buf, const char *fmt, ...) {
 void log_bperr(char *buf, const char *str) {
 
 	log_perr(str);
-	if (buf != NULL) strncpy(buf, line, strlen(line));
+	if (buf != NULL) strncpy(buf, line, LOG_LINELEN);
 }
 
 

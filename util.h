@@ -13,6 +13,7 @@ int str2uint8arr(char *str, uint8_t *arr);
 int str_cmp(const char *p1, const char *p2);
 int argv_to1str(char *buf, int optind, int argc, char **argv);
 char *pad_str(char *buf, const char *str);
+int get32and8arr(char *buf, char *str, uint32_t *val, uint8_t *arr);
 
 
 

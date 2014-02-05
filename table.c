@@ -9,6 +9,7 @@
 #include "netutil.h"
 #include "table.h"
 #include "log.h"
+#include "util.h"
 
 
 
@@ -166,21 +167,25 @@ void del_data(list **table, unsigned int key) {
 
 
 
-void show_table(list **table) {
+void show_table(char *buf, list **table) {
+
+	int i = 0;
+	int cnt = 0;
+	char *p = buf;
+	char str[DEFAULT_BUFLEN];
 
 	list **tp = table;
 	list *lp;
 
-	int i = 0;
-	int cnt = 0;
-
 	for ( ; i < table_size; i++, tp++) {
 		if (*tp == NULL) continue;
-		printf("%3d: ", i);
+		snprintf(str, buf-p, "%3d: ", i);
+		p = pad_str(p, str);
 
 		for (lp = *tp; lp != NULL; lp = lp->next) {
 			uint8_t *addr = (lp->data)->hw_addr;
-			printf("%02X%02X:%02X%02X:%02X%02X => %"PRIu32",  ", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], (lp->data)->vtep_addr);
+			snprintf(str, buf-p, "%02X%02X:%02X%02X:%02X%02X => %"PRIu32",  ", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], (lp->data)->vtep_addr);
+			p = pad_str(p, str);
 			cnt++;
 		}
 		printf("NULL\n");

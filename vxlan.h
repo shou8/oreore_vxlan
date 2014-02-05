@@ -35,6 +35,7 @@ typedef struct _vxland {
 	uint32_t mcast_addr;
 	char if_name[IF_NAME_LEN];
 	vxlan_i ****vxi;
+	char udom[DEFAULT_BUFLEN];
 } vxland;
 
 
@@ -47,7 +48,7 @@ void destroy_vxlan(void);
 //void create_vxi(char *buf, uint8_t *vni, char *addr, pthread_t th);
 vxlan_i *add_vxi(char *buf, uint8_t *vni);
 void del_vxi(char *buf, uint8_t *vni);
-void show_vxi(void);
+void show_vxi(char *buf);
 
 
 

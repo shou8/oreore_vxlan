@@ -24,7 +24,6 @@ void split_32to8(uint32_t val, uint8_t *arr) {
 
 uint32_t str2uint8arr(char *str, uint8_t *arr) {
 
-	errno = 0;
 	uint32_t val = strtoul(str, NULL, 0);
 	split_32to8(val, arr);
 	return val;
@@ -63,6 +62,36 @@ int argv_to1str(char *buf, int optind, int argc, char **argv) {
 
 char *pad_str(char *buf, const char *str) {
 
-	snprintf(buf, CTL_BUF_LEN, "%s\n", str);
-	return buf + strlen(str) + 1;
+	strncpy(buf, str, CTL_BUF_LEN);
+	return buf + strlen(str);
 }
+
+
+
+int get32and8arr(char *buf, char *str, uint32_t *val, uint8_t *arr) {
+
+	errno = 0;
+	*val = str2uint8arr(str, arr);
+
+	switch (errno) {
+		case EINVAL:
+			snprintf(buf, CTL_BUF_LEN, "Cannot convert, Not number: %s.\n", str);
+			return CMD_FAILED;
+			break;
+		case ERANGE:
+			snprintf(buf, CTL_BUF_LEN, "Invalid range: %s\n", str);
+			return CMD_FAILED;
+			break;
+	}
+
+	if (*val == 0 && !(str_cmp(str, "0") || str_cmp(str, "0x0"))) {
+		snprintf(buf, CTL_BUF_LEN, "Invalid number: %s\n", str);
+		return CMD_FAILED;
+	}
+
+	return SUCCESS;
+}
+
+
+
+

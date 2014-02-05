@@ -18,12 +18,27 @@
 
 
 
+/* Written on vxlan.h
+
+typedef struct _vxland {
+	int port;
+	int usoc;
+	uint32_t mcast_addr;
+	char if_name[IF_NAME_LEN];
+	vxlan_i ****vxi;
+	char udom[DEFAULT_BUFLEN];
+} vxland;
+*/
+
+
+
 vxland vxlan = {
 	-1,
 	-1,
 	DEFAULT_MCAST_ADDR,
 	"eth0",
-	NULL
+	NULL,
+	DEFAULT_UNIX_DOMAIN
 };
 
 
@@ -109,9 +124,11 @@ void del_vxi(char *buf, uint8_t *vni) {
 
 
 
-void show_vxi(void) {
+void show_vxi(char *buf) {
 
 	vxlan_i ****vxi = vxlan.vxi;
+	char str[DEFAULT_BUFLEN];
+	char *p = buf;
 
 	int i,j,k;
 	for (i=0; i<NUMOF_UINT8; i++)
@@ -119,7 +136,8 @@ void show_vxi(void) {
 			for (k=0; k<NUMOF_UINT8; k++)
 				if (vxi[i][j][k] != NULL) {
 					uint32_t vni32 = To32(i, j, k);
-					printf("vxlan[%02X][%02X][%02X]: 0x%06X: %p\n", i, j, k, vni32, vxi[i][j][k]);
+					snprintf(str, DEFAULT_BUFLEN, "%11"PRIu32" : 0x%06X\n", vni32, vni32);
+					p = pad_str(p, str);
 				}
 }
 
