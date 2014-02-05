@@ -18,10 +18,6 @@
 
 
 
-#define VXLAN_PRODUCT_VERSION "1.0"
-
-
-
 void *outer_loop_thread(void *args);
 void usage(char *bin);
 

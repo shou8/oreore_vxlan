@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <getopt.h>
 #include <errno.h>
+#include <arpa/inet.h>
 
 #include "base.h"
 #include "util.h"

@@ -13,7 +13,6 @@
 
 
 
-#define CLIENT_VERSION	"1.0"
 #define CTL_BUF_LEN DEFAULT_BUFLEN * 16
 
 #define STDOUT 1

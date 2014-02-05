@@ -11,6 +11,9 @@
 #define CONTROLLER_NAME	"vxlanctl"
 #define TAP_BASE_NAME	"vxlan"
 
+#define VXLAN_PRODUCT_VERSION	"1.0"
+#define CLIENT_VERSION			"1.0"
+
 /* MAC Address Length */
 #define MAC_LEN_BITS	48
 #define MAC_LEN			6		// 48bits / uint8_t = 6
