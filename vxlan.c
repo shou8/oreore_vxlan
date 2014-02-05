@@ -124,22 +124,3 @@ void del_vxi(char *buf, uint8_t *vni) {
 
 
 
-void show_vxi(char *buf) {
-
-	vxlan_i ****vxi = vxlan.vxi;
-	char str[DEFAULT_BUFLEN];
-	char *p = buf;
-
-	int i,j,k;
-	for (i=0; i<NUMOF_UINT8; i++)
-		for (j=0; j<NUMOF_UINT8; j++)
-			for (k=0; k<NUMOF_UINT8; k++)
-				if (vxi[i][j][k] != NULL) {
-					uint32_t vni32 = To32(i, j, k);
-					snprintf(str, DEFAULT_BUFLEN, "%11"PRIu32" : 0x%06X\n", vni32, vni32);
-					p = pad_str(p, str);
-				}
-}
-
-
-

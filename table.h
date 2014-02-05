@@ -32,8 +32,7 @@ list **init_table(unsigned int size);
 mac_tbl *find_data(list **table, uint8_t *eth_addr);
 void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr);
 void del_data(list **table, unsigned int key);
-
-void show_table(char *buf, list **table);
+unsigned int get_table_size(void);
 
 
 

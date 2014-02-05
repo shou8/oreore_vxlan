@@ -48,7 +48,6 @@ void destroy_vxlan(void);
 //void create_vxi(char *buf, uint8_t *vni, char *addr, pthread_t th);
 vxlan_i *add_vxi(char *buf, uint8_t *vni);
 void del_vxi(char *buf, uint8_t *vni);
-void show_vxi(char *buf);
 
 
 

@@ -18,7 +18,7 @@
 
 
 
-static unsigned int table_size;
+static unsigned int table_size = 0;
 
 
 
@@ -167,30 +167,7 @@ void del_data(list **table, unsigned int key) {
 
 
 
-void show_table(char *buf, list **table) {
+unsigned int get_table_size(void) {
 
-	int i = 0;
-	int cnt = 0;
-	char *p = buf;
-	char str[DEFAULT_BUFLEN];
-
-	list **tp = table;
-	list *lp;
-
-	for ( ; i < table_size; i++, tp++) {
-		if (*tp == NULL) continue;
-		snprintf(str, buf-p, "%3d: ", i);
-		p = pad_str(p, str);
-
-		for (lp = *tp; lp != NULL; lp = lp->next) {
-			uint8_t *addr = (lp->data)->hw_addr;
-			snprintf(str, buf-p, "%02X%02X:%02X%02X:%02X%02X => %"PRIu32",  ", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5], (lp->data)->vtep_addr);
-			p = pad_str(p, str);
-			cnt++;
-		}
-		printf("NULL\n");
-	}
-
-	printf("Count: %d\n", cnt);
+	return table_size;
 }
-

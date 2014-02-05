@@ -27,10 +27,15 @@ char *get_argv0(char *buf, char *argv0);
 int cmd_usage(char *buf, int cmd_i);
 int cmd_usage_all(char **buf);
 
+static void _show_vxi(char *buf);
+static void _show_table(char *buf, list **table);
+
 /* Comands: cmd_XXX(char *, int, int, char **); */
 int cmd_add_vxi(char *buf, int cmd_i, int argc, char *argv[]);
 int cmd_del_vxi(char *buf, int cmd_i, int argc, char *argv[]);
 int cmd_exit(char *buf, int cmd_i, int argc, char *argv[]);
+int cmd_list(char *buf, int cmd_i, int argc, char *argv[]);
+int cmd_mac(char *buf, int cmd_i, int argc, char *argv[]);
 int cmd_show(char *buf, int cmd_i, int argc, char *argv[]);
 int cmd_help(char *buf, int cmd_i, int argc, char *argv[]);
 
@@ -42,7 +47,9 @@ struct cmd_entry cmd_t[] = {
 	{ "add", cmd_add_vxi, "<VNI>", "Create instance and interface (ex. add 100 => vxlan100)."},
 	{ "del", cmd_del_vxi, "<VNI>", "Delete instance and interface."},
 	{ "exit", cmd_exit, NULL, "Exit process."},
-	{ "show", cmd_show, "{table|mac <VNI>}", "Show instance table or MAC address table."},
+	{ "list", cmd_list, NULL, "Show instances"},
+	{ "mac", cmd_mac, "<VNI>", "Show MAC address table"},
+	{ "show", cmd_show, "{instance|mac <VNI>}", "Show instance table (=list) or MAC address table (=mac)."},
 	{ "help", cmd_help, NULL, "Show this help message." },
 };
 
@@ -164,7 +171,7 @@ int order_parse(char *rbuf, char *wbuf) {
 int cmd_usage(char *buf, int cmd_i) {
 
 	if (strlen(argv0) < 1) strncpy(argv0, CONTROLLER_NAME, CTL_BUF_LEN);
-	snprintf(buf, CTL_BUF_LEN, "Usage: \"%s\" %s %s\n", argv0, cmd_t[cmd_i].name, cmd_t[cmd_i].arg);
+	snprintf(buf, CTL_BUF_LEN, "Usage: \"%s\" %s %s\n", argv0, cmd_t[cmd_i].name, (cmd_t[cmd_i].arg == NULL) ? "":cmd_t[cmd_i].arg);
 	return CMD_FAILED;
 }
 
@@ -190,25 +197,6 @@ int cmd_add_vxi(char *buf, int cmd_i, int argc, char *argv[]) {
 	uint32_t vni32 = 0;
 	int status = get32and8arr(buf, vni_s, &vni32, vni);
 	if (status != SUCCESS) return status;
-/*
-	uint32_t vni32 = str2uint8arr(vni_s, vni);
-	switch (errno) {
-		case EINVAL:
-			snprintf(buf, CTL_BUF_LEN, "Cannot convert, Not number: %s.\n", vni_s);
-			return CMD_FAILED;
-			break;
-		case ERANGE:
-			snprintf(buf, CTL_BUF_LEN, "Invalid range: %s\n", vni_s);
-			return CMD_FAILED;
-			break;
-	}
-
-	if (vni32 == 0 && !(str_cmp(vni_s, "0") || str_cmp(vni_s, "0x0"))) {
-		snprintf(buf, CTL_BUF_LEN, "Invalid number: %s\n", vni_s);
-		return CMD_FAILED;
-	}
-*/
-
 
 	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] != NULL) {
 		snprintf(buf, CTL_BUF_LEN, "Instance (VNI: %s) has already existed.\n", vni_s);
@@ -243,24 +231,6 @@ int cmd_del_vxi(char *buf, int cmd_i, int argc, char *argv[]) {
 	uint8_t vni[VNI_BYTE];
 	int status = get32and8arr(buf, vni_s, &vni32, vni);
 	if (status != SUCCESS) return status;
-	/*
-	uint32_t vni32 = str2uint8arr(vni_s, vni);
-	switch (errno) {
-		case EINVAL:
-			snprintf(buf, CTL_BUF_LEN, "Cannot convert, Not number: %s.\n", vni_s);
-			return CMD_FAILED;
-			break;
-		case ERANGE:
-			snprintf(buf, CTL_BUF_LEN, "Invalid range: %s\n", vni_s);
-			return CMD_FAILED;
-			break;
-	}
-
-	if (vni32 == 0 && !(str_cmp(vni_s, "0") || str_cmp(vni_s, "0x0"))) {
-		snprintf(buf, CTL_BUF_LEN, "Invalid number: %s\n", vni_s);
-		return CMD_FAILED;
-	}
-	*/
 
 	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] == NULL) {
 		snprintf(buf, CTL_BUF_LEN, "VNI: %"PRIu32" does not exist.\n", vni32);
@@ -306,43 +276,73 @@ int cmd_exit(char *buf, int cmd_i, int argc, char *argv[]) {
 
 
 
-int cmd_show(char *buf, int cmd_i, int argc, char *argv[]) {
+int cmd_list(char *buf, int cmd_i, int argc, char *argv[]) {
 
-	char *cmd[] = {
-		"table",
-		"mac"
-	};
-
-	if (argc < 2) {
+	if (argc != 1)
 		return cmd_usage(buf, cmd_i);
-	}
 
-	int i;
-	int len = sizeof(cmd) / sizeof(*cmd);
+	char *p = buf;
+	p = pad_str(p, "  ----- show instances -----  \n");
+	_show_vxi(p);
+
+	return SUCCESS;
+}
+
+
+
+int cmd_mac(char *buf, int cmd_i, int argc, char *argv[]) {
+
+	if (argc != 2)
+		return cmd_usage(buf, cmd_i);
+
 	int status = SUCCESS;
 	uint8_t vni[VNI_BYTE];
 	uint32_t vni32 = 0;
+	char *p = buf;
+
+	p = pad_str(p, "  ----- show MAC table -----  \n");
+	status = get32and8arr(buf, argv[1], &vni32, vni);
+	if (status != SUCCESS) return status;
+
+	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] == NULL) {
+		snprintf(buf, CTL_BUF_LEN, "VNI: %"PRIu32" does not exist.\n", vni32);
+		return SRV_FAILED;
+	}
+
+	_show_table(p, vxlan.vxi[vni[0]][vni[1]][vni[2]]->table);
+
+	return SUCCESS;
+}
+
+
+
+int cmd_show(char *buf, int cmd_i, int argc, char *argv[]) {
+
+	char *cmd[] = {
+		"instance",
+		"mac"
+	};
+
+	if (argc < 2)
+		return cmd_usage(buf, cmd_i);
+
+	int i;
+	int len = sizeof(cmd) / sizeof(*cmd);
 
 	for (i=0; i<len; i++)
 		if (str_cmp(cmd[i], argv[1])) break;
 
-	char *p = buf;
 	switch (i) {
-		case 0:
-			p = pad_str(p, "  ----- show instances -----  \n");
-			show_vxi(p);
+		case 0: {
+				char *cargv[] = {argv[0], "list"};
+				return cmd_list(buf, cmd_i, argc-1, cargv);
+			}
 			break;
 		case 1:
-			if (argc != 3)
-				return cmd_usage(buf, cmd_i);
-			p = pad_str(p, "  ----- show MAC table -----  \n");
-			status = get32and8arr(buf, argv[2], &vni32, vni);
-			if (status != SUCCESS) return status;
-			show_table(p, vxlan.vxi[vni[0]][vni[1]][vni[2]]->table);
-
+			return cmd_mac(buf, cmd_i, argc-1, &argv[1]);
 			break;
 		default:
-			return NOSUCHCMD;
+			return cmd_usage(buf, cmd_i);
 	}
 
 	return SUCCESS;
@@ -370,4 +370,54 @@ int cmd_help(char *buf, int cmd_i, int argc, char *argv[]) {
 }
 
 
+
+static void _show_vxi(char *buf) {
+
+	vxlan_i ****vxi = vxlan.vxi;
+	char str[DEFAULT_BUFLEN];
+	char *p = buf;
+
+	int i,j,k;
+	for (i=0; i<NUMOF_UINT8; i++)
+		for (j=0; j<NUMOF_UINT8; j++)
+			for (k=0; k<NUMOF_UINT8; k++)
+				if (vxi[i][j][k] != NULL) {
+					uint32_t vni32 = To32(i, j, k);
+					snprintf(str, DEFAULT_BUFLEN, "%11"PRIu32" : 0x%06X\n", vni32, vni32);
+					p = pad_str(p, str);
+				}
+}
+
+
+
+static void _show_table(char *buf, list **table) {
+
+	int i = 0;
+	int cnt = 0;
+	char *p = buf;
+	char str[DEFAULT_BUFLEN];
+	unsigned int table_size = get_table_size();
+
+	list **tp = table;
+	list *lp;
+
+	for ( ; i < table_size; i++, tp++) {
+		if (*tp == NULL) continue;
+		snprintf(str, DEFAULT_BUFLEN, "%7d: ", i);
+		p = pad_str(p, str);
+
+		for (lp = *tp; lp != NULL; lp = lp->next) {
+			uint8_t *hwaddr = (lp->data)->hw_addr;
+			struct in_addr ipaddr;
+			ipaddr.s_addr = (lp->data)->vtep_addr;
+			snprintf(str, DEFAULT_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s, ", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa(ipaddr));
+			p = pad_str(p, str);
+			cnt++;
+		}
+		p = pad_str(p, "NULL\n");
+	}
+
+	snprintf(str, DEFAULT_BUFLEN, "\nCount: %d\n", cnt);
+	p = pad_str(p, str);
+}
 
