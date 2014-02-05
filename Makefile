@@ -24,7 +24,6 @@ ${TARGET}:${OBJS}
 ${CONTROLER}:${CONTROLER_OBJS}
 	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
-test: debug
 debug:
 #	${MAKE} DEBUG_FLAG="-DDEBUG -g" OBJS="${OBJS} test.o"
 	${MAKE} DEBUG_FLAG="-DDEBUG -g" OBJS="${OBJS}"

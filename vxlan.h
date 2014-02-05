@@ -35,6 +35,7 @@ typedef struct _vxland {
 	char if_name[IF_NAME_LEN];
 	vxlan_i ****vxi;
 	char udom[DEFAULT_BUFLEN];
+	int lock;
 } vxland;
 
 

@@ -167,6 +167,14 @@ void del_data(list **table, unsigned int key) {
 
 
 
+list **clear_table_all(list **table) {
+
+	free(table);
+	return init_table(table_size);
+}
+
+
+
 unsigned int get_table_size(void) {
 
 	return table_size;

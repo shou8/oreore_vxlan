@@ -26,18 +26,17 @@ typedef struct _vxland {
 	char if_name[IF_NAME_LEN];
 	vxlan_i ****vxi;
 	char udom[DEFAULT_BUFLEN];
+	int lock;
 } vxland;
 */
-
-
-
 vxland vxlan = {
 	-1,
 	-1,
 	{ DEFAULT_MCAST_ADDR },
 	"eth0",
 	NULL,
-	DEFAULT_UNIX_DOMAIN
+	DEFAULT_UNIX_DOMAIN,
+	0
 };
 
 
