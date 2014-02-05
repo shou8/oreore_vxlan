@@ -49,32 +49,29 @@ int cmp_mac(uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN]) {
  *			Interface's Name (ex. eth0)
  *
  * @RET:
- *		uint32_t: INADDR_ANY(e.g. 0): No interface or Some error.
- *		uint32_t: Not 0				: Interface's Address
+ *		struct in_addr: INADDR_ANY(e.g. 0): No interface or Some error.
+ *		struct in_addr: Not 0				: Interface's Address
  */
-uint32_t get_addr(char *if_name) {
+struct in_addr get_addr(char *if_name) {
 
 	int fd;
 	struct ifreq ifr;
 	struct sockaddr_in *addr;
 
-	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-		log_perr("socket");
-		return INADDR_ANY;
-	}
+	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+		log_pcexit("socket");
 
 	memset(&ifr, 0, sizeof(struct ifreq));
 	strncpy(ifr.ifr_name, if_name, IF_NAMESIZE-1);
 	if (ioctl(fd, SIOCGIFADDR, &ifr) == -1) {
-		log_perr("ioctl");
 		close(fd);
-		return INADDR_ANY;
+		log_pcexit("ioctl");
 	}
 
 	close(fd);
 
 	addr = (struct sockaddr_in *)&ifr.ifr_addr;
-	return addr->sin_addr.s_addr;
+	return addr->sin_addr;
 }
 
 

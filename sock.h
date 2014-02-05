@@ -3,6 +3,10 @@
 
 
 
+#include <netinet/in.h>
+
+
+
 #define UNIX_SOCK_SERVER 0
 #define UNIX_SOCK_CLIENT 1
 
@@ -11,8 +15,8 @@
 //int init_raw_sock(char *dev);
 int init_udp_sock(unsigned short port);
 int init_unix_sock(char *path, int csflag);
-int join_mcast_group(int sock, uint32_t maddr, char *if_name);
-int leave_mcast_group(int sock, uint32_t maddr, char *if_name);
+int join_mcast_group(int sock, struct in_addr maddr, char *if_name);
+int leave_mcast_group(int sock, struct in_addr maddr, char *if_name);
 
 
 

@@ -409,9 +409,7 @@ static void _show_table(char *buf, list **table) {
 
 		for (lp = *tp; lp != NULL; lp = lp->next) {
 			uint8_t *hwaddr = (lp->data)->hw_addr;
-			struct in_addr ipaddr;
-			ipaddr.s_addr = (lp->data)->vtep_addr;
-			snprintf(str, DEFAULT_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s, ", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa(ipaddr));
+			snprintf(str, DEFAULT_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s, ", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa((lp->data)->vtep_addr));
 			p = pad_str(p, str);
 			cnt++;
 		}

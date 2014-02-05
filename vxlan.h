@@ -3,10 +3,9 @@
 
 
 
-#include <netinet/in.h>
 #include <pthread.h>
+#include <netinet/in.h>
 
-#include "base.h"
 #include "table.h"
 
 
@@ -32,7 +31,7 @@ typedef struct _vxlan_instance_ {
 typedef struct _vxland {
 	int port;
 	int usoc;
-	uint32_t mcast_addr;
+	struct in_addr mcast_addr;
 	char if_name[IF_NAME_LEN];
 	vxlan_i ****vxi;
 	char udom[DEFAULT_BUFLEN];

@@ -4,4 +4,4 @@
 - write内容がブリッジされない問題 done
 - setsockoptでなぜかエラー done
 - エラーがクライアントに伝わるようにする。せめてsyslog見るように伝える。エラーハンドリング。 done
-- usageの抽象化をして後々を楽に
+- usageの抽象化をして後々を楽に done?

@@ -4,7 +4,6 @@
 #include <limits.h>
 #include <unistd.h>
 #include <inttypes.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 
 #include "base.h"
@@ -23,7 +22,7 @@
 typedef struct _vxland {
 	int port;
 	int usoc;
-	uint32_t mcast_addr;
+	struct in_addr mcast_addr;
 	char if_name[IF_NAME_LEN];
 	vxlan_i ****vxi;
 	char udom[DEFAULT_BUFLEN];
@@ -35,7 +34,7 @@ typedef struct _vxland {
 vxland vxlan = {
 	-1,
 	-1,
-	DEFAULT_MCAST_ADDR,
+	{ DEFAULT_MCAST_ADDR },
 	"eth0",
 	NULL,
 	DEFAULT_UNIX_DOMAIN

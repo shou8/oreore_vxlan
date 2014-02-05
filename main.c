@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 				break;
 			case 'm':
 				ret = inet_pton(AF_INET, optarg, &sa);
-				vxlan.mcast_addr = sa.sin_addr.s_addr;
+				vxlan.mcast_addr = sa.sin_addr;
 				switch (ret) {
 					case 0:
 						log_cexit("Invalid address\n");

@@ -92,7 +92,7 @@ mac_tbl *find_data(list **table, uint8_t *eth) {
 
 
 
-void add_data(list **table, uint8_t *hw_addr, uint32_t vtep_addr) {
+void add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
 
 	mac_tbl *mt;
 	list *lp = find_list(table, hw_addr);

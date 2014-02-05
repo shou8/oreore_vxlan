@@ -5,7 +5,6 @@
 
 #include <net/if.h>
 #include <net/ethernet.h>
-#include <netinet/in.h>
 #include <netpacket/packet.h>
 
 #include <sys/un.h>
@@ -101,14 +100,14 @@ int init_unix_sock(char *dom, int csflag) {
 /*
  * Multicast Settings
  */
-int join_mcast_group(int sock, uint32_t maddr, char *if_name) {
+int join_mcast_group(int sock, struct in_addr maddr, char *if_name) {
 
 	struct ip_mreq mreq;
 	char maddr_s[16];
 
 	memset(&mreq, 0, sizeof(mreq));
-	mreq.imr_multiaddr.s_addr = maddr;
-	mreq.imr_interface.s_addr = get_addr(if_name);
+	mreq.imr_multiaddr = maddr;
+	mreq.imr_interface = get_addr(if_name);
 	
 	if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) < 0) {
 		log_perr("setsockopt");
@@ -137,14 +136,14 @@ int join_mcast_group(int sock, uint32_t maddr, char *if_name) {
 
 
 
-int leave_mcast_group(int sock, uint32_t maddr, char *if_name) {
+int leave_mcast_group(int sock, struct in_addr maddr, char *if_name) {
 
 	struct ip_mreq mreq;
 	char maddr_s[16];
 
 	memset(&mreq, 0, sizeof(mreq));
-	mreq.imr_multiaddr.s_addr = maddr;
-	mreq.imr_interface.s_addr = get_addr(if_name);
+	mreq.imr_multiaddr = maddr;
+	mreq.imr_interface = get_addr(if_name);
 
 	if (setsockopt(sock, IPPROTO_IP, IP_DROP_MEMBERSHIP, (char *)&mreq, sizeof(mreq)) < 0) {
 		inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
