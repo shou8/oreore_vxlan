@@ -29,6 +29,7 @@ static struct option options[] = {
 	{"help", no_argument, NULL, 'h'},
 	{"interface", required_argument, NULL, 'i'},
 	{"multicast", required_argument, NULL, 'm'},
+	{"port", required_argument, NULL, 'p'},
 	{"socket", required_argument, NULL, 's'},
 	{"version", no_argument, NULL, 'v'},
 	{0, 0, 0, 0}
@@ -52,7 +53,7 @@ int main(int argc, char *argv[]) {
 	disable_syslog();
 	vxlan.mcast_addr.s_addr = DEFAULT_MCAST_ADDR;
 
-	while ((opt = getopt_long(argc, argv, "dDhi:m:s:v", options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "dDhi:m:p:s:v", options, NULL)) != -1) {
 		switch (opt) {
 			case 'd':
 				enable_d = 1;
@@ -72,6 +73,11 @@ int main(int argc, char *argv[]) {
 				enable_m = 1;
 				if (inet_aton(optarg, &vxlan.mcast_addr) == 0)
 					log_cexit("Invalid address: %s\n", optarg);
+				break;
+			case 'p':
+				vxlan.port = atoi(optarg);
+				if (vxlan.port == 0) log_cexit("Invalid port number: %s\n", optarg);
+				log_info("Port number :%d\n", vxlan.port);
 				break;
 			case 's':
 				strncpy(vxlan.udom, optarg, DEFAULT_BUFLEN);

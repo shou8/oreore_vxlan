@@ -24,6 +24,7 @@ typedef struct _vxlan_instance_ {
 	device tap;
 	list **table;
 	struct in_addr mcast_addr;
+	int timeout;				// Specific
 } vxlan_i;
 
 
@@ -37,7 +38,7 @@ typedef struct _vxland {
 	vxlan_i ****vxi;
 	char udom[DEFAULT_BUFLEN];
 	int lock;
-	int timeout;
+	int timeout;				// Default
 } vxland;
 
 

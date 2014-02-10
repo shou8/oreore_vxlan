@@ -17,6 +17,10 @@
 
 
 
+#define VXLAN_PORT	4789
+
+
+
 /* Written on vxlan.h
 
 typedef struct _vxland {
@@ -31,7 +35,7 @@ typedef struct _vxland {
 } vxland;
 */
 vxland vxlan = {
-	-1,
+	VXLAN_PORT,
 	-1,
 	{ DEFAULT_MCAST_ADDR },
 	"eth0",
@@ -107,6 +111,7 @@ vxlan_i *add_vxi(char *buf, uint8_t *vni, char *maddr) {
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(vxlan.timeout);
 	v->tap = create_vxlan_if(vni);
+	v->timeout = vxlan.timeout;
 	if (maddr != NULL) {
 		inet_aton(maddr, &v->mcast_addr);
 		join_mcast_group(vxlan.usoc, v->mcast_addr, vxlan.if_name);

@@ -22,9 +22,7 @@
 
 
 
-#define VXLAN_PORT	4789
 #define BUF_SIZE	65536
-
 #define VXLAN_FLAG_MASK		0x08
 
 
@@ -56,7 +54,7 @@ int outer_loop(void) {
 	struct sockaddr_in src;
 	socklen_t addr_len = sizeof(src);
 
-	vxlan.usoc = init_udp_sock(VXLAN_PORT);
+	vxlan.usoc = init_udp_sock(vxlan.port);
 	if (vxlan.usoc < 0) log_cexit("outer_loop.socket: Bad descripter\n");
 
 	if (join_mcast_group(vxlan.usoc, vxlan.mcast_addr, vxlan.if_name) < 0) {
@@ -117,7 +115,7 @@ int inner_loop(vxlan_i *v) {
 	int len;
 
 	struct sockaddr_in dst;
-	dst.sin_port = htons(VXLAN_PORT);
+	dst.sin_port = htons(vxlan.port);
 
 	/* For vxlan instance declaration */
 	device tap = v->tap;
