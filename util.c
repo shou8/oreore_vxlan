@@ -39,27 +39,6 @@ int str_cmp(const char *p1, const char *p2) {
 
 
 
-int argv_to1str(char *buf, int optind, int argc, char **argv) {
-
-	int i, len;
-	char *p = buf;
-
-	if (argc < 1) return -1;
-
-	for (i=0; i<argc; i++) {
-		if (p - buf > CTL_BUF_LEN) return -2;
-		len = strlen(argv[i]);
-		strncpy(p, argv[i], len);
-		p[len] = ' ';
-		p += len + 1;
-	}
-	*(--p) = '\0';
-
-	return (int)(p - buf);
-}
-
-
-
 char *pad_str(char *buf, const char *str) {
 
 	strncpy(buf, str, CTL_BUF_LEN);
@@ -91,7 +70,3 @@ int get32and8arr(char *buf, char *str, uint32_t *val, uint8_t *arr) {
 
 	return SUCCESS;
 }
-
-
-
-

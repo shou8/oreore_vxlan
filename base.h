@@ -9,7 +9,7 @@
 
 
 #define DAEMON_NAME		"vxland"
-#define CONTROLLER_NAME	"vxlanctl"
+#define CONTROLLER_NAME	"vxconfig"
 #define TAP_BASE_NAME	"vxlan"
 
 #define VXLAN_PRODUCT_VERSION	"1.1"
@@ -24,7 +24,9 @@
 
 #define UNIX_DOMAIN_LEN			1024
 #define DEFAULT_UNIX_DOMAIN		"/var/run/vxlan.sock"
-#define DEFAULT_MCAST_ADDR	0x010000e0
+#define DEFAULT_MCAST_ADDR		0x010000e0
+///#define DEFAULT_MAC_TIMEOUT		14400
+#define DEFAULT_MAC_TIMEOUT		1
 
 
 
@@ -40,7 +42,9 @@ enum status {
 	SUCCESS,
 	NOSUCHCMD,
 	CMD_FAILED,
-	SRV_FAILED
+	SRV_FAILED,
+	LOGIC_FAILED,
+	CMD_HELP
 };
 
 

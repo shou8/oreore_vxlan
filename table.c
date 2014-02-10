@@ -14,7 +14,6 @@
 
 
 #define TABLE_MIN	1024
-//#define TABLE_MIN	16
 
 
 
@@ -24,6 +23,7 @@ static unsigned int table_size = 0;
 
 static void to_head(list **root, list *lp);
 static list *find_list(list **table, uint8_t *eth_addr);
+static void del_after(list *lp, int *i);
 
 
 
@@ -110,8 +110,7 @@ void add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
 		*root = (list *)malloc(sizeof(list));
 		if (*root == NULL) log_pcexit("malloc");
 
-		if (head != NULL)
-		{
+		if (head != NULL) {
 			(*root)->next = head;
 			head->pre = *root;
 		}
@@ -139,6 +138,7 @@ void add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
 		mt = lp->data;
 		mt->vtep_addr = vtep_addr;
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
+		mt->time = time(NULL);
 
 		if ( lp != head )
 			to_head(root, lp);
@@ -171,6 +171,41 @@ list **clear_table_all(list **table) {
 
 	free(table);
 	return init_table(table_size);
+}
+
+
+
+static void del_after(list *lp, int *i) {
+
+	if (lp->next != NULL) del_after(lp->next, i);
+
+	list *pre = lp->pre;
+	if (pre != NULL) pre->next = NULL;
+	free(lp->data);
+	free(lp);
+	(*i)++;
+}
+
+
+
+int clear_table_timeout(list **table, int cache_time) {
+
+	list **root;
+	list *p;
+	int entry_num = 0;
+	time_t now = time(NULL);
+
+	for (root = table; root-table < table_size; root++) {
+		for (p = *root; p != NULL; p = p->next) {
+			if ((p->data)->time + cache_time < now) {
+				del_after(p, &entry_num);
+				if (p == *root) *root = NULL;
+				break;
+			}
+		}
+	}
+
+	return entry_num;
 }
 
 

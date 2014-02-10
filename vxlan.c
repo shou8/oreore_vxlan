@@ -10,7 +10,7 @@
 #include "util.h"
 #include "log.h"
 #include "vxlan.h"
-#include "iftap.h"
+#include "tap.h"
 #include "sock.h"
 #include "net.h"
 #include "netutil.h"
@@ -27,6 +27,7 @@ typedef struct _vxland {
 	vxlan_i ****vxi;
 	char udom[DEFAULT_BUFLEN];
 	int lock;
+	int timeout;
 } vxland;
 */
 vxland vxlan = {
@@ -36,7 +37,8 @@ vxland vxlan = {
 	"eth0",
 	NULL,
 	DEFAULT_UNIX_DOMAIN,
-	0
+	0,
+	DEFAULT_MAC_TIMEOUT,
 };
 
 
@@ -98,13 +100,19 @@ static device create_vxlan_if(uint8_t *vni) {
 
 
 
-vxlan_i *add_vxi(char *buf, uint8_t *vni) {
+vxlan_i *add_vxi(char *buf, uint8_t *vni, char *maddr) {
 
 	vxlan_i *v = (vxlan_i *)malloc(sizeof(vxlan_i));
 	if (v == NULL) log_pcexit("malloc");
 	memcpy(v->vni, vni, VNI_BYTE);
-	v->table = init_table(TABLE_SIZE);
+	v->table = init_table(vxlan.timeout);
 	v->tap = create_vxlan_if(vni);
+	if (maddr != NULL) {
+		inet_aton(maddr, &v->mcast_addr);
+		join_mcast_group(vxlan.usoc, v->mcast_addr, vxlan.if_name);
+	} else {
+		v->mcast_addr = vxlan.mcast_addr;
+	}
 
 	vxlan.vxi[vni[0]][vni[1]][vni[2]] = v;
 
@@ -115,6 +123,8 @@ vxlan_i *add_vxi(char *buf, uint8_t *vni) {
 
 void del_vxi(char *buf, uint8_t *vni) {
 
+	if (vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr.s_addr != vxlan.mcast_addr.s_addr)
+		leave_mcast_group(vxlan.usoc, vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr, vxlan.if_name);
 	close(vxlan.vxi[vni[0]][vni[1]][vni[2]]->tap.sock);
 	free(vxlan.vxi[vni[0]][vni[1]][vni[2]]);
 	vxlan.vxi[vni[0]][vni[1]][vni[2]] = NULL;

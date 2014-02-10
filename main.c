@@ -10,7 +10,7 @@
 #include "log.h"
 #include "net.h"
 #include "vxlan.h"
-#include "ctl.h"
+#include "cmd.h"
 
 #ifdef DEBUG
 #include "test.h"
@@ -42,22 +42,20 @@ int main(int argc, char *argv[]) {
 	extern int optind, opterr;
 	extern char *optarg;
 
-	int ret = 0;
 	int enable_D = 0;
 	int enable_d = 0;
 	int enable_i = 0;
 	int enable_m = 0;
-	struct sockaddr_in sa;
 
 	opterr = 0;
 	disable_debug();
-	enable_syslog();
+	disable_syslog();
+	vxlan.mcast_addr.s_addr = DEFAULT_MCAST_ADDR;
 
 	while ((opt = getopt_long(argc, argv, "dDhi:m:s:v", options, NULL)) != -1) {
 		switch (opt) {
 			case 'd':
 				enable_d = 1;
-				if (daemon(0, 0) != 0) log_perr("daemon");
 				break;
 			case 'D':
 				enable_D = 1;
@@ -67,19 +65,13 @@ int main(int argc, char *argv[]) {
 				usage(argv[0]);
 				break;
 			case 'i':
+				enable_i = 1;
 				strncpy(vxlan.if_name, optarg, DEFAULT_BUFLEN);
 				break;
 			case 'm':
-				ret = inet_pton(AF_INET, optarg, &sa);
-				vxlan.mcast_addr = sa.sin_addr;
-				switch (ret) {
-					case 0:
-						log_cexit("Invalid address\n");
-					case 1:
-						break;
-					case -1:
-						log_pcexit("inet_pton");
-				}
+				enable_m = 1;
+				if (inet_aton(optarg, &vxlan.mcast_addr) == 0)
+					log_cexit("Invalid address: %s\n", optarg);
 				break;
 			case 's':
 				strncpy(vxlan.udom, optarg, DEFAULT_BUFLEN);
@@ -107,15 +99,19 @@ int main(int argc, char *argv[]) {
 	}
 
 	if ( ! enable_m ) {
-		char addr[DEFAULT_BUFLEN];
-		inet_ntop(AF_INET, &sa, addr, DEFAULT_BUFLEN);
 		log_warn("Multicast address is not set.\n");
-		log_warn("Default address \"%s\" is used\n", addr);
+		log_warn("Default address \"%s\" is used\n", inet_ntoa(vxlan.mcast_addr));
 	}
 
 	init_vxlan();
 	pthread_t oth;
 	pthread_create(&oth, NULL, outer_loop_thread, (void *)NULL);
+
+	if (enable_d) {
+		if (daemon(0, 0) != 0) log_perr("daemon");
+		enable_syslog();
+	}
+
 	ctl_loop(vxlan.udom);
 
     return 0;

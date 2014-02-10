@@ -1,12 +1,12 @@
 CC=gcc
-OBJS=util.o netutil.o log.o iftap.o table.o sock.o vxlan.o net.o ctl.o main.o#test.o mpool.o 
+OBJS=util.o netutil.o log.o tap.o table.o sock.o vxlan.o net.o cmd.o main.o#test.o mpool.o 
 SRCS=${OBJS:%.o=%.c}
 LDLIBS=-lpthread
 TARGET=vxland
 #DEBUG_FLAG=-DDEBUG
 CFLAGS=-Wall
-CONTROLER=vxlanctl
-CONTROLER_OBJS=vxlanctl.o sock.o log.o netutil.o util.o
+CONTROLER=vxconfig
+CONTROLER_OBJS=vxconfig.o sock.o log.o netutil.o util.o
 LDFLAGS=
 
 .SUFFIXES: .c .o
@@ -30,7 +30,7 @@ debug:
 	@cd test && ${MAKE}
 
 clean:
-	@rm -f *.o ${TARGET}
+	@rm -f *.o ${TARGET} ${CONTROLER}
 	@cd test && ${MAKE} -s clean
 
 install:

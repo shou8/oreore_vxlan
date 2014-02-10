@@ -36,6 +36,7 @@ static char line[LOG_LINELEN];
 
 static void _print_log(int level, const char *fmt, ...);
 static void _print_log_v(int level, const char *fmt, va_list ap);
+static char *_get_facility(int level);
 
 
 
@@ -275,7 +276,7 @@ static void _print_log(int level, const char *fmt, ...) {
 
 		int len = strlen(line);
 		line[len-1] = '\0';
-		fprintf(stderr, "%s %s "DAEMON_NAME"[%d]: ", line, _h_name, _pid);
+		fprintf(stderr, "%s %s "DAEMON_NAME"[%d][%s]: ", line, _h_name, _pid, _get_facility(level));
 		vfprintf(stderr, fmt, ap);
 #ifndef DEBUG
 	}
@@ -303,7 +304,7 @@ static void _print_log_v(int level, const char *fmt, va_list ap) {
 
 		int len = strlen(line);
 		line[len-1] = '\0';
-		fprintf(stderr, "%s %s "DAEMON_NAME"[%d]: ", line, _h_name, _pid);
+		fprintf(stderr, "%s %s "DAEMON_NAME"[%d][%s]: ", line, _h_name, _pid, _get_facility(level));
 		vfprintf(stderr, fmt, ap);
 #ifndef DEBUG
 	}
@@ -313,3 +314,15 @@ static void _print_log_v(int level, const char *fmt, va_list ap) {
 
 
 
+static char *_get_facility(int level) {
+
+	switch (level) {
+		case LOG_DEBUG: return "debug";
+		case LOG_INFO: return "info";
+		case LOG_WARNING: return "warn";
+		case LOG_ERR: return "error";
+		case LOG_CRIT: return "crit";
+	}
+
+	return "unknown";
+}

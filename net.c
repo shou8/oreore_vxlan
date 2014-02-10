@@ -13,7 +13,7 @@
 
 #include "base.h"
 #include "log.h"
-#include "iftap.h"
+#include "tap.h"
 #include "netutil.h"
 #include "table.h"
 #include "sock.h"
@@ -154,7 +154,7 @@ int inner_loop(vxlan_i *v) {
 
 		data = find_data(v->table, eh->ether_dhost);
 		if (ntohs(eh->ether_type) == ETHERTYPE_ARP || data == NULL) {
-			dst.sin_addr = vxlan.mcast_addr;
+			dst.sin_addr = v->mcast_addr;
 			if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 				log_perr("inner_loop.sendto");
 			continue;
