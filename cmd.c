@@ -612,7 +612,7 @@ static void _show_table(char *buf, list **table) {
 
 	for (root = table; root-table < table_size; root++) {
 		if (*root == NULL) continue;
-		snprintf(str, CTL_BUFLEN, "%7d: ", (int)root-table);
+		snprintf(str, CTL_BUFLEN, "%7d: ", (int)(root-table));
 		p = pad_str(p, str);
 
 		for (lp = *root; lp != NULL; lp = lp->next) {
