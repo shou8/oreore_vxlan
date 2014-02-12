@@ -83,7 +83,7 @@ int outer_loop(void) {
 		if (v == NULL) continue;
 
 		struct ether_header *eh = (struct ether_header *)bp;
-		if (ntohs(eh->ether_type) == ETHERTYPE_ARP)
+//		if (ntohs(eh->ether_type) == ETHERTYPE_ARP)
 			add_data(v->table, eh->ether_shost, &src.sin_addr);
 
 		write(v->tap.sock, bp, len); 
