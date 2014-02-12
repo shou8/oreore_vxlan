@@ -19,6 +19,7 @@
 
 
 void *outer_loop_thread(void *args);
+void create_pid_file(char *pid_path);
 void usage(char *bin);
 
 
@@ -30,6 +31,7 @@ static struct option options[] = {
 	{"interface", required_argument, NULL, 'i'},
 	{"multicast", required_argument, NULL, 'm'},
 	{"port", required_argument, NULL, 'p'},
+	{"pidfile", required_argument, NULL, 'P'},
 	{"socket", required_argument, NULL, 's'},
 	{"version", no_argument, NULL, 'v'},
 	{0, 0, 0, 0}
@@ -48,12 +50,14 @@ int main(int argc, char *argv[]) {
 	int enable_i = 0;
 	int enable_m = 0;
 
+	char pid_path[DEFAULT_BUFLEN] = "/var/run/vxland.pid";
+
 	opterr = 0;
 	disable_debug();
 	disable_syslog();
 	vxlan.mcast_addr.s_addr = DEFAULT_MCAST_ADDR;
 
-	while ((opt = getopt_long(argc, argv, "dDhi:m:p:s:v", options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "dDhi:m:p:P:s:v", options, NULL)) != -1) {
 		switch (opt) {
 			case 'd':
 				enable_d = 1;
@@ -78,6 +82,9 @@ int main(int argc, char *argv[]) {
 				vxlan.port = atoi(optarg);
 				if (vxlan.port == 0) log_cexit("Invalid port number: %s\n", optarg);
 				log_info("Port number :%d\n", vxlan.port);
+				break;
+			case 'P':
+				strncpy(pid_path, optarg, DEFAULT_BUFLEN);
 				break;
 			case 's':
 				strncpy(vxlan.udom, optarg, DEFAULT_BUFLEN);
@@ -110,6 +117,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (enable_d) {
+		create_pid_file(pid_path);
 		if (daemon(0, 0) != 0) log_perr("daemon");
 		enable_syslog();
 	}
@@ -125,6 +133,13 @@ int main(int argc, char *argv[]) {
 
 
 
+void usage(char *bin) {
+	fprintf(stderr, "usage!\n");
+	exit(EXIT_SUCCESS);
+}
+
+
+
 void *outer_loop_thread(void *args) {
 
 	outer_loop();
@@ -134,7 +149,14 @@ void *outer_loop_thread(void *args) {
 
 
 
-void usage(char *bin) {
-	fprintf(stderr, "usage!\n");
-	exit(EXIT_SUCCESS);
+void create_pid_file(char *pid_path) {
+
+	FILE *fp;
+	if ((fp = fopen(pid_path, "w")) == NULL)
+		log_pcexit("fopen");
+	fprintf(fp, "%d\n", getpid());
+	fclose(fp);
 }
+
+
+

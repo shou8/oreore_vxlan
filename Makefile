@@ -8,7 +8,11 @@ CFLAGS=-Wall
 CONTROLER=vxconfig
 CONTROLER_OBJS=vxconfig.o sock.o log.o netutil.o util.o
 LDFLAGS=
+
 PREFIX=/usr/local/bin
+SCRIPT_DIR=script
+LSB_SCRIPT=vxland
+INIT_DIR=/etc/init.d
 
 .SUFFIXES: .c .o
 
@@ -37,7 +41,10 @@ clean:
 install:all
 	cp -p ${TARGET} ${PREFIX}/${TARGET}
 	cp -p ${CONTROLER} ${PREFIX}/${CONTROLER}
+	chmod a+x ${SCRIPT_DIR}/${LSB_SCRIPT}
+	cp -p ${SCRIPT_DIR}/${LSB_SCRIPT} ${INIT_DIR}/
 
 uninstall:
 	rm -f ${PREFIX}/${TARGET}
 	rm -f ${PREFIX}/${CONTROLER}
+	rm -f ${INIT_DIR}/${LSB_SCRIPT}
