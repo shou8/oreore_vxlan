@@ -34,7 +34,7 @@ clean:
 	@rm -f *.o ${TARGET} ${CONTROLER}
 	@cd test && ${MAKE} -s clean
 
-install:
+install:all
 	cp -p ${TARGET} ${PREFIX}/${TARGET}
 	cp -p ${CONTROLER} ${PREFIX}/${CONTROLER}
 

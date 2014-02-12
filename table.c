@@ -13,8 +13,8 @@
 
 
 
-//#define TABLE_MIN	1024
-#define TABLE_MIN	1
+#define TABLE_MIN	1024
+//#define TABLE_MIN	1
 
 
 

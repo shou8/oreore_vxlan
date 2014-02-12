@@ -6,8 +6,7 @@
 
 
 
-//#define TABLE_SIZE 4096
-#define TABLE_SIZE 1
+#define TABLE_SIZE 4096
 #define DEFAULT_TABLE_SIZE TABLE_SIZE
 
 

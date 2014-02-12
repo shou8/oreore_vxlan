@@ -109,14 +109,14 @@ int main(int argc, char *argv[]) {
 		log_warn("Default address \"%s\" is used\n", inet_ntoa(vxlan.mcast_addr));
 	}
 
-	init_vxlan();
-	pthread_t oth;
-	pthread_create(&oth, NULL, outer_loop_thread, (void *)NULL);
-
 	if (enable_d) {
 		if (daemon(0, 0) != 0) log_perr("daemon");
 		enable_syslog();
 	}
+
+	init_vxlan();
+	pthread_t oth;
+	pthread_create(&oth, NULL, outer_loop_thread, (void *)NULL);
 
 	ctl_loop(vxlan.udom);
 
