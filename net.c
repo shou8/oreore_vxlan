@@ -23,7 +23,7 @@
 
 
 
-#define BUF_SIZE	65536
+#define BUF_SIZE			65536
 #define VXLAN_FLAG_MASK		0x08
 
 
