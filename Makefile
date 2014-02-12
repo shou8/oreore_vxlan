@@ -8,6 +8,7 @@ CFLAGS=-Wall
 CONTROLER=vxconfig
 CONTROLER_OBJS=vxconfig.o sock.o log.o netutil.o util.o
 LDFLAGS=
+PREFIX=/usr/local/bin
 
 .SUFFIXES: .c .o
 
@@ -34,4 +35,9 @@ clean:
 	@cd test && ${MAKE} -s clean
 
 install:
+	cp -p ${TARGET} ${PREFIX}/${TARGET}
+	cp -p ${CONTROLER} ${PREFIX}/${CONTROLER}
+
 uninstall:
+	rm -f ${PREFIX}/${TARGET}
+	rm -f ${PREFIX}/${CONTROLER}
