@@ -10,6 +10,7 @@
 #include <netpacket/packet.h>
 #include <arpa/inet.h>
 #include <sys/un.h>
+#include <linux/if_vlan.h>
 
 #include "base.h"
 #include "log.h"
@@ -83,7 +84,7 @@ int outer_loop(void) {
 
 		struct ether_header *eh = (struct ether_header *)bp;
 		if (ntohs(eh->ether_type) == ETHERTYPE_ARP)
-			add_data(v->table, eh->ether_shost, src.sin_addr);
+			add_data(v->table, eh->ether_shost, &src.sin_addr);
 
 		write(v->tap.sock, bp, len); 
 

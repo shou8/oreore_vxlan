@@ -109,7 +109,7 @@ vxlan_i *add_vxi(char *buf, uint8_t *vni, char *maddr) {
 	vxlan_i *v = (vxlan_i *)malloc(sizeof(vxlan_i));
 	if (v == NULL) log_pcexit("malloc");
 	memcpy(v->vni, vni, VNI_BYTE);
-	v->table = init_table(vxlan.timeout);
+	v->table = init_table(DEFAULT_TABLE_SIZE);
 	v->tap = create_vxlan_if(vni);
 	v->timeout = vxlan.timeout;
 	if (maddr != NULL) {

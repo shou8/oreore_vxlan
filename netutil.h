@@ -13,6 +13,7 @@ void mtos(char *str, uint8_t hwaddr[MAC_LEN]);
 int cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] );
 uint8_t *get_mac(int sock, char *name, uint8_t *hwaddr);
 struct in_addr get_addr(char *if_name);
+int inet_atom(uint8_t mac[MAC_LEN], char *mac_s);
 
 #ifdef DEBUG
 void get_ran_mac( uint8_t hwaddr[MAC_LEN]);

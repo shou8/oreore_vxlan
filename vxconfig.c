@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <pwd.h>
 
 #include "base.h"
 #include "util.h"
@@ -68,7 +69,10 @@ int main(int argc, char *argv[]) {
 
 	if ((sock = init_unix_sock(dom, UNIX_SOCK_CLIENT)) < 0) {
 		fprintf(stderr, "ERROR: Cannot init unix domain socket.\n");
-		fprintf(stderr, "ERROR: \""DAEMON_NAME"\" is running?\n");
+		if (getuid() == 0)
+			fprintf(stderr, "ERROR: \""DAEMON_NAME"\" is running?\n");
+		else
+			fprintf(stderr, "ERROR: Are you \"root\"?\n");
 		exit(EXIT_FAILURE);
 	}
 

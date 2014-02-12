@@ -5,6 +5,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <net/ethernet.h>
+#include <ctype.h>
 
 #include "netutil.h"
 #include "log.h"
@@ -25,12 +26,25 @@
 /* To represent MAC Address by uint64_t */
 #define MAC_SPACE 2		// uint64_t - uint8_t * 6 = 16bit = 2Byte 
 
+// inet_atom
+#define MAC_OUI_RANGE			6
+#define MAC_OUI_RANGE_STR		12 
+#define ASCII_RANGE_NUM_LOWER	48
+#define ASCII_RANGE_NUM_HIGHER	57
+#define ASCII_RANGE_ALP_LOWER	65
+#define ASCII_RANGE_ALP_HIGHER	70
+#define ASCII_ALP_TO_HEX		55
+#define HEX_SHIFT				4
+
+
+static uint8_t cton(char c);
+
 
 
 /* For Debug: MAC address to String */
 void mtos(char *str, uint8_t hwaddr[MAC_LEN]) {
 
-	sprintf(str, "%x:%x:%x:%x:%x:%x", hwaddr[0], hwaddr[1],
+	sprintf(str, "%02X:%02X:%02X:%02X:%02X:%02X", hwaddr[0], hwaddr[1],
 								hwaddr[2], hwaddr[3],
 								hwaddr[4], hwaddr[5]);
 }
@@ -171,6 +185,45 @@ void print_eth_h(struct ether_header *eh, FILE *fp) {
 }
 
 #endif
+
+
+
+int inet_atom(uint8_t mac[MAC_LEN], char *mac_s) {
+
+	char *p = mac_s;
+	uint8_t c = 0;
+	int i = 0;
+
+	for (p = mac_s, i = 0; *p != '\0' && p != NULL && i < MAC_OUI_RANGE_STR; p++) {
+
+		if (*p == '.' || *p == ':')
+			continue;
+
+		c = cton(*p);
+		if ( c > 15 ) return -1;
+
+		int j = i/2;
+		if ( i % 2 == 1 ) mac[j] = mac[j] << HEX_SHIFT;
+		mac[j] += c;
+		i++;
+	}
+
+	return 0;
+}
+
+
+
+static uint8_t cton(char c){
+
+    if(c >= ASCII_RANGE_NUM_LOWER && c <= ASCII_RANGE_NUM_HIGHER)
+        return (c - ASCII_RANGE_NUM_LOWER);
+
+    c = toupper(c);
+    if(c < ASCII_RANGE_ALP_LOWER || c > ASCII_RANGE_ALP_HIGHER)
+		return -1;
+
+    return (uint8_t)(c - ASCII_ALP_TO_HEX);
+}
 
 
 

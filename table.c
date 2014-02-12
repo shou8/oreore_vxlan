@@ -13,7 +13,8 @@
 
 
 
-#define TABLE_MIN	1024
+//#define TABLE_MIN	1024
+#define TABLE_MIN	1
 
 
 
@@ -92,7 +93,7 @@ mac_tbl *find_data(list **table, uint8_t *eth) {
 
 
 
-void add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
+void add_data(list **table, uint8_t *hw_addr, struct in_addr *vtep_addr) {
 
 	mac_tbl *mt;
 	list *lp = find_list(table, hw_addr);
@@ -122,7 +123,7 @@ void add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
 
 		mt = head->data;
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
-		mt->vtep_addr = vtep_addr;
+		mt->vtep_addr = *vtep_addr;
 		mt->time = time(NULL);
 
 		head = *root;
@@ -136,7 +137,7 @@ void add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
 	} else {
 
 		mt = lp->data;
-		mt->vtep_addr = vtep_addr;
+		mt->vtep_addr = *vtep_addr;
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
 		mt->time = time(NULL);
 
@@ -147,6 +148,32 @@ void add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
 
 
 
+int del_data(list **table, uint8_t *hw_addr, struct in_addr *vtep_addr) {
+
+	list *lp = find_list(table, hw_addr);
+	if (lp == NULL) return -1;
+	*vtep_addr = lp->data->vtep_addr;
+
+	list *pre = lp->pre;
+	list *next = lp->next;
+
+	if (pre == NULL) {
+		unsigned int key = *((unsigned int *)hw_addr) % table_size;
+		*(table + key) = next;
+	} else {
+		pre->next = next;
+	}
+
+	if (next != NULL) next->pre = pre;
+	free(lp->data);
+	free(lp);
+
+	return 0;
+}
+
+
+
+/*
 void del_data(list **table, unsigned int key) {
 
 	list **lr = table + key;
@@ -164,6 +191,7 @@ void del_data(list **table, unsigned int key) {
 	free(p->data);
 	free(p);
 }
+*/
 
 
 

@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 
 #include "base.h"
+#include "netutil.h"
 #include "util.h"
 #include "log.h"
 #include "vxlan.h"
@@ -51,26 +52,26 @@ static int _cmd_help(char *buf, int cmd_i, int argc, char *argv[]);
 static int _cmd_clear(char *buf, int cmd_i, int argc, char *argv[]);
 static int _cmd_flush(char *buf, int cmd_i, int argc, char *argv[]);
 static int _cmd_time(char *buf, int cmd_i, int argc, char *argv[]);
-static int _cmd_set(char *buf, int cmd_i, int argc, char *argv[]);
-static int _cmd_unset(char *buf, int cmd_i, int argc, char *argv[]);
+static int _cmd_add(char *buf, int cmd_i, int argc, char *argv[]);
+static int _cmd_del(char *buf, int cmd_i, int argc, char *argv[]);
 static int _cmd_info(char *buf, int cmd_i, int argc, char *argv[]);
 
 
 
 struct cmd_entry _cmd_t[] = {
-	{ "create", _cmd_create_vxi, "<VNI> [<Multicast address>]", "Create instance and interface."},
-	{ "drop", _cmd_drop_vxi, "<VNI>", "Delete instance and interface."},
-	{ "exit", _cmd_exit, NULL, "Exit process."},
+	{ "create", _cmd_create_vxi, "<VNI> [<Multicast address>]", "Create instance and interface"},
+	{ "drop", _cmd_drop_vxi, "<VNI>", "Delete instance and interface"},
+	{ "exit", _cmd_exit, NULL, "Exit process"},
 	{ "list", _cmd_list, NULL, "Show instances"},
 	{ "mac", _cmd_mac, "<VNI>", "Show MAC address table"},
-	{ "show", _cmd_show, "{instance|mac <VNI>}", "Show instance table (=list) or MAC address table (=mac)."},
-	{ "help", _cmd_help, NULL, "Show this help message." },
-	{ "clear", _cmd_clear, "[force] <VNI>", "Clear time outed MAC address from table. If added \"force\", similarly behave \"flush\" commnad." },
-	{ "flush", _cmd_flush, "<VNI>", "Drop and Create MAC address table (all cached MAC address is discarded)." },
+	{ "show", _cmd_show, "{instance|mac <VNI>}", "Show instance table (=list) or MAC address table (=mac)"},
+	{ "help", _cmd_help, NULL, "Show this help message" },
+	{ "clear", _cmd_clear, "[force] <VNI>", "Clear time outed MAC address from table. If added \"force\", similarly behave \"flush\" commnad" },
+	{ "flush", _cmd_flush, "<VNI>", "Drop and Create MAC address table (all cached MAC address is discarded)" },
 	{ "time", _cmd_time, "{<VNI>|default} <time>", "Set timeout"},
-	{ "set", _cmd_set, "<VNI> <MAC_addr> <VTEP IPaddr>", "Manually add cache"},
-	{ "unset", _cmd_unset, "<VNI> <MAC_addr>", "Manually delete cache"},
-	{ "info", _cmd_info, NULL, "Get general information."},
+	{ "add", _cmd_add, "<VNI> <MAC_addr> <VTEP IPaddr>", "Manually add cache"},
+	{ "del", _cmd_del, "<VNI> <MAC_addr>", "Manually delete cache"},
+	{ "info", _cmd_info, NULL, "Get general information"},
 };
 
 static int _cmd_len = sizeof(_cmd_t) / sizeof(struct cmd_entry);
@@ -166,9 +167,7 @@ int order_parse(char *rbuf, char *wbuf) {
 
 int _cmd_usage(char *buf, int cmd_i, char *mes) {
 
-	char *p = buf;
-	if (mes != NULL) p = pad_str(p, mes);
-	snprintf(p, CTL_BUFLEN, "Usage: %s %s %s\n", CONTROLLER_NAME, _cmd_t[cmd_i].name, (_cmd_t[cmd_i].arg == NULL) ? "":_cmd_t[cmd_i].arg);
+	snprintf(buf, CTL_BUFLEN, "%sUsage: %s %s %s\n", (mes != NULL)?mes:"", CONTROLLER_NAME, _cmd_t[cmd_i].name, (_cmd_t[cmd_i].arg == NULL) ? "":_cmd_t[cmd_i].arg);
 	return CMD_FAILED;
 }
 
@@ -298,7 +297,7 @@ static int _cmd_mac(char *buf, int cmd_i, int argc, char *argv[]) {
 	uint32_t vni32 = 0;
 	char *p = buf;
 
-	p = pad_str(p, "  ----- show MAC table -----  \n");
+	p = pad_str(p, "   ----- show MAC table -----   \n");
 	status = get32and8arr(buf, argv[1], &vni32, vni);
 	if (status != SUCCESS) return status;
 
@@ -453,21 +452,79 @@ static int _cmd_time(char *buf, int cmd_i, int argc, char *argv[]) {
 
 
 
-static int _cmd_set(char *buf, int cmd_i, int argc, char *argv[]) {
+static int _cmd_add(char *buf, int cmd_i, int argc, char *argv[]) {
 
-//	if (argc < 2)
+	if (argc < 4)
 		return _cmd_usage(buf, cmd_i, "ERROR: Too few arguments\n");
 
+	char *vni_s = argv[1];
+	uint8_t vni[VNI_BYTE];
+	uint32_t vni32 = 0;
+	int status = get32and8arr(buf, vni_s, &vni32, vni);
+	if (status != SUCCESS) return status;
+
+	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] == NULL) {
+		snprintf(buf, CTL_BUFLEN, "ERROR: The instance (VNI: %"PRIu32") does not exist.\n", vni32);
+		return LOGIC_FAILED;
+	}
+
+	uint8_t mac[MAC_LEN];
+	char str[CTL_BUFLEN];
+
+	if ( inet_atom(mac, argv[2]) == -1 ) {
+		snprintf(str, CTL_BUFLEN, "ERROR: Invalid MAC address \"%s\"\n", argv[2]);
+		return _cmd_usage(buf, cmd_i, str);
+	}
+
+	struct in_addr ipaddr;
+	if ( inet_aton(argv[3], &ipaddr) == 0 ) {
+		snprintf(str, CTL_BUFLEN, "ERROR: Invalid IP address \"%s\"\n", argv[3]);
+		return _cmd_usage(buf, cmd_i, str);
+	}
+	add_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, &ipaddr);
+
+	mtos(str, mac);
+	snprintf(buf, CTL_BUFLEN, "INFO : added, VNI %"PRIu32": %s => %s\n", vni32, str, inet_ntoa(ipaddr));
 	return SUCCESS;
 }
 
-static int _cmd_unset(char *buf, int cmd_i, int argc, char *argv[]) {
 
-//	if (argc < 2)
+
+static int _cmd_del(char *buf, int cmd_i, int argc, char *argv[]) {
+
+	if (argc < 3)
 		return _cmd_usage(buf, cmd_i, "ERROR: Too few arguments\n");
 
+	char *vni_s = argv[1];
+	uint8_t vni[VNI_BYTE];
+	uint32_t vni32 = 0;
+	int status = get32and8arr(buf, vni_s, &vni32, vni);
+	if (status != SUCCESS) return status;
+
+	if (vxlan.vxi[vni[0]][vni[1]][vni[2]] == NULL) {
+		snprintf(buf, CTL_BUFLEN, "ERROR: The instance (VNI: %"PRIu32") does not exist.\n", vni32);
+		return LOGIC_FAILED;
+	}
+
+	uint8_t mac[MAC_LEN];
+	char str[CTL_BUFLEN];
+
+	if ( inet_atom(mac, argv[2]) == -1 ) {
+		snprintf(str, CTL_BUFLEN, "ERROR: Invalid MAC address \"%s\"\n", argv[2]);
+		return _cmd_usage(buf, cmd_i, str);
+	}
+
+	mtos(str, mac);
+	struct in_addr ipaddr;
+	if ( del_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, &ipaddr) < 0 ) {
+		snprintf(str, CTL_BUFLEN, "INFO : No such MAC address in table: \"%s\"\n", argv[2]);
+		return SUCCESS;
+	}
+
+	snprintf(buf, CTL_BUFLEN, "INFO : deleted, VNI %"PRIu32": %s => %s\n", vni32, str, inet_ntoa(ipaddr));
 	return SUCCESS;
 }
+
 
 
 #define INFO_PAD "32"
@@ -498,6 +555,16 @@ static int _cmd_info(char *buf, int cmd_i, int argc, char *argv[]) {
 
 
 
+/***********************
+ ***********************
+ ***                 ***
+ *** Pirvate Utility ***
+ ***                 ***
+ ***********************
+ ***********************/
+
+
+
 #define VNI_PAD_LEN "11"
 
 static void _show_vxi(char *buf) {
@@ -506,7 +573,7 @@ static void _show_vxi(char *buf) {
 	char str[CTL_BUFLEN];
 	char *p = buf;
 
-	snprintf(str, CTL_BUFLEN, "%"VNI_PAD_LEN"s | %s\n", "VNI", "MAC address");
+	snprintf(str, CTL_BUFLEN, "%"VNI_PAD_LEN"s | %s\n", "VNI", "Multicast address");
 	p = pad_str(p, str);
 	p = pad_str(p, " -----------+----------------\n");
 
@@ -542,6 +609,7 @@ static void _show_table(char *buf, list **table) {
 		for (lp = *tp; lp != NULL; lp = lp->next) {
 			uint8_t *hwaddr = (lp->data)->hw_addr;
 			snprintf(str, CTL_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s, ", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa((lp->data)->vtep_addr));
+//			snprintf(str, CTL_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s\n", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa((lp->data)->vtep_addr));
 			p = pad_str(p, str);
 			cnt++;
 		}
@@ -551,6 +619,7 @@ static void _show_table(char *buf, list **table) {
 	snprintf(str, CTL_BUFLEN, "\nCount: %d\n", cnt);
 	p = pad_str(p, str);
 }
+
 
 
 
