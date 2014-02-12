@@ -11,10 +11,7 @@
 #include "net.h"
 #include "vxlan.h"
 #include "cmd.h"
-
-#ifdef DEBUG
-#include "test.h"
-#endif /* DEBUG */
+#include "sock.h"
 
 
 
@@ -26,7 +23,9 @@ void usage(char *bin);
 
 static struct option options[] = {
 	{"daemon", no_argument, NULL, 'd'},
+#ifdef DEBUG
 	{"Debug", no_argument, NULL, 'D'},
+#endif /* DEBUG */
 	{"help", no_argument, NULL, 'h'},
 	{"interface", required_argument, NULL, 'i'},
 	{"multicast", required_argument, NULL, 'm'},
@@ -62,10 +61,12 @@ int main(int argc, char *argv[]) {
 			case 'd':
 				enable_d = 1;
 				break;
+#ifdef DEBUG
 			case 'D':
 				enable_D = 1;
 				enable_debug();
 				break;
+#endif /* DEBUG */
 			case 'h':
 				usage(argv[0]);
 				break;
@@ -99,7 +100,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	if (enable_D && enable_d) {
+	if ( enable_D && enable_d ) {
 		disable_debug();
 		enable_syslog();
 		log_warn("Incompatible option \"-d\" and \"-D\", \"-d\" has priority over \"-D\".");
@@ -116,13 +117,18 @@ int main(int argc, char *argv[]) {
 		log_warn("Default address \"%s\" is used\n", inet_ntoa(vxlan.mcast_addr));
 	}
 
-	if (enable_d) {
+	init_vxlan();
+	vxlan.usoc = init_udp_sock(vxlan.port);
+	if (vxlan.usoc < 0) log_cexit("outer_loop.socket: Bad descripter\n");
+	if (join_mcast_group(vxlan.usoc, vxlan.mcast_addr, vxlan.if_name) < 0)
+		log_pcexit("socket");
+
+	if ( enable_d ) {
 		create_pid_file(pid_path);
-		if (daemon(0, 0) != 0) log_perr("daemon");
-		enable_syslog();
+		if (daemon(1, 0) != 0) log_perr("daemon");
+		disable_syslog();
 	}
 
-	init_vxlan();
 	pthread_t oth;
 	pthread_create(&oth, NULL, outer_loop_thread, (void *)NULL);
 

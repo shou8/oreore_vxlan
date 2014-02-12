@@ -29,7 +29,7 @@ int argv_to1str(char *buf, int argc, char **argv);
 static const struct option options[] = {
 	{"socket", required_argument, NULL, 's'},
 #ifdef DEBUG
-	{"Debug", no_argument, NULL, 'D'},
+//	{"Debug", no_argument, NULL, 'D'},
 #endif
 	{"help", no_argument, NULL, 'h'},
 	{"version", no_argument, NULL, 'v'},

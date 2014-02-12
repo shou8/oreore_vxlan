@@ -7,6 +7,7 @@
 
 
 #define TABLE_SIZE 4096
+//#define TABLE_SIZE 1
 #define DEFAULT_TABLE_SIZE TABLE_SIZE
 
 
@@ -31,9 +32,9 @@ typedef struct _list_
 
 list **init_table(unsigned int size);
 mac_tbl *find_data(list **table, uint8_t *eth_addr);
-void add_data(list **table, uint8_t *hw_addr, struct in_addr *vtep_addr);
+int add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr);
 //void del_data(list **table, unsigned int key);
-int del_data(list **table, uint8_t *hw_addr, struct in_addr *vtep_addr);
+int del_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr);
 list **clear_table_all(list **table);
 int clear_table_timeout(list **table, int cache_time);
 unsigned int get_table_size(void);

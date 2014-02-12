@@ -131,11 +131,12 @@ void log_stderr(const char *fmt, ...) {
 void log_debug(const char *fmt, ...) {
 
 #ifdef DEBUG
-	va_list ap;
-	va_start(ap, fmt);
-	if (_debug_mode == DEBUG_ENABLE)
+	if (_debug_mode == DEBUG_ENABLE) {
+		va_list ap;
+		va_start(ap, fmt);
 		_print_log_v(LOG_DEBUG, fmt, ap);
-	va_end(ap);
+		va_end(ap);
+	}
 #endif /* DEBUG */
 
 }

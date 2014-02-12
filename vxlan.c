@@ -92,10 +92,11 @@ static device create_vxlan_if(uint8_t *vni) {
 	uint32_t vni32 = To32ex(vni);
 
 	snprintf(tap.name, IF_NAME_LEN, "vxlan%"PRIu32, vni32);
-	log_debug("VNI: %"PRIu8".%"PRIu8".%"PRIu8"\n", vni[0], vni[1], vni[2], vni32);
+	//log_debug("VNI: %"PRIu8".%"PRIu8".%"PRIu8"\n", vni[0], vni[1], vni[2], vni32);
 	log_info("Tap interface \"%s\" is created (VNI: %"PRIu32").\n", tap.name, vni32);
 
 	tap.sock = tap_alloc(tap.name);
+	if (tap.sock < 0) log_cexit("Cannot create tap interface\n");
 	tap_up(tap.name);
 	get_mac(tap.sock, tap.name, tap.hwaddr);
 
@@ -110,6 +111,7 @@ vxlan_i *add_vxi(char *buf, uint8_t *vni, char *maddr) {
 	if (v == NULL) log_pcexit("malloc");
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(DEFAULT_TABLE_SIZE);
+	if (v->table == NULL) log_pcexit("malloc");
 	v->tap = create_vxlan_if(vni);
 	v->timeout = vxlan.timeout;
 	if (maddr != NULL) {

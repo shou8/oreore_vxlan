@@ -55,6 +55,9 @@ static int _cmd_time(char *buf, int cmd_i, int argc, char *argv[]);
 static int _cmd_add(char *buf, int cmd_i, int argc, char *argv[]);
 static int _cmd_del(char *buf, int cmd_i, int argc, char *argv[]);
 static int _cmd_info(char *buf, int cmd_i, int argc, char *argv[]);
+#ifdef DEBUG
+static int _cmd_debug(char *buf, int cmd_i, int argc, char *argv[]);
+#endif /* DEUBG */
 
 
 
@@ -72,6 +75,9 @@ struct cmd_entry _cmd_t[] = {
 	{ "add", _cmd_add, "<VNI> <MAC_addr> <VTEP IPaddr>", "Manually add cache"},
 	{ "del", _cmd_del, "<VNI> <MAC_addr>", "Manually delete cache"},
 	{ "info", _cmd_info, NULL, "Get general information"},
+#ifdef DEBUG
+	{ "debug", _cmd_debug, NULL, "Get general information"},
+#endif /* DEBUG */
 };
 
 static int _cmd_len = sizeof(_cmd_t) / sizeof(struct cmd_entry);
@@ -297,7 +303,7 @@ static int _cmd_mac(char *buf, int cmd_i, int argc, char *argv[]) {
 	uint32_t vni32 = 0;
 	char *p = buf;
 
-	p = pad_str(p, "   ----- show MAC table -----   \n");
+	p = pad_str(p, "\n   ----- show MAC table -----   \n");
 	status = get32and8arr(buf, argv[1], &vni32, vni);
 	if (status != SUCCESS) return status;
 
@@ -481,7 +487,11 @@ static int _cmd_add(char *buf, int cmd_i, int argc, char *argv[]) {
 		snprintf(str, CTL_BUFLEN, "ERROR: Invalid IP address \"%s\"\n", argv[3]);
 		return _cmd_usage(buf, cmd_i, str);
 	}
-	add_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, &ipaddr);
+
+	if ( add_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, ipaddr) < 0 ) {
+		log_pcexit("malloc");
+		return SRV_FAILED;
+	}
 
 	mtos(str, mac);
 	snprintf(buf, CTL_BUFLEN, "INFO : added, VNI %"PRIu32": %s => %s\n", vni32, str, inet_ntoa(ipaddr));
@@ -516,7 +526,7 @@ static int _cmd_del(char *buf, int cmd_i, int argc, char *argv[]) {
 
 	mtos(str, mac);
 	struct in_addr ipaddr;
-	if ( del_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, &ipaddr) < 0 ) {
+	if ( del_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, ipaddr) < 0 ) {
 		snprintf(str, CTL_BUFLEN, "INFO : No such MAC address in table: \"%s\"\n", argv[2]);
 		return SUCCESS;
 	}
@@ -592,21 +602,20 @@ static void _show_vxi(char *buf) {
 
 static void _show_table(char *buf, list **table) {
 
-	int i = 0;
 	int cnt = 0;
 	char *p = buf;
 	char str[CTL_BUFLEN];
 	unsigned int table_size = get_table_size();
 
-	list **tp = table;
+	list **root;
 	list *lp;
 
-	for (i=0 ; i < table_size; i++, tp++) {
-		if (*tp == NULL) continue;
-		snprintf(str, CTL_BUFLEN, "%7d: ", i);
+	for (root = table; root-table < table_size; root++) {
+		if (*root == NULL) continue;
+		snprintf(str, CTL_BUFLEN, "%7d: ", root-table);
 		p = pad_str(p, str);
 
-		for (lp = *tp; lp != NULL; lp = lp->next) {
+		for (lp = *root; lp != NULL; lp = lp->next) {
 			uint8_t *hwaddr = (lp->data)->hw_addr;
 			snprintf(str, CTL_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s, ", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa((lp->data)->vtep_addr));
 //			snprintf(str, CTL_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s\n", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa((lp->data)->vtep_addr));
@@ -622,4 +631,27 @@ static void _show_table(char *buf, list **table) {
 
 
 
+/******************
+ ******************
+ ***            ***
+ *** DEBUG only ***
+ ***            ***
+ ******************
+ ******************/
 
+
+
+#ifdef DEBUG
+
+
+
+static int _cmd_debug(char *buf, int cmd_i, int argc, char *argv[]) {
+
+	enable_debug();
+	snprintf(buf, CTL_BUFLEN, "Entering DEBUG mode\n");
+	return SUCCESS;
+}
+
+
+
+#endif /* DEBUG */

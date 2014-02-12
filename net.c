@@ -55,15 +55,6 @@ int outer_loop(void) {
 	struct sockaddr_in src;
 	socklen_t addr_len = sizeof(src);
 
-	vxlan.usoc = init_udp_sock(vxlan.port);
-	if (vxlan.usoc < 0) log_cexit("outer_loop.socket: Bad descripter\n");
-
-	if (join_mcast_group(vxlan.usoc, vxlan.mcast_addr, vxlan.if_name) < 0) {
-		log_berr(buf, "Cannot initialize socket (%d).\n", vxlan.usoc);
-		log_bperr(buf, "socket");
-		exit(EXIT_FAILURE);
-	}
-
 	while (1) {
 
 		if ((len = recvfrom(vxlan.usoc, buf, rlen, 0,
@@ -83,7 +74,8 @@ int outer_loop(void) {
 		if (v == NULL) continue;
 
 		struct ether_header *eh = (struct ether_header *)bp;
-		add_data(v->table, eh->ether_shost, &src.sin_addr);
+		if ( add_data(v->table, eh->ether_shost, src.sin_addr) < 0 )
+			log_pcexit("malloc");
 
 		write(v->tap.sock, bp, len); 
 
@@ -114,23 +106,14 @@ int inner_loop(vxlan_i *v) {
 	int rlen = sizeof(buf) - sizeof(vxlan_h) - 1;
 	int len;
 
+	mac_tbl *data;
 	struct sockaddr_in dst;
 	dst.sin_port = htons(vxlan.port);
-
-	/* For vxlan instance declaration */
-	device tap = v->tap;
-	int rsoc = tap.sock;
-	if (rsoc < 0) {
-		log_crit("inner_loop.socket: Bad descripter\n");
-		return -1;
-	}
-
-	mac_tbl *data;
 	vxlan_h *vh = (vxlan_h *)buf;
 
 	while (1) {
 
-		if ((len = read(rsoc, rp, rlen)) < 0)
+		if ((len = read(v->tap.sock, rp, rlen)) < 0)
 			log_perr("inner_loop.recvfrom");
 
 		memset(vh, 0, sizeof(vxlan_h));

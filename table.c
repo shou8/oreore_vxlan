@@ -8,7 +8,6 @@
 
 #include "netutil.h"
 #include "table.h"
-#include "log.h"
 #include "util.h"
 
 
@@ -34,7 +33,7 @@ list **init_table(unsigned int size) { // hash table size
 	if (table_size < TABLE_MIN) table_size = TABLE_MIN;
 	unsigned int mem_size = table_size * sizeof(list *);
 	list **table = (list **)malloc(mem_size);
-	if (table == NULL) log_pcexit("malloc");
+	if (table == NULL) return NULL;
 	memset(table, 0, mem_size);
 
 	return table;
@@ -70,8 +69,7 @@ static list *find_list(list **table, uint8_t *eth_addr) {
 	for ( ; p != NULL; p = p->next) {
 		mac_tbl *mac_t = p->data;
 		uint8_t *eth_p = mac_t->hw_addr;
-		if (cmp_mac(eth_p, eth_addr) == 0)
-		{
+		if (cmp_mac(eth_p, eth_addr) == 0) {
 			to_head(root, p);
 			return p;
 		}
@@ -93,7 +91,7 @@ mac_tbl *find_data(list **table, uint8_t *eth) {
 
 
 
-void add_data(list **table, uint8_t *hw_addr, struct in_addr *vtep_addr) {
+int add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
 
 	mac_tbl *mt;
 	list *lp = find_list(table, hw_addr);
@@ -109,7 +107,7 @@ void add_data(list **table, uint8_t *hw_addr, struct in_addr *vtep_addr) {
 	if (lp == NULL) {
 
 		*root = (list *)malloc(sizeof(list));
-		if (*root == NULL) log_pcexit("malloc");
+		if (*root == NULL) return -1;
 
 		if (head != NULL) {
 			(*root)->next = head;
@@ -119,11 +117,11 @@ void add_data(list **table, uint8_t *hw_addr, struct in_addr *vtep_addr) {
 		head = *root;
 		head->pre = NULL;
 		head->data = (mac_tbl *)malloc(sizeof(mac_tbl));
-		if (head->data == NULL) log_pcexit("malloc");
+		if (head->data == NULL) return -1;
 
 		mt = head->data;
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
-		mt->vtep_addr = *vtep_addr;
+		mt->vtep_addr = vtep_addr;
 		mt->time = time(NULL);
 
 		head = *root;
@@ -137,22 +135,24 @@ void add_data(list **table, uint8_t *hw_addr, struct in_addr *vtep_addr) {
 	} else {
 
 		mt = lp->data;
-		mt->vtep_addr = *vtep_addr;
+		mt->vtep_addr = vtep_addr;
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
 		mt->time = time(NULL);
 
 		if ( lp != head )
 			to_head(root, lp);
 	}
+
+	return 0;
 }
 
 
 
-int del_data(list **table, uint8_t *hw_addr, struct in_addr *vtep_addr) {
+int del_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
 
 	list *lp = find_list(table, hw_addr);
 	if (lp == NULL) return -1;
-	*vtep_addr = lp->data->vtep_addr;
+	vtep_addr = lp->data->vtep_addr;
 
 	list *pre = lp->pre;
 	list *next = lp->next;
