@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
 void usage(char *bin) {
 	fprintf(stderr, "Usage: %s [OPTIONS]\n", bin);
 	fprintf(stderr, "\n");
-	fprintf(stderr, "OPTIONS: ");
+	fprintf(stderr, "OPTIONS: \n");
 	fprintf(stderr, "        -d                       : Enable daemon mode\n");
 	fprintf(stderr, "        -D                       : Enable debug mode\n");
 	fprintf(stderr, "        -h                       : Show this help\n");
