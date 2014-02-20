@@ -124,8 +124,8 @@ int main(int argc, char *argv[]) {
 		log_pcexit("socket");
 
 	if ( enable_d ) {
-		create_pid_file(pid_path);
 		if (daemon(1, 0) != 0) log_perr("daemon");
+		create_pid_file(pid_path);
 		disable_syslog();
 	}
 

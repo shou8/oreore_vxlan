@@ -541,11 +541,35 @@ static int _cmd_del(char *buf, int cmd_i, int argc, char *argv[]) {
 
 static int _cmd_info(char *buf, int cmd_i, int argc, char *argv[]) {
 
-	if (argc > 1)
+	if (argc > 2)
 		return _cmd_usage(buf, cmd_i, "ERROR: Too many arguments\n");
 
 	char *p = buf;
 	char str[CTL_BUFLEN];
+
+	if (argc == 2) {
+		char *vni_s = argv[1];
+		uint8_t vni[VNI_BYTE];
+		uint32_t vni32 = 0;
+		int status = get32and8arr(buf, vni_s, &vni32, vni);
+		if (status != SUCCESS) return status;
+	
+		if (vxlan.vxi[vni[0]][vni[1]][vni[2]] == NULL) {
+			snprintf(buf, CTL_BUFLEN, "ERROR: The instance (VNI: %"PRIu32") does not exist.\n", vni32);
+			return LOGIC_FAILED;
+		}
+
+		snprintf(str, CTL_BUFLEN, "----- VNI: %s information -----\n", vni_s);
+		p = pad_str(p, str);
+		snprintf(str, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Tap interface", vxlan.vxi[vni[0]][vni[1]][vni[2]]->tap.name);
+		p = pad_str(p, str);
+		snprintf(str, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Multicast address", inet_ntoa(vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr));
+		p = pad_str(p, str);
+		snprintf(str, CTL_BUFLEN, "%-"INFO_PAD"s: %d\n", "Cache time out", vxlan.vxi[vni[0]][vni[1]][vni[2]]->timeout);
+		p = pad_str(p, str);
+
+		return SUCCESS;
+	}
 
 	snprintf(str, CTL_BUFLEN, "----- "DAEMON_NAME" information -----\n");
 	p = pad_str(p, str);
@@ -557,7 +581,7 @@ static int _cmd_info(char *buf, int cmd_i, int argc, char *argv[]) {
 	p = pad_str(p, str);
 	snprintf(str, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Socket path", vxlan.udom);
 	p = pad_str(p, str);
-	snprintf(str, CTL_BUFLEN, "%-"INFO_PAD"s: %d\n", "Cache time out", vxlan.timeout);
+	snprintf(str, CTL_BUFLEN, "%-"INFO_PAD"s: %d\n", "Default cache time out", vxlan.timeout);
 	p = pad_str(p, str);
 
 	return SUCCESS;
