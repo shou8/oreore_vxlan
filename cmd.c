@@ -616,6 +616,13 @@ static void _show_table(char *buf, list **table) {
 		p = pad_str(p, str);
 
 		for (lp = *root; lp != NULL; lp = lp->next) {
+
+			if (lp->data == NULL) {
+				snprintf(str, CTL_BUFLEN, "NULL\n");
+				p = pad_str(p, str);
+				continue;
+			}
+
 			uint8_t *hwaddr = (lp->data)->hw_addr;
 			snprintf(str, CTL_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s, ", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa((lp->data)->vtep_addr));
 //			snprintf(str, CTL_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s\n", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa((lp->data)->vtep_addr));

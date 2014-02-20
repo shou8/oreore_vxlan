@@ -138,9 +138,20 @@ int main(int argc, char *argv[]) {
 }
 
 
-
 void usage(char *bin) {
-	fprintf(stderr, "usage!\n");
+	fprintf(stderr, "Usage: %s [OPTIONS]\n", bin);
+	fprintf(stderr, "\n");
+	fprintf(stderr, "OPTIONS: ");
+	fprintf(stderr, "        -d                       : Enable daemon mode\n");
+	fprintf(stderr, "        -D                       : Enable debug mode\n");
+	fprintf(stderr, "        -h                       : Show this help\n");
+	fprintf(stderr, "        -i <interface>           : Set multicast interface\n");
+	fprintf(stderr, "        -m <multicast address>   : Set multicast address\n");
+	fprintf(stderr, "        -p <port number>         : Set port number\n");
+	fprintf(stderr, "        -P <Path to PID file>    : Set path to PID file\n");
+	fprintf(stderr, "        -s <Path to Unix Socket> : Set path to unix socket\n");
+	fprintf(stderr, "        -v                       : Show version\n");
+	fprintf(stderr, "\n");
 	exit(EXIT_SUCCESS);
 }
 
