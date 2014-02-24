@@ -132,9 +132,23 @@ vxlan_i *add_vxi(char *buf, uint8_t *vni, char *maddr) {
 
 void del_vxi(char *buf, uint8_t *vni) {
 
-	/* TODO: check all */
-	if (vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr.s_addr != vxlan.mcast_addr.s_addr)
-		leave_mcast_group(vxlan.usoc, vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr, vxlan.if_name);
+	if (vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr.s_addr != vxlan.mcast_addr.s_addr) {
+
+		int i, j, k;
+		for (i=0; i<NUMOF_UINT8; i++) {
+			for (j=0; j<NUMOF_UINT8; j++) {
+				for (k=0; k<NUMOF_UINT8; k++) {
+					if (vxlan.vxi[i][j][k] == NULL) continue;
+					if (vxlan.vxi[i][j][k]->mcast_addr.s_addr == vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr.s_addr)
+						break;
+				}
+			}
+		}
+
+		if ( i != NUMOF_UINT8 || j != NUMOF_UINT8 || k != NUMOF_UINT8)
+			leave_mcast_group(vxlan.usoc, vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr, vxlan.if_name);
+	}
+
 	close(vxlan.vxi[vni[0]][vni[1]][vni[2]]->tap.sock);
 	free(vxlan.vxi[vni[0]][vni[1]][vni[2]]);
 	vxlan.vxi[vni[0]][vni[1]][vni[2]] = NULL;

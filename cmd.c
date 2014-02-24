@@ -198,13 +198,17 @@ int _cmd_usage(int soc, int cmd_i) {
 
 int cmd_create_vxi(int soc, int cmd_i, int argc, char *argv[]) {
 
-	char buf[CTL_BUFLEN];
+	if (argc < 2) {
+		_soc_printf(soc, CTL_BUFLEN, "ERROR: Too few arguments\n");
+		return _cmd_usage(soc, cmd_i);
+	}
 
 	if (argc > 3) {
 		_soc_printf(soc, CTL_BUFLEN, "ERROR: Too many arguments\n");
 		return _cmd_usage(soc, cmd_i);
 	}
 
+	char buf[CTL_BUFLEN];
 	char *vni_s = argv[1];
 //	uint8_t vni[VNI_BYTE];
 	uint8_t *vni = (uint8_t *)malloc(sizeof(uint8_t) * VNI_BYTE);
