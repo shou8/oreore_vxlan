@@ -4,13 +4,15 @@
 
 
 struct config {
-	char path[DEFAULT_BUFLEN];
-	char param[DEFAULT_BUFLEN][DEFAULT_BUFLEN];
+	int line_no;
+	int param_no;
+	char value[DEFAULT_BUFLEN];
 };
 
 
 
-int get_config(char *config_path, char *message);
+int get_config(char *config_path, struct config *conf);
+int set_config(struct config *conf);
 
 
 

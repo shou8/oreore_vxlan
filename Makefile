@@ -13,6 +13,8 @@ PREFIX=/usr/local/bin
 SCRIPT_DIR=script
 LSB_SCRIPT=vxland
 INIT_DIR=/etc/init.d
+CONFIG_SRC=./conf/vxlan.conf
+CONFIG_DST=/etc/vxlan.conf
 
 .SUFFIXES: .c .o
 
@@ -30,6 +32,9 @@ ${CONTROLER}:${CONTROLER_OBJS}
 	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 debug:
+	${MAKE} DEBUG_FLAG="-g" OBJS="${OBJS}"
+
+netdebug:
 #	${MAKE} DEBUG_FLAG="-DDEBUG -g" OBJS="${OBJS} test.o"
 	${MAKE} DEBUG_FLAG="-DDEBUG -g" OBJS="${OBJS}"
 	@cd test && ${MAKE}
@@ -43,6 +48,7 @@ install:all
 	cp -p ${CONTROLER} ${PREFIX}/${CONTROLER}
 	chmod a+x ${SCRIPT_DIR}/${LSB_SCRIPT}
 	cp -p ${SCRIPT_DIR}/${LSB_SCRIPT} ${INIT_DIR}/
+	cp -p ${CONFIG_SRC} ${CONFIG_DST}
 
 uninstall:
 	rm -f ${PREFIX}/${TARGET}

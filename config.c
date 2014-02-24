@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <errno.h>
+#include <arpa/inet.h>
 
 #include "base.h"
-
-
-
-struct config {
-	char param[DEFAULT_BUFLEN];
-	char values[DEFAULT_BUFLEN][DEFAULT_BUFLEN];
-};
+#include "util.h"
+#include "cmd.h"
+#include "vxlan.h"
+#include "config.h"
+#include "log.h"
 
 
 
@@ -29,7 +30,8 @@ static char *rm_extra_left_char(char *str, char *rm_chars);
 static char *rm_extra_char(char *str);
 
 
-int get_config(char *config_path, char *message) {
+
+int get_config(char *config_path, struct config *conf) {
 
 	FILE *fp;
 
@@ -37,11 +39,16 @@ int get_config(char *config_path, char *message) {
 		return -1;
 
 	char bracket;
-	char *p, *par_head, *val_head, line[DEFAULT_BUFLEN];
+	char *p, *param_c, *val_c, line[DEFAULT_BUFLEN];
 	int param_size = sizeof(param) / sizeof(param[0]);
-	int line_num = 1;
+	int line_no = 0;
+	int i;
+
+	int len = 0;
 
 	while (fgets(line, DEFAULT_BUFLEN, fp) != NULL) {
+
+		line_no++;
 
 		// if this line includes '#', the point is regarded as end of line
 		bracket = 0;
@@ -60,26 +67,42 @@ int get_config(char *config_path, char *message) {
 			continue;
 
 		// Delete left extra space and tabs
-		par_head = rm_extra_left_char(line, " \t");
+		param_c = rm_extra_left_char(line, " \t");
 
 		// Search '=' separator
-		val_head = strchr(par_head, '=');
-		if (val_head == NULL) {
-//			snprintf();
+		val_c = strchr(param_c, '=');
+		if (val_c == NULL) {
+			log_err("line %d: No '=' separator\n", line_no);
 			return -2;
 		}
 
-		*val_head = '\0';
-		val_head++;
+		*val_c = '\0';
+		val_c++;
 
-		printf("param:'%s', value:'%s'\n", rm_extra_char(par_head), rm_extra_char(val_head));
+		for (i=0; i<param_size; i++) {
+			param_c = rm_extra_char(param_c);
+			if (param_c == NULL) return -4;
+			if (str_cmp(param[i], param_c)) break;
+		}
 
-//		for (i=0; i<param_size; i++)
-//			if (str_cmp(param[i], line)) break;
-		line_num++;
+		if (i == param_size) {
+			log_err("line %d: No such parameter\n", line_no);
+			return -3;
+		}
+
+		val_c = rm_extra_char(val_c);
+		if (val_c == NULL) {
+			log_err("line %d: Invalid bracket\n", line_no);
+			return -4;
+		}
+
+		conf[len].param_no = i;
+		conf[len].line_no = line_no;
+		strncpy(conf[len].value, val_c, DEFAULT_BUFLEN);
+		len++;
 	}
 
-	return 0;
+	return len;
 }
 
 
@@ -135,4 +158,38 @@ static char *rm_extra_char(char *str) {
 	}
 
 	return str;
+}
+
+
+
+int set_config(struct config *conf) {
+
+	switch (conf->param_no) {
+		case 0:
+			if (inet_aton(conf->value, &vxlan.mcast_addr) == 0) {
+				log_err("line %d: Invalid address: %s\n", conf->line_no, conf->value);
+				return -1;
+			}
+			break;
+		case 1:
+			strncpy(vxlan.if_name, conf->value, DEFAULT_BUFLEN);
+			break;
+		case 2:
+			vxlan.port = atoi(conf->value);
+			if (vxlan.port == 0) {
+				log_err("line %d: Invalid port number: %s\n", conf->line_no, conf->value);
+				return -1;
+			}
+			break;
+		case 3:
+			strncpy(vxlan.udom, conf->value, DEFAULT_BUFLEN);
+			break;
+		case 4: {
+			char *argv[] = {"create", conf->value};
+			if (cmd_create_vxi(2, 0, 2, argv) != SUCCESS) return -1;
+			break;
+		}
+	}
+
+	return 0;
 }

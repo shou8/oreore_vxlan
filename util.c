@@ -9,7 +9,7 @@
 
 
 
-#define CTL_BUF_LEN DEFAULT_BUFLEN
+#define CTL_BUFLEN DEFAULT_BUFLEN
 
 
 
@@ -42,7 +42,7 @@ int str_cmp(const char *p1, const char *p2) {
 /*
 char *pad_str(char *buf, const char *str) {
 
-	strncpy(buf, str, CTL_BUF_LEN);
+	strncpy(buf, str, CTL_BUFLEN);
 	return buf + strlen(str);
 }
 */
@@ -56,17 +56,17 @@ int get32and8arr(char *buf, char *str, uint32_t *val, uint8_t *arr) {
 
 	switch (errno) {
 		case EINVAL:
-			snprintf(buf, CTL_BUF_LEN, "Cannot convert, Not number: %s.\n", str);
+			snprintf(buf, CTL_BUFLEN, "Cannot convert, Not number: %s.\n", str);
 			return CMD_FAILED;
 			break;
 		case ERANGE:
-			snprintf(buf, CTL_BUF_LEN, "Invalid range: %s\n", str);
+			snprintf(buf, CTL_BUFLEN, "Invalid range: %s\n", str);
 			return CMD_FAILED;
 			break;
 	}
 
 	if (*val == 0 && !(str_cmp(str, "0") || str_cmp(str, "0x0"))) {
-		snprintf(buf, CTL_BUF_LEN, "Invalid number: %s\n", str);
+		snprintf(buf, CTL_BUFLEN, "Invalid number: %s\n", str);
 		return CMD_FAILED;
 	}
 

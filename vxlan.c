@@ -32,6 +32,7 @@ typedef struct _vxland {
 	char udom[DEFAULT_BUFLEN];
 	int lock;
 	int timeout;
+	char conf_path[DEFAULT_BUFLEN];
 } vxland;
 */
 vxland vxlan = {
@@ -43,6 +44,7 @@ vxland vxlan = {
 	DEFAULT_UNIX_DOMAIN,
 	0,
 	DEFAULT_MAC_TIMEOUT,
+	DEFAULT_CONFIG_PATH
 };
 
 

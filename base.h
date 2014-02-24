@@ -26,7 +26,7 @@
 #define DEFAULT_UNIX_DOMAIN		"/var/run/vxlan.sock"
 #define DEFAULT_MCAST_ADDR		0x640000e0
 #define DEFAULT_MAC_TIMEOUT		14400
-#define DEFAULT_VXLAN_CONFIG	"/etc/vxlan.conf"
+#define DEFAULT_CONFIG_PATH		"/etc/vxlan.conf"
 #define DEFAULT_PID_FILE		"/var/run/vxland.pid"
 
 

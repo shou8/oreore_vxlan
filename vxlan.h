@@ -39,6 +39,7 @@ typedef struct _vxland {
 	char udom[DEFAULT_BUFLEN];
 	int lock;
 	int timeout;				// Default
+	char conf_path[DEFAULT_BUFLEN];
 } vxland;
 
 

@@ -45,7 +45,7 @@ static void _show_vxi(int soc);
 static void _show_table(int soc, list **table);
 
 /* Comands: cmd_XXX(char *, int, int, char **); */
-static int _cmd_create_vxi(int soc, int cmd_i, int argc, char *argv[]);
+int cmd_create_vxi(int soc, int cmd_i, int argc, char *argv[]);
 static int _cmd_drop_vxi(int soc, int cmd_i, int argc, char *argv[]);
 static int _cmd_exit(int soc, int cmd_i, int argc, char *argv[]);
 static int _cmd_list(int soc, int cmd_i, int argc, char *argv[]);
@@ -65,7 +65,7 @@ static int _cmd_debug(int soc, int cmd_i, int argc, char *argv[]);
 
 
 struct cmd_entry _cmd_t[] = {
-	{ "create", _cmd_create_vxi, "<VNI> [<Multicast address>]", "Create instance and interface"},
+	{ "create", cmd_create_vxi, "<VNI> [<Multicast address>]", "Create instance and interface"},
 	{ "drop", _cmd_drop_vxi, "<VNI>", "Delete instance and interface"},
 	{ "exit", _cmd_exit, NULL, "Exit process"},
 	{ "list", _cmd_list, NULL, "Show instances"},
@@ -141,7 +141,10 @@ void ctl_loop(char *dom) {
  */
 void *inner_loop_thread(void *args) {
 
-	uint8_t *vni = (uint8_t *)args;
+	uint8_t vni[VNI_BYTE];
+	memcpy(vni, (uint8_t *)args, VNI_BYTE);
+	free(args);
+
 	inner_loop(vxlan.vxi[vni[0]][vni[1]][vni[2]]);
 
 	/* Cannot Reach */
@@ -193,7 +196,7 @@ int _cmd_usage(int soc, int cmd_i) {
 
 
 
-static int _cmd_create_vxi(int soc, int cmd_i, int argc, char *argv[]) {
+int cmd_create_vxi(int soc, int cmd_i, int argc, char *argv[]) {
 
 	char buf[CTL_BUFLEN];
 
@@ -203,7 +206,8 @@ static int _cmd_create_vxi(int soc, int cmd_i, int argc, char *argv[]) {
 	}
 
 	char *vni_s = argv[1];
-	uint8_t vni[VNI_BYTE];
+//	uint8_t vni[VNI_BYTE];
+	uint8_t *vni = (uint8_t *)malloc(sizeof(uint8_t) * VNI_BYTE);
 	uint32_t vni32 = 0;
 	int status = get32and8arr(buf, vni_s, &vni32, vni);
 	if (status != SUCCESS) return status;

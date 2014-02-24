@@ -51,8 +51,10 @@ int main(int argc, char *argv[]) {
 	int enable_D = 0;
 	int enable_i = 0;
 	int enable_m = 0;
+	int enable_p = 0;
+	int enable_P = 0;
+	int enable_s = 0;
 
-	char message[DEFAULT_BUFLEN];
 	char pid_path[DEFAULT_BUFLEN] = DEFAULT_PID_FILE;
 
 	opterr = 0;
@@ -62,8 +64,7 @@ int main(int argc, char *argv[]) {
 	while ((opt = getopt_long(argc, argv, "c:dDhi:m:p:P:s:v", options, NULL)) != -1) {
 		switch (opt) {
 			case 'c':
-				enable_c = 1;
-				get_config(optarg, message);
+				enable_c = optind-1;
 				break;
 			case 'd':
 				enable_d = 1;
@@ -71,32 +72,25 @@ int main(int argc, char *argv[]) {
 #ifdef DEBUG
 			case 'D':
 				enable_D = 1;
-				enable_debug();
 				break;
 #endif /* DEBUG */
 			case 'h':
 				usage(argv[0]);
 				break;
 			case 'i':
-				enable_i = 1;
-				strncpy(vxlan.if_name, optarg, DEFAULT_BUFLEN);
+				enable_i = optind-1;
 				break;
 			case 'm':
-				enable_m = 1;
-				if (inet_aton(optarg, &vxlan.mcast_addr) == 0)
-					log_cexit("Invalid address: %s\n", optarg);
+				enable_m = optind-1;
 				break;
 			case 'p':
-				vxlan.port = atoi(optarg);
-				if (vxlan.port == 0) log_cexit("Invalid port number: %s\n", optarg);
-				log_info("Port number :%d\n", vxlan.port);
+				enable_p = optind-1;
 				break;
 			case 'P':
-				strncpy(pid_path, optarg, DEFAULT_BUFLEN);
+				enable_P = optind-1;
 				break;
 			case 's':
-				strncpy(vxlan.udom, optarg, DEFAULT_BUFLEN);
-				printf("%s\n", vxlan.udom);
+				enable_s = optind-1;
 				break;
 			case 'v':
 				fprintf(stderr, "VXLAN version "VXLAN_PRODUCT_VERSION"\n");
@@ -107,33 +101,61 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	if ( enable_D && enable_d ) {
+	/* Get configuration */
+	if ( enable_c != 0 ) strncpy(vxlan.conf_path, argv[enable_c], DEFAULT_BUFLEN);
+	struct config conf[DEFAULT_BUFLEN];
+	int len = get_config(vxlan.conf_path, conf);
+
+	/* Set paramaters (before option) */
+	int i;
+	if (len > 0) {
+		for (i=0; i<len; i++) {
+			if (conf[i].param_no == 4) continue;
+			if (set_config(&conf[i]) < 0) log_cexit("Invalid configuration\n");
+		}
+	}
+
+	if ( enable_D != 0 ) enable_debug();
+	if ( enable_i != 0 ) strncpy(vxlan.if_name, argv[enable_i], DEFAULT_BUFLEN);
+	if ( enable_m != 0 ) {
+		if (inet_aton(argv[enable_m], &vxlan.mcast_addr) == 0)
+			log_cexit("Invalid address: %s\n", argv[enable_m]);
+	}
+	if ( enable_p != 0 ) {
+		vxlan.port = atoi(argv[enable_p]);
+		if (vxlan.port == 0) log_cexit("Invalid port number: %s\n", argv[enable_p]);
+		log_info("Port number :%d\n", vxlan.port);
+	}
+	if ( enable_P != 0 ) strncpy(pid_path, argv[enable_P], DEFAULT_BUFLEN);
+	if ( enable_s != 0 ) strncpy(vxlan.udom, optarg, DEFAULT_BUFLEN);
+
+	if ( enable_d && enable_D ) {
 		disable_debug();
 		enable_syslog();
 		log_warn("Incompatible option \"-d\" and \"-D\", \"-d\" has priority over \"-D\".");
 		log_warn("Because this process writes many debug information on /dev/null\n");
 	}
 
-	if ( ! enable_i ) {
-		log_warn("Multicast interface is not set.\n");
-		log_warn("Default interface \"%s\" is used\n", vxlan.if_name);
-	}
-
-	if ( ! enable_m ) {
-		log_warn("Multicast address is not set.\n");
-		log_warn("Default address \"%s\" is used\n", inet_ntoa(vxlan.mcast_addr));
-	}
-
+	/* Start vxlan process */
 	init_vxlan();
 	vxlan.usoc = init_udp_sock(vxlan.port);
 	if (vxlan.usoc < 0) log_cexit("outer_loop.socket: Bad descripter\n");
 	if (join_mcast_group(vxlan.usoc, vxlan.mcast_addr, vxlan.if_name) < 0)
 		log_pcexit("socket");
 
+	/* Daemon */
 	if ( enable_d ) {
 		if (daemon(1, 0) != 0) log_perr("daemon");
 		create_pid_file(pid_path);
 		disable_syslog();
+	}
+
+	/* Set parameter (After option) */
+	if (len > 0) {
+		for (i=0; i<len; i++) {
+			if (conf[i].param_no != 4) continue;
+			if (set_config(&conf[i]) < 0) log_cexit("Invalid configuration\n");
+		}
 	}
 
 	pthread_t oth;

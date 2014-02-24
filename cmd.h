@@ -5,6 +5,7 @@
 
 void ctl_loop(char *dom);
 void *outer_loop_thread(void *args);
+int cmd_create_vxi(int soc, int cmd_i, int argc, char *argv[]);
 
 
 
