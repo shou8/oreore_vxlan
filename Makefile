@@ -1,5 +1,5 @@
 CC=gcc
-OBJS=util.o netutil.o log.o tap.o table.o sock.o vxlan.o net.o cmd.o main.o#test.o mpool.o 
+OBJS=util.o netutil.o log.o tap.o table.o sock.o vxlan.o net.o cmd.o config.o main.o#test.o mpool.o 
 SRCS=${OBJS:%.o=%.c}
 LDLIBS=-lpthread
 TARGET=vxland

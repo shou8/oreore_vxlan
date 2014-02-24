@@ -39,11 +39,13 @@ int str_cmp(const char *p1, const char *p2) {
 
 
 
+/*
 char *pad_str(char *buf, const char *str) {
 
 	strncpy(buf, str, CTL_BUF_LEN);
 	return buf + strlen(str);
 }
+*/
 
 
 

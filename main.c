@@ -12,6 +12,7 @@
 #include "vxlan.h"
 #include "cmd.h"
 #include "sock.h"
+#include "config.h"
 
 
 
@@ -22,6 +23,7 @@ void usage(char *bin);
 
 
 static struct option options[] = {
+	{"config", no_argument, NULL, 'c'},
 	{"daemon", no_argument, NULL, 'd'},
 #ifdef DEBUG
 	{"Debug", no_argument, NULL, 'D'},
@@ -44,20 +46,25 @@ int main(int argc, char *argv[]) {
 	extern int optind, opterr;
 	extern char *optarg;
 
-	int enable_D = 0;
+	int enable_c = 0;
 	int enable_d = 0;
+	int enable_D = 0;
 	int enable_i = 0;
 	int enable_m = 0;
 
-	char pid_path[DEFAULT_BUFLEN] = "/var/run/vxland.pid";
+	char message[DEFAULT_BUFLEN];
+	char pid_path[DEFAULT_BUFLEN] = DEFAULT_PID_FILE;
 
 	opterr = 0;
 	disable_debug();
 	disable_syslog();
-	vxlan.mcast_addr.s_addr = DEFAULT_MCAST_ADDR;
 
-	while ((opt = getopt_long(argc, argv, "dDhi:m:p:P:s:v", options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "c:dDhi:m:p:P:s:v", options, NULL)) != -1) {
 		switch (opt) {
+			case 'c':
+				enable_c = 1;
+				get_config(optarg, message);
+				break;
 			case 'd':
 				enable_d = 1;
 				break;

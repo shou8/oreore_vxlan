@@ -130,6 +130,7 @@ vxlan_i *add_vxi(char *buf, uint8_t *vni, char *maddr) {
 
 void del_vxi(char *buf, uint8_t *vni) {
 
+	/* TODO: check all */
 	if (vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr.s_addr != vxlan.mcast_addr.s_addr)
 		leave_mcast_group(vxlan.usoc, vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr, vxlan.if_name);
 	close(vxlan.vxi[vni[0]][vni[1]][vni[2]]->tap.sock);

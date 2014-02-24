@@ -89,8 +89,9 @@ int main(int argc, char *argv[]) {
 	}
 
 	write(sock, wbuf, len);
-	len = read(sock, rbuf, CTL_BUF_LEN);
-	write(STDOUT, rbuf, len);
+
+	while ((len = read(sock, rbuf, CTL_BUF_LEN)) > 0)
+		write(STDOUT, rbuf, len);
 
     return 0;
 }
