@@ -119,6 +119,10 @@ int join_mcast_group(int sock, struct in_addr maddr, char *if_name) {
 		log_err("if_addr   : %s\n", maddr_s);
 		return -1;
 	}
+log_err("socket    : %d\n", sock);
+inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
+log_err("mcast_addr: %s\n", maddr_s);
+inet_ntop(AF_INET, &mreq.imr_interface, maddr_s, sizeof(maddr_s));
 
 	if (setsockopt(sock, IPPROTO_IP, IP_MULTICAST_IF, (char *)&mreq.imr_interface, sizeof(mreq.imr_interface)) < 0) {
 		log_perr("setsockopt");
@@ -130,6 +134,11 @@ int join_mcast_group(int sock, struct in_addr maddr, char *if_name) {
 		log_err("if_addr   : %s\n", maddr_s);
 		return -1;
 	}
+
+log_err("socket    : %d\n", sock);
+inet_ntop(AF_INET, &mreq.imr_multiaddr, maddr_s, sizeof(maddr_s));
+log_err("mcast_addr: %s\n", maddr_s);
+inet_ntop(AF_INET, &mreq.imr_interface, maddr_s, sizeof(maddr_s));
 
 	return 0;
 }

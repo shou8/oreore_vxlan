@@ -77,7 +77,7 @@ struct cmd_entry _cmd_t[] = {
 	{ "time", _cmd_time, "{<VNI>|default} <time>", "Set timeout"},
 	{ "add", _cmd_add, "<VNI> <MAC_addr> <VTEP IPaddr>", "Manually add cache"},
 	{ "del", _cmd_del, "<VNI> <MAC_addr>", "Manually delete cache"},
-	{ "info", _cmd_info, NULL, "Get general information"},
+	{ "info", _cmd_info, "[<VNI>]", "Get general information"},
 #ifdef DEBUG
 	{ "debug", _cmd_debug, NULL, "Get general information"},
 #endif /* DEBUG */

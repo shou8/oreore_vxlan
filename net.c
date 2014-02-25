@@ -136,12 +136,14 @@ int inner_loop(vxlan_i *v) {
 		data = find_data(v->table, eh->ether_dhost);
 		if (ntohs(eh->ether_type) == ETHERTYPE_ARP || data == NULL) {
 			dst.sin_addr = v->mcast_addr;
+printf("maddr: %s\n", inet_ntoa(dst.sin_addr));
 			if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 				log_perr("inner_loop.sendto");
 			continue;
 		}
 
 		dst.sin_addr = data->vtep_addr;
+printf("maddr: %s\n", inet_ntoa(dst.sin_addr));
 		if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
 			log_perr("inner_loop.sendto");
 	}

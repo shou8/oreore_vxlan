@@ -43,14 +43,21 @@ clean:
 	@rm -f *.o ${TARGET} ${CONTROLER}
 	@cd test && ${MAKE} -s clean
 
-install:all
-	cp -p ${TARGET} ${PREFIX}/${TARGET}
-	cp -p ${CONTROLER} ${PREFIX}/${CONTROLER}
-	chmod a+x ${SCRIPT_DIR}/${LSB_SCRIPT}
-	cp -p ${SCRIPT_DIR}/${LSB_SCRIPT} ${INIT_DIR}/
-	cp -p ${CONFIG_SRC} ${CONFIG_DST}
+.PHONY: install-bin install-conf install-script
+
+install-bin:all
+	install -p -m 755 ${TARGET} ${PREFIX}/${TARGET}
+	install -p -m 755 ${CONTROLER} ${PREFIX}/${CONTROLER}
+
+install-script:
+	install -p -m 755 ${SCRIPT_DIR}/${LSB_SCRIPT} ${INIT_DIR}/${LSB_SCRIPT}
+
+install-conf:
+	install -p -m 644 ${CONFIG_SRC} ${CONFIG_DST}
+
+install: install-bin install-script install-conf
 
 uninstall:
-	rm -f ${PREFIX}/${TARGET}
-	rm -f ${PREFIX}/${CONTROLER}
-	rm -f ${INIT_DIR}/${LSB_SCRIPT}
+	@rm -f ${PREFIX}/${TARGET}
+	@rm -f ${PREFIX}/${CONTROLER}
+	@rm -f ${INIT_DIR}/${LSB_SCRIPT}
