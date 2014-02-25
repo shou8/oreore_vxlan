@@ -172,7 +172,9 @@ void usage(char *bin) {
 	fprintf(stderr, "\n");
 	fprintf(stderr, "OPTIONS: \n");
 	fprintf(stderr, "        -d                       : Enable daemon mode\n");
+#ifdef DEBUG
 	fprintf(stderr, "        -D                       : Enable debug mode\n");
+#endif /* DEBUG */
 	fprintf(stderr, "        -h                       : Show this help\n");
 	fprintf(stderr, "        -i <interface>           : Set multicast interface\n");
 	fprintf(stderr, "        -m <multicast address>   : Set multicast address\n");
