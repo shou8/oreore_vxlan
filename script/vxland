@@ -74,7 +74,7 @@ case "$1" in
 		stop_func
 	;;
 	*)
-		echo "Usage: /etc/init.d/vxland {start|stop|status}"
+		echo "Usage: /etc/init.d/vxland {start|stop|restart|status}"
 	;;
 esac
 

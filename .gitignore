@@ -2,4 +2,6 @@
 test/rawgen
 test/udpgen
 vxconfig
+vxland
 core.*
+core
