@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <sys/un.h>
 #include <linux/if_vlan.h>
+#include <sys/epoll.h>
 
 #include "base.h"
 #include "log.h"
@@ -52,7 +53,7 @@ int outer_loop(void) {
 	int len;
 	int rlen = sizeof(buf) - 1;
 
-	struct sockaddr_in src;
+	struct sockaddr_storage src;
 	socklen_t addr_len = sizeof(src);
 
 	while (1) {
@@ -74,7 +75,7 @@ int outer_loop(void) {
 		if (v == NULL) continue;
 
 		struct ether_header *eh = (struct ether_header *)bp;
-		if ( add_data(v->table, eh->ether_shost, src.sin_addr) < 0 )
+		if ( add_data(v->table, eh->ether_shost, src) < 0 )
 			log_pcexit("malloc");
 
 		write(v->tap.sock, bp, len); 
@@ -107,9 +108,9 @@ int inner_loop(vxlan_i *v) {
 	int len;
 
 	mac_tbl *data;
-	struct sockaddr_in dst;
-	dst.sin_family = AF_INET;
-	dst.sin_port = htons(vxlan.port);
+//	struct sockaddr_in dst;
+//	dst.sin_family = AF_INET;
+//	dst.sin_port = htons(vxlan.port);
 	vxlan_h *vh = (vxlan_h *)buf;
 
 	while (1) {
@@ -136,14 +137,14 @@ int inner_loop(vxlan_i *v) {
 
 		data = find_data(v->table, eh->ether_dhost);
 		if (ntohs(eh->ether_type) == ETHERTYPE_ARP || data == NULL) {
-			dst.sin_addr = v->mcast_addr;
-			if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
+//			dst.sin_addr = v->mcast_addr;
+			if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&v->maddr, sizeof(v->maddr)) < 0)
 				log_perr("inner_loop.sendto");
 			continue;
 		}
 
-		dst.sin_addr = data->vtep_addr;
-		if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&dst, sizeof(struct sockaddr)) < 0)
+//		dst.sin_addr = data->vtep_addr;
+		if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&data->vtep_addr, sizeof(data->vtep_addr)) < 0)
 			log_perr("inner_loop.sendto");
 	}
 

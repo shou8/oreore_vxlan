@@ -26,13 +26,13 @@ CONFIG_DST=/etc/vxlan.conf
 all:${TARGET} ${CONTROLER}
 
 ${TARGET}:${OBJS}
-	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 ${CONTROLER}:${CONTROLER_OBJS}
-	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ ${LDLIBS}
+	${CC} ${CFLAGS} ${DEBUG_FLAG} ${LDFLAGS} -o $@ $^ ${LDLIBS}
 
 debug:
-	${MAKE} DEBUG_FLAG="-g" OBJS="${OBJS}"
+	${MAKE} DEBUG_FLAG="-g -DDEBUG" OBJS="${OBJS}"
 
 netdebug:
 #	${MAKE} DEBUG_FLAG="-DDEBUG -g" OBJS="${OBJS} test.o"

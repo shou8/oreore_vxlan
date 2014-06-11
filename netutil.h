@@ -2,8 +2,9 @@
 #define NETUTIL_H_INCLUDED
 
 
+#include <inttypes.h>
 #include <net/ethernet.h>
-#include <netinet/in.h>
+#include <sys/socket.h>
 
 #include "base.h"
 
@@ -14,6 +15,8 @@ int cmp_mac( uint8_t hwaddr1[MAC_LEN], uint8_t hwaddr2[MAC_LEN] );
 uint8_t *get_mac(int sock, char *name, uint8_t *hwaddr);
 struct in_addr get_addr(char *if_name);
 int inet_atom(uint8_t mac[MAC_LEN], char *mac_s);
+int get_sockaddr(struct sockaddr_storage *saddr, const char *caddr, char *cport);
+char *get_straddr(struct sockaddr_storage *saddr);
 
 #ifdef DEBUG
 void get_ran_mac( uint8_t hwaddr[MAC_LEN]);

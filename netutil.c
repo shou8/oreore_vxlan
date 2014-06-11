@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <net/ethernet.h>
 #include <ctype.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <arpa/inet.h>
 
 #include "netutil.h"
 #include "log.h"
@@ -227,3 +230,33 @@ static uint8_t cton(char c){
 
 
 
+int get_sockaddr(struct sockaddr_storage *saddr, const char *caddr, char *cport) {
+
+	struct addrinfo *res;
+	struct addrinfo hints;
+
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = IPPROTO_UDP;
+	hints.ai_flags = AI_NUMERICHOST;
+
+	if (getaddrinfo(caddr, cport, &hints, &res) < 0)
+		return -1;
+
+	memcpy(saddr, res->ai_addr, res->ai_addrlen);
+	saddr->ss_family = res->ai_family;
+
+	return 0;
+}
+
+
+
+char *get_straddr(struct sockaddr_storage *saddr) {
+
+	static char str[DEFAULT_BUFLEN];
+
+	inet_ntop(saddr->ss_family, (saddr->ss_family == AF_INET) ? (void *)&((struct sockaddr_in *)saddr)->sin_addr : (void *)&((struct sockaddr_in6 *)saddr)->sin6_addr, str, DEFAULT_BUFLEN);
+
+	return str;
+}

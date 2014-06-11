@@ -183,9 +183,19 @@ void log_crit(const char *fmt, ...) {
 
 
 
+void log_pwarn(const char *str) {
+
+	if (str == NULL)
+		_print_log(LOG_WARNING, "%s\n", strerror(errno));
+	else
+		_print_log(LOG_WARNING, "%s: %s\n", str, strerror(errno));
+}
+
+
+
 void log_perr(const char *str) {
 
-	if(str == NULL)
+	if (str == NULL)
 		_print_log(LOG_ERR, "%s\n", strerror(errno));
 	else
 		_print_log(LOG_ERR, "%s: %s\n", str, strerror(errno));

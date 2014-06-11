@@ -5,6 +5,7 @@
 
 #include <pthread.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
 #include "table.h"
 
@@ -23,7 +24,7 @@ typedef struct _vxlan_instance_ {
 	uint8_t vni[VNI_BYTE];
 	device tap;
 	list **table;
-	struct in_addr mcast_addr;
+	struct sockaddr_storage maddr;
 	int timeout;				// Specific
 } vxlan_i;
 
@@ -31,10 +32,22 @@ typedef struct _vxlan_instance_ {
 
 
 typedef struct _vxland {
-	int port;
+
 	int usoc;
-	struct in_addr mcast_addr;
-	char if_name[IF_NAME_LEN];
+	int epfd;
+	char port[DEFAULT_BUFLEN];
+
+	// IPv4 Information
+	int enable_ipv4;
+	char cm4_addr[DEFAULT_BUFLEN];
+	struct sockaddr_storage m4_addr;
+
+	// IPv6 Information
+	int enable_ipv6;
+	char cm6_addr[DEFAULT_BUFLEN];
+	struct sockaddr_storage m6_addr;
+
+	char *if_name;
 	vxlan_i ****vxi;
 	char udom[DEFAULT_BUFLEN];
 	int lock;
@@ -47,10 +60,10 @@ typedef struct _vxland {
 //extern vxi ****vxlan;
 extern vxland vxlan;
 
-void init_vxlan(void);
+int init_vxlan(void);
 void destroy_vxlan(void);
 //void create_vxi(char *buf, uint8_t *vni, char *addr, pthread_t th);
-vxlan_i *add_vxi(char *buf, uint8_t *vni, char *maddr);
+vxlan_i *add_vxi(char *buf, uint8_t *vni, struct sockaddr_storage);
 void del_vxi(char *buf, uint8_t *vni);
 
 

@@ -15,7 +15,8 @@
 
 
 char param[][DEFAULT_BUFLEN] = {
-	"multicast_address",
+	"multicast_ipv4_address",
+	"multicast_ipv6_address",
 	"multicast_interface",
 	"port",
 	"unix_socket",
@@ -166,25 +167,21 @@ int set_config(struct config *conf) {
 
 	switch (conf->param_no) {
 		case 0:
-			if (inet_aton(conf->value, &vxlan.mcast_addr) == 0) {
-				log_err("line %d: Invalid address: %s\n", conf->line_no, conf->value);
-				return -1;
-			}
+			strncpy(vxlan.cm4_addr, conf->value, DEFAULT_BUFLEN);
 			break;
 		case 1:
-			strncpy(vxlan.if_name, conf->value, DEFAULT_BUFLEN);
+			strncpy(vxlan.cm6_addr, conf->value, DEFAULT_BUFLEN);
 			break;
 		case 2:
-			vxlan.port = atoi(conf->value);
-			if (vxlan.port == 0) {
-				log_err("line %d: Invalid port number: %s\n", conf->line_no, conf->value);
-				return -1;
-			}
+			strncpy(vxlan.if_name, conf->value, DEFAULT_BUFLEN);
 			break;
 		case 3:
+			strncpy(vxlan.port, conf->value, DEFAULT_BUFLEN);
+			break;
+		case 4:
 			strncpy(vxlan.udom, conf->value, DEFAULT_BUFLEN);
 			break;
-		case 4: {
+		case 5: {
 			char *argv[] = {"create", conf->value};
 			if (cmd_create_vxi(2, 0, 2, argv) != SUCCESS) return -1;
 			break;

@@ -27,6 +27,7 @@ void log_crit(const char *fmt, ...);
 /*
  * Using perror
  */
+void log_pwarn(const char *str);
 void log_perr(const char *str);
 void log_pcrit(const char *str);
 

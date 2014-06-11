@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <inttypes.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 
 #include "base.h"
 #include "util.h"
@@ -17,29 +18,57 @@
 
 
 
-#define VXLAN_PORT	4789
-
-
-
 /* Written on vxlan.h
 
 typedef struct _vxland {
-	int port;
+	int enable_ipv4;
+	int enable_ipv6;
+	char *port;
 	int usoc;
-	struct in_addr mcast_addr;
-	char if_name[IF_NAME_LEN];
+	struct sockaddr_storage m4_addr;
+	struct sockaddr_storage m6_addr;
+	char *if_name;
 	vxlan_i ****vxi;
 	char udom[DEFAULT_BUFLEN];
 	int lock;
-	int timeout;
+	int timeout;				// Default
 	char conf_path[DEFAULT_BUFLEN];
 } vxland;
 */
+
+/*
+struct sockaddr_in m4_addr_default = {
+	AF_INET,					// family (sa_family_t)
+	VXLAN_PORT,					// port (in_port_t)
+	{ DEFAULT_MCAST_ADDR },		// addr (in_addr)
+	{0, 0, 0, 0, 0, 0, 0, 0}	// sin_zero (char[8])
+};
+
+struct sockaddr_in6 m6_addr_default = {
+	AF_INET6,					// family (sa_family_t)
+	VXLAN_PORT,					// port (in_port_t)
+	0,							// flowinfo (uint32_t)
+	{ { __u6_addr16 { 0xFF15, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001 } } },
+	0,							// scope-id: link-local (uint32_t)
+};
+*/
+
 vxland vxlan = {
-	VXLAN_PORT,
 	-1,
-	{ DEFAULT_MCAST_ADDR },
-	"eth0",
+	-1,
+	VXLAN_PORT,
+
+	// IPv4
+	0,
+	DEFAULT_MCAST_ADDR4,
+	{},
+
+	// IPv6
+	0,
+	DEFAULT_MCAST_ADDR6,
+	{},
+
+	NULL,
 	NULL,
 	DEFAULT_UNIX_DOMAIN,
 	0,
@@ -49,15 +78,120 @@ vxland vxlan = {
 
 
 
+static void init_vxlan_info(void);
+static void init_vxi(void);
 static device create_vxlan_if(uint8_t *vni);
 
+
+
+int init_vxlan(void) {
+
+	init_vxlan_info();
+	init_vxi();
+	if ((vxlan.usoc = init_udp_sock(vxlan.enable_ipv4, vxlan.enable_ipv6, vxlan.port)) < 0)
+		return -1;
+
+	if (vxlan.enable_ipv4)
+		if (join_mcast4_group(vxlan.usoc, ((struct sockaddr_in *)(&vxlan.m4_addr))->sin_addr, vxlan.if_name) < 0)
+			return -1;
+
+	if (vxlan.enable_ipv6)
+		if (join_mcast6_group(vxlan.usoc, ((struct sockaddr_in6 *)(&vxlan.m6_addr))->sin6_addr, vxlan.if_name) < 0)
+			return -1;
+
+	return 0;
+}
+
+
+
+/*
+int init_vxlan(void) {
+
+	init_vxlan_info();
+	init_vxi();
+	if ((vxlan.repfd = init_epfd(EPOLL_MAX_EVENTS)) < 0)
+		return -1;
+
+	struct addrinfo *ai, *res = NULL;
+	struct addrinfo hints;
+
+	init_hints(&hints, vxlan.enable_ipv4, vxlan.enable_ipv6);
+	if (getaddrinfo(NULL, vxlan.port, &hints, &res) < 0) {
+		log_pcrit("getaddrinfo");
+		return -1;
+	}
+
+	for (ai = res; ai != NULL; ai = ai->ai_next) {
+		switch (ai->ai_family) {
+			case AF_INET:
+				if (vxlan.enable_ipv4) {
+					if ((vxlan.usoc4 = init_udp_sock(ai)) < 0)
+						return -1;
+					if (add_sock(vxlan.repfd, vxlan.usoc4) < 0)
+						return -1;
+					if (join_mcast4_group(vxlan.usoc4, ((struct sockaddr_in *)(&vxlan.m4_addr))->sin_addr, vxlan.if_name) < 0)
+						return -1;
+				}
+				break;
+			case AF_INET6:
+				if (vxlan.enable_ipv6) {
+					if ((vxlan.usoc6 = init_udp_sock(ai)) < 0)
+						return -1;
+					if (add_sock(vxlan.repfd, vxlan.usoc6) < 0)
+						return -1;
+					if (join_mcast6_group(vxlan.usoc6, ((struct sockaddr_in6 *)(&vxlan.m6_addr))->sin6_addr, vxlan.if_name) < 0)
+						return -1;
+				}
+				break;
+		}
+	}
+
+	freeaddrinfo(res);
+
+	return 0;
+}
+*/
+
+
+
+void init_vxlan_info(void) {
+
+	if ( ! vxlan.enable_ipv4 && ! vxlan.enable_ipv6 ) {
+		vxlan.enable_ipv4 = 1;
+		vxlan.enable_ipv6 = 1;
+		log_info("IPv4 IPv6 multicast address are not specified\n");
+		log_info("So, "DAEMON_NAME" prepare dual stack environment\n");
+		log_info("and using default IPv4 and IPv6 address\n");
+	}
+
+	in_port_t port = (in_port_t)atoi(vxlan.port);
+	if (port == 0) {
+		log_warn("Invalid port number: %s\n", vxlan.port);
+		log_warn("Using default port number: %d\n", VXLAN_PORT);
+		strncpy(vxlan.port, VXLAN_PORT, DEFAULT_BUFLEN);
+	}
+
+	if (get_sockaddr(&vxlan.m4_addr, vxlan.cm4_addr, vxlan.port) < 0) {
+		log_pwarn("getaddrinfo");
+		log_warn("Failed to convert 'char *' to 'sockaddr_in'");
+		vxlan.enable_ipv4 = 0;
+	}
+
+	if (get_sockaddr(&vxlan.m6_addr, vxlan.cm6_addr, vxlan.port) < 0) {
+		log_pwarn("getaddrinfo");
+		log_warn("Failed to convert 'char *' to 'sockaddr_in6'");
+		vxlan.enable_ipv6 = 0;
+	}
+
+	return;
+}
 
 
 
 /*
  * Create 3 Demention Matrix
  */
-void init_vxlan(void) {
+static void init_vxi(void) {
 
 	vxlan.vxi = (vxlan_i ****)malloc(sizeof(vxlan_i ***) * NUMOF_UINT8);
 	if (vxlan.vxi == NULL) log_pcexit("malloc");
@@ -107,21 +241,25 @@ static device create_vxlan_if(uint8_t *vni) {
 
 
 
-vxlan_i *add_vxi(char *buf, uint8_t *vni, char *maddr) {
+vxlan_i *add_vxi(char *buf, uint8_t *vni, struct sockaddr_storage maddr) {
 
 	vxlan_i *v = (vxlan_i *)malloc(sizeof(vxlan_i));
-	if (v == NULL) log_pcexit("malloc");
+	if (v == NULL) {
+		log_pcrit("malloc");
+		return NULL;
+	}
+
 	memcpy(v->vni, vni, VNI_BYTE);
 	v->table = init_table(DEFAULT_TABLE_SIZE);
-	if (v->table == NULL) log_pcexit("malloc");
+	if (v->table == NULL) {
+		log_pcrit("malloc");
+		free(v);
+		return NULL;
+	}
+
 	v->tap = create_vxlan_if(vni);
 	v->timeout = vxlan.timeout;
-	if (maddr != NULL) {
-		inet_aton(maddr, &v->mcast_addr);
-		join_mcast_group(vxlan.usoc, v->mcast_addr, vxlan.if_name);
-	} else {
-		v->mcast_addr = vxlan.mcast_addr;
-	}
+	v->maddr = maddr;
 
 	vxlan.vxi[vni[0]][vni[1]][vni[2]] = v;
 
@@ -132,6 +270,7 @@ vxlan_i *add_vxi(char *buf, uint8_t *vni, char *maddr) {
 
 void del_vxi(char *buf, uint8_t *vni) {
 
+/*
 	if (vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr.s_addr != vxlan.mcast_addr.s_addr) {
 
 		int i, j, k;
@@ -148,6 +287,7 @@ void del_vxi(char *buf, uint8_t *vni) {
 		if ( i != NUMOF_UINT8 || j != NUMOF_UINT8 || k != NUMOF_UINT8)
 			leave_mcast_group(vxlan.usoc, vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr, vxlan.if_name);
 	}
+*/
 
 	close(vxlan.vxi[vni[0]][vni[1]][vni[2]]->tap.sock);
 	free(vxlan.vxi[vni[0]][vni[1]][vni[2]]);

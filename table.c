@@ -91,7 +91,7 @@ mac_tbl *find_data(list **table, uint8_t *eth) {
 
 
 
-int add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
+int add_data(list **table, uint8_t *hw_addr, struct sockaddr_storage vtep_addr) {
 
 	mac_tbl *mt;
 	list *lp = find_list(table, hw_addr);
@@ -148,11 +148,10 @@ int add_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
 
 
 
-int del_data(list **table, uint8_t *hw_addr, struct in_addr vtep_addr) {
+int del_data(list **table, uint8_t *hw_addr) {
 
 	list *lp = find_list(table, hw_addr);
 	if (lp == NULL) return -1;
-	vtep_addr = lp->data->vtep_addr;
 
 	list *pre = lp->pre;
 	list *next = lp->next;

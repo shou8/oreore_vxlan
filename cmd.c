@@ -10,13 +10,13 @@
 #include <stdarg.h>
 
 #include "base.h"
-#include "netutil.h"
 #include "util.h"
 #include "log.h"
 #include "vxlan.h"
 #include "net.h"
 #include "sock.h"
 #include "cmd.h"
+#include "netutil.h"
 
 
 
@@ -221,7 +221,16 @@ int cmd_create_vxi(int soc, int cmd_i, int argc, char *argv[]) {
 		return LOGIC_FAILED;
 	}
 
-	vxlan_i *v = add_vxi(buf, vni, (argc == 3) ? argv[2] : NULL);
+	struct sockaddr_storage maddr;
+	memcpy(&maddr, (vxlan.enable_ipv4) ? &vxlan.m4_addr : &vxlan.m6_addr, sizeof(struct sockaddr_storage));
+	if (argc == 3) {
+		if (get_sockaddr(&maddr, argv[2], vxlan.port) < 0) {
+			_soc_printf(soc, CTL_BUFLEN, "ERROR: Invalid IP[v4|v6] address: %s", argv[2]);
+			return LOGIC_FAILED;
+		}
+	}
+
+	vxlan_i *v = add_vxi(buf, vni, maddr);
 	if (v == NULL) {
 		_soc_printf(soc, CTL_BUFLEN, "error is occured in server, please refer \"syslog\".\n");
 		return SRV_FAILED;
@@ -517,20 +526,20 @@ static int _cmd_add(int soc, int cmd_i, int argc, char *argv[]) {
 		return _cmd_usage(soc, cmd_i);
 	}
 
-	struct in_addr ipaddr;
-	if ( inet_aton(argv[3], &ipaddr) == 0 ) {
-		_soc_printf(soc, CTL_BUFLEN, "ERROR: Invalid IP address \"%s\"\n", argv[3]);
+	struct sockaddr_storage addr;
+	if ( get_sockaddr(&addr, argv[3], vxlan.port) != 0 ) {
+		_soc_printf(soc, CTL_BUFLEN, "ERROR: Invalid IP[v4|v6] address \"%s\"\n", argv[3]);
 		return _cmd_usage(soc, cmd_i);
 	}
 
-	if ( add_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, ipaddr) < 0 ) {
+	if ( add_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, addr) < 0 ) {
 		log_bperr(buf, "malloc");
 		_soc_printf(soc, CTL_BUFLEN, "%s\n", buf);
 		return SRV_FAILED;
 	}
 
 	mtos(buf, mac);
-	_soc_printf(soc, CTL_BUFLEN, "INFO : added, VNI %"PRIu32": %s => %s\n", vni32, buf, inet_ntoa(ipaddr));
+	_soc_printf(soc, CTL_BUFLEN, "INFO : added, VNI %"PRIu32": %s => %s\n", vni32, buf, argv[3]);
 	return SUCCESS;
 }
 
@@ -564,7 +573,7 @@ static int _cmd_del(int soc, int cmd_i, int argc, char *argv[]) {
 
 	mtos(buf, mac);
 	struct in_addr ipaddr;
-	if ( del_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, ipaddr) < 0 ) {
+	if ( del_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac) < 0 ) {
 		_soc_printf(soc, CTL_BUFLEN, "INFO : No such MAC address in table: \"%s\"\n", argv[2]);
 		return SUCCESS;
 	}
@@ -600,7 +609,8 @@ static int _cmd_info(int soc, int cmd_i, int argc, char *argv[]) {
 
 		_soc_printf(soc, CTL_BUFLEN, "----- VNI: %s information -----\n", vni_s);
 		_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Tap interface", vxlan.vxi[vni[0]][vni[1]][vni[2]]->tap.name);
-		_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Multicast address", inet_ntoa(vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr));
+		_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Address family", (vxlan.vxi[vni[0]][vni[1]][vni[2]]->maddr.ss_family == AF_INET) ? "IPv4" : "IPv6");
+		_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Multicast IP address", get_straddr(&vxlan.vxi[vni[0]][vni[1]][vni[2]]->maddr));
 		_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %d\n", "Cache time out", vxlan.vxi[vni[0]][vni[1]][vni[2]]->timeout);
 
 		return SUCCESS;
@@ -608,9 +618,12 @@ static int _cmd_info(int soc, int cmd_i, int argc, char *argv[]) {
 
 	_soc_printf(soc, CTL_BUFLEN, "----- "DAEMON_NAME" information -----\n");
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Multicast interface", vxlan.if_name);
-	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Default multicast address", inet_ntoa(vxlan.mcast_addr));
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "IPv4", (vxlan.enable_ipv4 != 0) ? "Enable" : "Disable");
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "IPv6", (vxlan.enable_ipv6 != 0) ? "Enable" : "Disable");
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Default IPv4 multicast address", vxlan.cm4_addr);
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Default IPv6 multicast address", vxlan.cm6_addr);
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %d\n", "Port number", vxlan.port);
-	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Socket path", vxlan.udom);
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Unix Socket path", vxlan.udom);
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %d\n", "Default cache time out", vxlan.timeout);
 
 	return SUCCESS;
@@ -643,7 +656,7 @@ static void _show_vxi(int soc) {
 			for (k=0; k<NUMOF_UINT8; k++)
 				if (vxi[i][j][k] != NULL) {
 					uint32_t vni32 = To32(i, j, k);
-					_soc_printf(soc, CTL_BUFLEN, "%"VNI_PAD_LEN""PRIu32" : %s\n", vni32, inet_ntoa(vxi[i][j][k]->mcast_addr));
+					_soc_printf(soc, CTL_BUFLEN, "%"VNI_PAD_LEN""PRIu32" : %s\n", vni32, get_straddr(&vxi[i][j][k]->maddr));
 				}
 }
 
@@ -669,7 +682,7 @@ static void _show_table(int soc, list **table) {
 			}
 
 			uint8_t *hwaddr = (lp->data)->hw_addr;
-			_soc_printf(soc, CTL_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s, ", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], inet_ntoa((lp->data)->vtep_addr));
+			_soc_printf(soc, CTL_BUFLEN, "%02X%02X:%02X%02X:%02X%02X => %s, ", hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5], get_straddr(&(lp->data)->vtep_addr));
 			cnt++;
 		}
 		_soc_printf(soc, CTL_BUFLEN, "NULL\n", 5);
