@@ -532,7 +532,7 @@ static int _cmd_add(int soc, int cmd_i, int argc, char *argv[]) {
 		return _cmd_usage(soc, cmd_i);
 	}
 
-	if ( add_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, addr) < 0 ) {
+	if ( add_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac, &addr) < 0 ) {
 		log_bperr(buf, "malloc");
 		_soc_printf(soc, CTL_BUFLEN, "%s\n", buf);
 		return SRV_FAILED;
@@ -572,13 +572,12 @@ static int _cmd_del(int soc, int cmd_i, int argc, char *argv[]) {
 	}
 
 	mtos(buf, mac);
-	struct in_addr ipaddr;
 	if ( del_data(vxlan.vxi[vni[0]][vni[1]][vni[2]]->table, mac) < 0 ) {
 		_soc_printf(soc, CTL_BUFLEN, "INFO : No such MAC address in table: \"%s\"\n", argv[2]);
 		return SUCCESS;
 	}
 
-	_soc_printf(soc, CTL_BUFLEN, "INFO : deleted, VNI %"PRIu32": %s => %s\n", vni32, buf, inet_ntoa(ipaddr));
+	_soc_printf(soc, CTL_BUFLEN, "INFO : deleted, VNI %"PRIu32": %s\n", vni32, buf);
 	return SUCCESS;
 }
 

@@ -91,7 +91,7 @@ mac_tbl *find_data(list **table, uint8_t *eth) {
 
 
 
-int add_data(list **table, uint8_t *hw_addr, struct sockaddr_storage vtep_addr) {
+int add_data(list **table, uint8_t *hw_addr, struct sockaddr_storage *vtep_addr) {
 
 	mac_tbl *mt;
 	list *lp = find_list(table, hw_addr);
@@ -100,13 +100,13 @@ int add_data(list **table, uint8_t *hw_addr, struct sockaddr_storage vtep_addr) 
 	list *head = *root;
 
 #ifdef DEBUG
-	printf("VNI: %02X%02X:%02X%02X:%02X%02X\n", hw_addr[0], hw_addr[1], hw_addr[2],
+	printf("MAC: %02X%02X:%02X%02X:%02X%02X\n", hw_addr[0], hw_addr[1], hw_addr[2],
 			hw_addr[3], hw_addr[4], hw_addr[5]);
 #endif
 
 	if (lp == NULL) {
 
-		*root = (list *)malloc(sizeof(list));
+		*root = (list *)calloc(0, sizeof(list));
 		if (*root == NULL) return -1;
 
 		if (head != NULL) {
@@ -116,27 +116,21 @@ int add_data(list **table, uint8_t *hw_addr, struct sockaddr_storage vtep_addr) 
 
 		head = *root;
 		head->pre = NULL;
-		head->data = (mac_tbl *)malloc(sizeof(mac_tbl));
+		head->data = (mac_tbl *)calloc(0, sizeof(mac_tbl));
 		if (head->data == NULL) return -1;
 
 		mt = head->data;
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
-		mt->vtep_addr = vtep_addr;
+		memcpy(&(mt->vtep_addr), vtep_addr, sizeof(struct sockaddr_storage));
 		mt->time = time(NULL);
 
 		head = *root;
 
-#ifdef DEBUG
-		printf("key: %d\n", key);
-		printf("head: %p\n", *root);
-		printf("hw[0]: %02X\n", (head->data)->hw_addr[0]);
-#endif
-
 	} else {
 
 		mt = lp->data;
-		mt->vtep_addr = vtep_addr;
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
+		memcpy(&(mt->vtep_addr), vtep_addr, sizeof(struct sockaddr_storage));
 		mt->time = time(NULL);
 
 		if ( lp != head )

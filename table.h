@@ -33,7 +33,7 @@ typedef struct _list_
 
 list **init_table(unsigned int size);
 mac_tbl *find_data(list **table, uint8_t *eth_addr);
-int add_data(list **table, uint8_t *hw_addr, struct sockaddr_storage vtep_addr);
+int add_data(list **table, uint8_t *hw_addr, struct sockaddr_storage *vtep_addr);
 //void del_data(list **table, unsigned int key);
 int del_data(list **table, uint8_t *hw_addr);
 list **clear_table_all(list **table);

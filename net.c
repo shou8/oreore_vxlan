@@ -75,7 +75,7 @@ int outer_loop(void) {
 		if (v == NULL) continue;
 
 		struct ether_header *eh = (struct ether_header *)bp;
-		if ( add_data(v->table, eh->ether_shost, src) < 0 )
+		if ( add_data(v->table, eh->ether_shost, &src) < 0 )
 			log_pcexit("malloc");
 
 		write(v->tap.sock, bp, len); 
@@ -136,7 +136,8 @@ int inner_loop(vxlan_i *v) {
 #endif
 
 		data = find_data(v->table, eh->ether_dhost);
-		if (ntohs(eh->ether_type) == ETHERTYPE_ARP || data == NULL) {
+//		if (ntohs(eh->ether_type) == ETHERTYPE_ARP || data == NULL) {
+		if (data == NULL) {
 //			dst.sin_addr = v->mcast_addr;
 			if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&v->maddr, sizeof(v->maddr)) < 0)
 				log_perr("inner_loop.sendto");
