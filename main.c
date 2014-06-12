@@ -25,9 +25,7 @@ void usage(char *bin);
 static struct option options[] = {
 	{"config", no_argument, NULL, 'c'},
 	{"daemon", no_argument, NULL, 'd'},
-#ifdef DEBUG
 	{"Debug", no_argument, NULL, 'D'},
-#endif /* DEBUG */
 	{"help", no_argument, NULL, 'h'},
 	{"interface", required_argument, NULL, 'i'},
 	{"multicast_addr", required_argument, NULL, 'm'},
@@ -169,9 +167,7 @@ void usage(char *bin) {
 	fprintf(stderr, "\n");
 	fprintf(stderr, "OPTIONS: \n");
 	fprintf(stderr, "        -d                       : Enable daemon mode\n");
-#ifdef DEBUG
 	fprintf(stderr, "        -D                       : Enable debug mode\n");
-#endif /* DEBUG */
 	fprintf(stderr, "        -h                       : Show this help\n");
 	fprintf(stderr, "        -i <interface>           : Set multicast interface\n");
 	fprintf(stderr, "        -m <multicast address>   : Set multicast address\n");

@@ -129,6 +129,8 @@ void init_vxlan_info(void) {
 		log_cexit("Invalid multicast address: %s\n", vxlan.cmaddr);
 	}
 
+	vxlan.family = vxlan.maddr.ss_family;
+
 	return;
 }
 
