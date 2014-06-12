@@ -106,8 +106,9 @@ int add_data(list **table, uint8_t *hw_addr, struct sockaddr_storage *vtep_addr)
 
 	if (lp == NULL) {
 
-		*root = (list *)calloc(0, sizeof(list));
+		*root = (list *)malloc(sizeof(list));
 		if (*root == NULL) return -1;
+		memset(*root, 0, sizeof(list));
 
 		if (head != NULL) {
 			(*root)->next = head;
@@ -116,8 +117,9 @@ int add_data(list **table, uint8_t *hw_addr, struct sockaddr_storage *vtep_addr)
 
 		head = *root;
 		head->pre = NULL;
-		head->data = (mac_tbl *)calloc(0, sizeof(mac_tbl));
+		head->data = (mac_tbl *)malloc(sizeof(mac_tbl));
 		if (head->data == NULL) return -1;
+		memset(head->data, 0, sizeof(mac_tbl));
 
 		mt = head->data;
 		memcpy(mt->hw_addr, hw_addr, MAC_LEN);
