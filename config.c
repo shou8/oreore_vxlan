@@ -15,8 +15,7 @@
 
 
 char param[][DEFAULT_BUFLEN] = {
-	"multicast_ipv4_address",
-	"multicast_ipv6_address",
+	"multicast_address",
 	"multicast_interface",
 	"port",
 	"unix_socket",
@@ -167,21 +166,18 @@ int set_config(struct config *conf) {
 
 	switch (conf->param_no) {
 		case 0:
-			strncpy(vxlan.cm4_addr, conf->value, DEFAULT_BUFLEN);
+			strncpy(vxlan.cmaddr, conf->value, DEFAULT_BUFLEN);
 			break;
 		case 1:
-			strncpy(vxlan.cm6_addr, conf->value, DEFAULT_BUFLEN);
-			break;
-		case 2:
 			strncpy(vxlan.if_name, conf->value, DEFAULT_BUFLEN);
 			break;
-		case 3:
+		case 2:
 			strncpy(vxlan.port, conf->value, DEFAULT_BUFLEN);
 			break;
-		case 4:
+		case 3:
 			strncpy(vxlan.udom, conf->value, DEFAULT_BUFLEN);
 			break;
-		case 5: {
+		case 4: {
 			char *argv[] = {"create", conf->value};
 			if (cmd_create_vxi(2, 0, 2, argv) != SUCCESS) return -1;
 			break;

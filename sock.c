@@ -57,13 +57,13 @@ int add_sock(int epfd, int sock) {
 
 
 
-int init_udp_sock(int enable_ipv4, int enable_ipv6, char *port) {
+int init_udp_sock(sa_family_t family, char *port) {
 
 	int sock;
 	struct addrinfo hints, *res;
 
 	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = (enable_ipv6) ? AF_INET6 : AF_INET;
+	hints.ai_family = family;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
 	hints.ai_flags = AI_PASSIVE;
@@ -99,10 +99,11 @@ int init_udp_sock(int enable_ipv4, int enable_ipv6, char *port) {
 	}
 #endif
 
+/*
 #ifdef IPV6_V6ONLY
 	int on = 1;
 
-	if ( ! enable_ipv4 && enable_ipv6 ) {
+	if ( family  ) {
 		if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0) {
 			log_pcrit("setsockopt");
 			log_err("Fail to set IPV6_V6ONLY\n");
@@ -110,6 +111,7 @@ int init_udp_sock(int enable_ipv4, int enable_ipv6, char *port) {
 		}
 	}
 #endif
+*/
 
 	if (bind(sock, (struct sockaddr *)res->ai_addr, res->ai_addrlen) < 0) {
 		log_pcrit("udp.bind");

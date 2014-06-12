@@ -30,13 +30,17 @@ typedef struct _vxlan_instance_ {
 
 
 
-
 typedef struct _vxland {
 
 	int usoc;
 	int epfd;
 	char port[DEFAULT_BUFLEN];
 
+	sa_family_t family;
+	char cmaddr[DEFAULT_BUFLEN];
+	struct sockaddr_storage maddr;
+
+	/*
 	// IPv4 Information
 	int enable_ipv4;
 	char cm4_addr[DEFAULT_BUFLEN];
@@ -46,6 +50,7 @@ typedef struct _vxland {
 	int enable_ipv6;
 	char cm6_addr[DEFAULT_BUFLEN];
 	struct sockaddr_storage m6_addr;
+	*/
 
 	char *if_name;
 	vxlan_i ****vxi;

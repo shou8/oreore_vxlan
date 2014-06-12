@@ -23,8 +23,6 @@ void usage(char *bin);
 
 
 static struct option options[] = {
-	{"enable_ipv4", no_argument, NULL, '4'},
-	{"enable_ipv6", no_argument, NULL, '6'},
 	{"config", no_argument, NULL, 'c'},
 	{"daemon", no_argument, NULL, 'd'},
 #ifdef DEBUG
@@ -32,8 +30,7 @@ static struct option options[] = {
 #endif /* DEBUG */
 	{"help", no_argument, NULL, 'h'},
 	{"interface", required_argument, NULL, 'i'},
-	{"multicast_addr4", required_argument, NULL, 'm'},
-	{"multicast_addr6", required_argument, NULL, 'M'},
+	{"multicast_addr", required_argument, NULL, 'm'},
 	{"port", required_argument, NULL, 'p'},
 	{"pidfile", required_argument, NULL, 'P'},
 	{"socket", required_argument, NULL, 's'},
@@ -49,14 +46,11 @@ int main(int argc, char *argv[]) {
 	extern int optind, opterr;
 	extern char *optarg;
 
-	int enable_4 = 0;
-	int enable_6 = 0;
 	int enable_c = 0;
 	int enable_d = 0;
 	int enable_D = 0;
 	int enable_i = 0;
 	int enable_m = 0;
-	int enable_M = 0;
 	int enable_p = 0;
 	int enable_P = 0;
 	int enable_s = 0;
@@ -71,14 +65,8 @@ int main(int argc, char *argv[]) {
 	enable_debug();
 #endif
 
-	while ((opt = getopt_long(argc, argv, "46c:dDhi:m:M:p:P:s:v", options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "c:dDhi:m:p:P:s:v", options, NULL)) != -1) {
 		switch (opt) {
-			case '4':
-				enable_4 = 1;
-				break;
-			case '6':
-				enable_6 = 1;
-				break;
 			case 'c':
 				enable_c = optind-1;
 				break;
@@ -98,9 +86,6 @@ int main(int argc, char *argv[]) {
 				break;
 			case 'm':
 				enable_m = optind-1;
-				break;
-			case 'M':
-				enable_M = optind-1;
 				break;
 			case 'p':
 				enable_p = optind-1;
@@ -129,17 +114,17 @@ int main(int argc, char *argv[]) {
 	int i;
 	if (len > 0) {
 		for (i=0; i<len; i++) {
-			if (conf[i].param_no == 5) continue;
+			if (conf[i].param_no == 4) continue;
 			if (set_config(&conf[i]) < 0) log_cexit("Invalid configuration\n");
 		}
 	}
 
-	if ( enable_4 != 0 ) vxlan.enable_ipv4 = 1;
-	if ( enable_6 != 0 ) vxlan.enable_ipv6 = 1;
 	if ( enable_D != 0 ) enable_debug();
 	if ( enable_i != 0 ) strncpy(vxlan.if_name, argv[enable_i], DEFAULT_BUFLEN);
-	if ( enable_m != 0 ) strncpy(vxlan.cm4_addr, argv[enable_m], DEFAULT_BUFLEN);
-	if ( enable_M != 0 ) strncpy(vxlan.cm6_addr, argv[enable_M], DEFAULT_BUFLEN);
+	if ( enable_m != 0 )
+		strncpy(vxlan.cmaddr, argv[enable_m], DEFAULT_BUFLEN);
+	else
+		log_info("Using default multicast address: %s\n", vxlan.cmaddr);
 	if ( enable_p != 0 ) strncpy(vxlan.port, argv[enable_p], DEFAULT_BUFLEN);
 	if ( enable_P != 0 ) strncpy(pid_path, argv[enable_P], DEFAULT_BUFLEN);
 	if ( enable_s != 0 ) strncpy(vxlan.udom, optarg, DEFAULT_BUFLEN);

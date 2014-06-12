@@ -222,10 +222,15 @@ int cmd_create_vxi(int soc, int cmd_i, int argc, char *argv[]) {
 	}
 
 	struct sockaddr_storage maddr;
-	memcpy(&maddr, (vxlan.enable_ipv4) ? &vxlan.m4_addr : &vxlan.m6_addr, sizeof(struct sockaddr_storage));
+	memcpy(&maddr, &vxlan.maddr, sizeof(struct sockaddr_storage));
 	if (argc == 3) {
 		if (get_sockaddr(&maddr, argv[2], vxlan.port) < 0) {
 			_soc_printf(soc, CTL_BUFLEN, "ERROR: Invalid IP[v4|v6] address: %s", argv[2]);
+			return LOGIC_FAILED;
+		}
+
+		if (maddr.ss_family != vxlan.maddr.ss_family) {
+			_soc_printf(soc, CTL_BUFLEN, "ERROR: Invalid address family: %s (Expected %s)", argv[2], (vxlan.maddr.ss_family == AF_INET) ? "IPv4" : "IPv6");
 			return LOGIC_FAILED;
 		}
 	}
@@ -616,11 +621,9 @@ static int _cmd_info(int soc, int cmd_i, int argc, char *argv[]) {
 	}
 
 	_soc_printf(soc, CTL_BUFLEN, "----- "DAEMON_NAME" information -----\n");
-	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Multicast interface", (vxlan.if_name == NULL) ? "NONE" : vxlan.if_name);
-	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "IPv4", (vxlan.enable_ipv4 != 0) ? "Enable" : "Disable");
-	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "IPv6", (vxlan.enable_ipv6 != 0) ? "Enable" : "Disable");
-	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Default IPv4 multicast address", vxlan.cm4_addr);
-	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Default IPv6 multicast address", vxlan.cm6_addr);
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Address family", (vxlan.family == AF_INET) ? "IPv4" : "IPv6");
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Multicast interface", (vxlan.if_name == NULL) ? "Auto" : vxlan.if_name);
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Default multicast address", vxlan.cmaddr);
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Port number", vxlan.port);
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Unix Socket path", vxlan.udom);
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %d\n", "Default cache time out", vxlan.timeout);

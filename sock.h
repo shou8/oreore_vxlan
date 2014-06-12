@@ -19,7 +19,7 @@
 //int init_epfd(int max_events);
 //void init_hints(struct addrinfo *hints, int enable_ipv4, int enable_ipv6);
 //int add_sock(int epfd, int sock);
-int init_udp_sock(int enable_ipv4, int enable_ipv6, char *port);
+int init_udp_sock(sa_family_t family, char *port);
 int init_unix_sock(char *path, int csflag);
 int join_mcast4_group(int sock, struct in_addr maddr, char *if_name);
 int leave_mcast4_group(int sock, struct in_addr maddr, char *if_name);
