@@ -122,45 +122,6 @@ int init_udp_sock(sa_family_t family, char *port) {
 	return sock;
 }
 
-/*
-int init_udp_sock(struct addrinfo *ai) {
-
-	int sock;
-
-	if ((sock = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol)) < 0) {
-		log_pcrit("udp.socket");
-		return -1;
-	}
-
-	printf("socket      : %d\n", sock);
-	printf("ai_family   : %d\n", ai->ai_family);
-	printf("ai_socktype : %d\n", ai->ai_socktype);
-	printf("ai_protocol : %d\n", ai->ai_protocol);
-	printf("ai_addrlen  : %d\n", ai->ai_addrlen);
-
-	char str[DEFAULT_BUFLEN];
-	if (ai->ai_family == AF_INET) {
-		struct sockaddr_in *addr4 = (struct sockaddr_in *)ai->ai_addr;
-		printf("sin_family  : %d\n", addr4->sin_family);
-		printf("sin_port    : %d\n", ntohs(addr4->sin_port));
-		printf("sin_addr    : %s\n", inet_ntop(ai->ai_family, &addr4->sin_addr, str, ai->ai_addrlen));
-	} else {
-		struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)ai->ai_addr;
-		printf("sin6_family : %d\n", addr6->sin6_family);
-		printf("sin6_port   : %d\n", ntohs(addr6->sin6_port));
-		printf("sin6_addr   : %s\n", inet_ntop(ai->ai_family, &addr6->sin6_addr, str, ai->ai_addrlen));
-	}
-
-	if (bind(sock, (struct sockaddr *)ai->ai_addr, ai->ai_addrlen) < 0) {
-		log_pcrit("udp.bind");
-		close(sock);
-		return -1;
-	}
-
-	return sock;
-}
-*/
-
 
 
 int init_unix_sock(char *dom, int csflag) {

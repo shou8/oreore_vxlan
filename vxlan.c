@@ -18,62 +18,13 @@
 
 
 
-/* Written on vxlan.h
-
-typedef struct _vxland {
-	int enable_ipv4;
-	int enable_ipv6;
-	char *port;
-	int usoc;
-	struct sockaddr_storage m4_addr;
-	struct sockaddr_storage m6_addr;
-	char *if_name;
-	vxlan_i ****vxi;
-	char udom[DEFAULT_BUFLEN];
-	int lock;
-	int timeout;				// Default
-	char conf_path[DEFAULT_BUFLEN];
-} vxland;
-*/
-
-/*
-struct sockaddr_in m4_addr_default = {
-	AF_INET,					// family (sa_family_t)
-	VXLAN_PORT,					// port (in_port_t)
-	{ DEFAULT_MCAST_ADDR },		// addr (in_addr)
-	{0, 0, 0, 0, 0, 0, 0, 0}	// sin_zero (char[8])
-};
-
-struct sockaddr_in6 m6_addr_default = {
-	AF_INET6,					// family (sa_family_t)
-	VXLAN_PORT,					// port (in_port_t)
-	0,							// flowinfo (uint32_t)
-	{ { __u6_addr16 { 0xFF15, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0001 } } },
-	0,							// scope-id: link-local (uint32_t)
-};
-*/
-
 vxland vxlan = {
 	-1,
 	-1,
 	VXLAN_PORT,
-
 	AF_INET6,
 	DEFAULT_MCAST_ADDR6,
 	{},
-
-/*
-	// IPv4
-	0,
-	DEFAULT_MCAST_ADDR4,
-	{},
-
-	// IPv6
-	0,
-	DEFAULT_MCAST_ADDR6,
-	{},
-*/
-
 	NULL,
 	NULL,
 	DEFAULT_UNIX_DOMAIN,
@@ -130,8 +81,6 @@ void init_vxlan_info(void) {
 	}
 
 	vxlan.family = vxlan.maddr.ss_family;
-
-	return;
 }
 
 
@@ -238,7 +187,6 @@ void del_vxi(char *buf, uint8_t *vni) {
 				leave_mcast6_group(vxlan.usoc, ((struct sockaddr_in6 *)(&vxlan.vxi[vni[0]][vni[1]][vni[2]]->maddr))->sin6_addr, vxlan.if_name);
 		}
 	}
-
 
 	close(vxlan.vxi[vni[0]][vni[1]][vni[2]]->tap.sock);
 	free(vxlan.vxi[vni[0]][vni[1]][vni[2]]);

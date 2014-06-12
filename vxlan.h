@@ -40,18 +40,6 @@ typedef struct _vxland {
 	char cmaddr[DEFAULT_BUFLEN];
 	struct sockaddr_storage maddr;
 
-	/*
-	// IPv4 Information
-	int enable_ipv4;
-	char cm4_addr[DEFAULT_BUFLEN];
-	struct sockaddr_storage m4_addr;
-
-	// IPv6 Information
-	int enable_ipv6;
-	char cm6_addr[DEFAULT_BUFLEN];
-	struct sockaddr_storage m6_addr;
-	*/
-
 	char *if_name;
 	vxlan_i ****vxi;
 	char udom[DEFAULT_BUFLEN];
@@ -67,7 +55,6 @@ extern vxland vxlan;
 
 int init_vxlan(void);
 void destroy_vxlan(void);
-//void create_vxi(char *buf, uint8_t *vni, char *addr, pthread_t th);
 vxlan_i *add_vxi(char *buf, uint8_t *vni, struct sockaddr_storage);
 void del_vxi(char *buf, uint8_t *vni);
 
