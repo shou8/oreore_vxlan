@@ -78,30 +78,24 @@ int init_udp_sock(int enable_ipv4, int enable_ipv6, char *port) {
 		return -1;
 	}
 
-	if (bind(sock, (struct sockaddr *)res->ai_addr, res->ai_addrlen) < 0) {
-		log_pcrit("udp.bind");
-		close(sock);
-		return -1;
-	}
-
 #ifdef DEBUG
-	printf("socket      : %d\n", sock);
-	printf("ai_family   : %d\n", res->ai_family);
-	printf("ai_socktype : %d\n", res->ai_socktype);
-	printf("ai_protocol : %d\n", res->ai_protocol);
-	printf("ai_addrlen  : %d\n", res->ai_addrlen);
+	log_debug("socket      : %d\n", sock);
+	log_debug("ai_family   : %d\n", res->ai_family);
+	log_debug("ai_socktype : %d\n", res->ai_socktype);
+	log_debug("ai_protocol : %d\n", res->ai_protocol);
+	log_debug("ai_addrlen  : %d\n", res->ai_addrlen);
 
 	char str[DEFAULT_BUFLEN];
 	if (res->ai_family == AF_INET) {
 		struct sockaddr_in *addr4 = (struct sockaddr_in *)res->ai_addr;
-		printf("sin_family  : %d\n", addr4->sin_family);
-		printf("sin_port    : %d\n", ntohs(addr4->sin_port));
-		printf("sin_addr    : %s\n", inet_ntop(res->ai_family, &addr4->sin_addr, str, res->ai_addrlen));
+		log_debug("sin_family  : %d\n", addr4->sin_family);
+		log_debug("sin_port    : %d\n", ntohs(addr4->sin_port));
+		log_debug("sin_addr    : %s\n", inet_ntop(res->ai_family, &addr4->sin_addr, str, res->ai_addrlen));
 	} else {
 		struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)res->ai_addr;
-		printf("sin6_family : %d\n", addr6->sin6_family);
-		printf("sin6_port   : %d\n", ntohs(addr6->sin6_port));
-		printf("sin6_addr   : %s\n", inet_ntop(res->ai_family, &addr6->sin6_addr, str, res->ai_addrlen));
+		log_debug("sin6_family : %d\n", addr6->sin6_family);
+		log_debug("sin6_port   : %d\n", ntohs(addr6->sin6_port));
+		log_debug("sin6_addr   : %s\n", inet_ntop(res->ai_family, &addr6->sin6_addr, str, res->ai_addrlen));
 	}
 #endif
 
@@ -111,10 +105,17 @@ int init_udp_sock(int enable_ipv4, int enable_ipv6, char *port) {
 	if ( ! enable_ipv4 && enable_ipv6 ) {
 		if (setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &on, sizeof(on)) < 0) {
 			log_pcrit("setsockopt");
+			log_err("Fail to set IPV6_V6ONLY\n");
 			return -1;
 		}
 	}
 #endif
+
+	if (bind(sock, (struct sockaddr *)res->ai_addr, res->ai_addrlen) < 0) {
+		log_pcrit("udp.bind");
+		close(sock);
+		return -1;
+	}
 
 	return sock;
 }
@@ -306,6 +307,33 @@ int join_mcast6_group(int sock, struct in6_addr maddr, char *if_name) {
 		log_perr("setsockopt");
 		log_err("Fail to set IPV6_ADD_MEMBERSHIP\n");
 		log_err("Interface : %u\n", mreq6.ipv6mr_interface);
+		return -1;
+	}
+
+	return 0;
+}
+
+
+
+int leave_mcast6_group(int sock, struct in6_addr maddr, char *if_name) {
+
+	struct ipv6_mreq mreq6;
+	char maddr_s[16];
+
+	memset(&mreq6, 0, sizeof(mreq6));
+	mreq6.ipv6mr_multiaddr = maddr;
+	mreq6.ipv6mr_interface = (if_name != NULL) ? if_nametoindex(if_name) : 0;
+
+#ifdef DEBUG
+	inet_ntop(AF_INET6, &mreq6.ipv6mr_multiaddr, maddr_s, sizeof(maddr_s));
+	log_debug("Join mcast_addr6 : %s\n", maddr_s);
+#endif
+
+	if (setsockopt(sock, IPPROTO_IPV6, IPV6_DROP_MEMBERSHIP, (char *)&mreq6.ipv6mr_interface, sizeof(mreq6.ipv6mr_interface)) < 0) {
+		inet_ntop(AF_INET6, &mreq6.ipv6mr_multiaddr, maddr_s, sizeof(maddr_s));
+		log_perr("setsockopt");
+		log_err("Fail to set IPV6_DROP_MEMBERSHIP\n");
+		log_err("mcast_addr: %s\n", maddr_s);
 		return -1;
 	}
 

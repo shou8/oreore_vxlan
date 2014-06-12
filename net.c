@@ -136,15 +136,12 @@ int inner_loop(vxlan_i *v) {
 #endif
 
 		data = find_data(v->table, eh->ether_dhost);
-//		if (ntohs(eh->ether_type) == ETHERTYPE_ARP || data == NULL) {
 		if (data == NULL) {
-//			dst.sin_addr = v->mcast_addr;
 			if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&v->maddr, sizeof(v->maddr)) < 0)
 				log_perr("inner_loop.sendto");
 			continue;
 		}
 
-//		dst.sin_addr = data->vtep_addr;
 		if (sendto(vxlan.usoc, buf, len, MSG_DONTWAIT, (struct sockaddr *)&data->vtep_addr, sizeof(data->vtep_addr)) < 0)
 			log_perr("inner_loop.sendto");
 	}
@@ -165,3 +162,6 @@ void print_vxl_h(vxlan_h *vh, FILE *fp) {
 	fprintf(fp, "vni : %08X.%08X.%08X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
 	fprintf(fp, "rsv2: %08X\n", vh->rsv2);
 }
+
+
+

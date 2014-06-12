@@ -16,6 +16,8 @@ INIT_DIR=/etc/init.d
 CONFIG_SRC=./conf/vxlan.conf
 CONFIG_DST=/etc/vxlan.conf
 
+NUMJOBS=${NUMJOBS:-" -j4 "}
+
 .SUFFIXES: .c .o
 
 .c.o:

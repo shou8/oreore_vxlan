@@ -145,7 +145,7 @@ void print_eth_h(struct ether_header *eh, FILE *fp) {
 	fprintf(fp, "ether_header -----\n");
 	fprintf(fp, "ether_dhost: %s\n", eth_ntoa(eh->ether_dhost, buf, sizeof(buf)));
 	fprintf(fp, "ether_shost: %s\n", eth_ntoa(eh->ether_shost, buf, sizeof(buf)));
-	fprintf(fp, "ether_type : %02X", eth_type);
+	fprintf(fp, "ether_type : %02X\n", eth_type);
 
 	switch(eth_type) {
 		case ETHERTYPE_PUP:

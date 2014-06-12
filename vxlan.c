@@ -104,56 +104,6 @@ int init_vxlan(void) {
 
 
 
-/*
-int init_vxlan(void) {
-
-	init_vxlan_info();
-	init_vxi();
-	if ((vxlan.repfd = init_epfd(EPOLL_MAX_EVENTS)) < 0)
-		return -1;
-
-	struct addrinfo *ai, *res = NULL;
-	struct addrinfo hints;
-
-	init_hints(&hints, vxlan.enable_ipv4, vxlan.enable_ipv6);
-	if (getaddrinfo(NULL, vxlan.port, &hints, &res) < 0) {
-		log_pcrit("getaddrinfo");
-		return -1;
-	}
-
-	for (ai = res; ai != NULL; ai = ai->ai_next) {
-		switch (ai->ai_family) {
-			case AF_INET:
-				if (vxlan.enable_ipv4) {
-					if ((vxlan.usoc4 = init_udp_sock(ai)) < 0)
-						return -1;
-					if (add_sock(vxlan.repfd, vxlan.usoc4) < 0)
-						return -1;
-					if (join_mcast4_group(vxlan.usoc4, ((struct sockaddr_in *)(&vxlan.m4_addr))->sin_addr, vxlan.if_name) < 0)
-						return -1;
-				}
-				break;
-			case AF_INET6:
-				if (vxlan.enable_ipv6) {
-					if ((vxlan.usoc6 = init_udp_sock(ai)) < 0)
-						return -1;
-					if (add_sock(vxlan.repfd, vxlan.usoc6) < 0)
-						return -1;
-					if (join_mcast6_group(vxlan.usoc6, ((struct sockaddr_in6 *)(&vxlan.m6_addr))->sin6_addr, vxlan.if_name) < 0)
-						return -1;
-				}
-				break;
-		}
-	}
-
-	freeaddrinfo(res);
-
-	return 0;
-}
-*/
-
-
-
 void init_vxlan_info(void) {
 
 	if ( ! vxlan.enable_ipv4 && ! vxlan.enable_ipv6 ) {
@@ -270,24 +220,28 @@ vxlan_i *add_vxi(char *buf, uint8_t *vni, struct sockaddr_storage maddr) {
 
 void del_vxi(char *buf, uint8_t *vni) {
 
-/*
-	if (vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr.s_addr != vxlan.mcast_addr.s_addr) {
+	sa_family_t family = vxlan.vxi[vni[0]][vni[1]][vni[2]]->maddr.ss_family;
 
+	if (memcmp(&vxlan.vxi[vni[0]][vni[1]][vni[2]]->maddr, (family == AF_INET) ? &vxlan.m4_addr : &vxlan.m6_addr, sizeof(struct sockaddr_storage)) != 0) {
 		int i, j, k;
 		for (i=0; i<NUMOF_UINT8; i++) {
 			for (j=0; j<NUMOF_UINT8; j++) {
 				for (k=0; k<NUMOF_UINT8; k++) {
 					if (vxlan.vxi[i][j][k] == NULL) continue;
-					if (vxlan.vxi[i][j][k]->mcast_addr.s_addr == vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr.s_addr)
+					if (memcmp(&vxlan.vxi[i][j][k]->maddr, &vxlan.vxi[vni[0]][vni[1]][vni[2]]->maddr, sizeof(struct sockaddr_storage)) != 0)
 						break;
 				}
 			}
 		}
 
-		if ( i != NUMOF_UINT8 || j != NUMOF_UINT8 || k != NUMOF_UINT8)
-			leave_mcast_group(vxlan.usoc, vxlan.vxi[vni[0]][vni[1]][vni[2]]->mcast_addr, vxlan.if_name);
+		if ( i != NUMOF_UINT8 || j != NUMOF_UINT8 || k != NUMOF_UINT8) {
+			if (family == AF_INET)
+				leave_mcast4_group(vxlan.usoc, ((struct sockaddr_in *)(&vxlan.vxi[vni[0]][vni[1]][vni[2]]->maddr))->sin_addr, vxlan.if_name);
+			else
+				leave_mcast6_group(vxlan.usoc, ((struct sockaddr_in6 *)(&vxlan.vxi[vni[0]][vni[1]][vni[2]]->maddr))->sin6_addr, vxlan.if_name);
+		}
 	}
-*/
+
 
 	close(vxlan.vxi[vni[0]][vni[1]][vni[2]]->tap.sock);
 	free(vxlan.vxi[vni[0]][vni[1]][vni[2]]);
