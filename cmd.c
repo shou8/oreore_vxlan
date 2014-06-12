@@ -616,12 +616,12 @@ static int _cmd_info(int soc, int cmd_i, int argc, char *argv[]) {
 	}
 
 	_soc_printf(soc, CTL_BUFLEN, "----- "DAEMON_NAME" information -----\n");
-	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Multicast interface", vxlan.if_name);
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Multicast interface", (vxlan.if_name == NULL) ? "NONE" : vxlan.if_name);
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "IPv4", (vxlan.enable_ipv4 != 0) ? "Enable" : "Disable");
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "IPv6", (vxlan.enable_ipv6 != 0) ? "Enable" : "Disable");
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Default IPv4 multicast address", vxlan.cm4_addr);
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Default IPv6 multicast address", vxlan.cm6_addr);
-	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %d\n", "Port number", vxlan.port);
+	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Port number", vxlan.port);
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %s\n", "Unix Socket path", vxlan.udom);
 	_soc_printf(soc, CTL_BUFLEN, "%-"INFO_PAD"s: %d\n", "Default cache time out", vxlan.timeout);
 

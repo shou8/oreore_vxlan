@@ -108,9 +108,6 @@ int inner_loop(vxlan_i *v) {
 	int len;
 
 	mac_tbl *data;
-//	struct sockaddr_in dst;
-//	dst.sin_family = AF_INET;
-//	dst.sin_port = htons(vxlan.port);
 	vxlan_h *vh = (vxlan_h *)buf;
 
 	while (1) {
