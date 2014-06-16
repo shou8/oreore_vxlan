@@ -30,33 +30,6 @@ const struct in_addr inaddr_any = { INADDR_ANY };
 
 
 
-int init_epfd(int max_events) {
-
-	int epfd = epoll_create(max_events);
-	if (epfd < 0)
-		log_pcrit("epoll_create");
-
-	return epfd;
-}
-
-
-
-int add_sock(int epfd, int sock) {
-
-	struct epoll_event ev;
-	memset(&ev, 0, sizeof(ev));
-	ev.events = EPOLLIN;
-	ev.data.fd = sock;
-	if (epoll_ctl(epfd, EPOLL_CTL_ADD, ev.data.fd, &ev) < 0) {
-		log_perr("epoll_ctl");
-		return -1;
-	}
-
-	return 0;
-}
-
-
-
 int init_udp_sock(sa_family_t family, char *port) {
 
 	int sock;

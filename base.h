@@ -12,8 +12,8 @@
 #define CONTROLLER_NAME	"vxconfig"
 #define TAP_BASE_NAME	"vxlan"
 
-#define VXLAN_PRODUCT_VERSION	"1.1"
-#define CLIENT_VERSION			"1.1"
+#define VXLAN_PRODUCT_VERSION	"2.0"
+#define CLIENT_VERSION			"2.0"
 
 /* MAC Address Length */
 #define MAC_LEN_BITS	48

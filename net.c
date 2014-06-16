@@ -154,10 +154,10 @@ int inner_loop(vxlan_i *v) {
 void print_vxl_h(vxlan_h *vh, FILE *fp) {
 
 	fprintf(fp, "vxlan_header =====\n");
-	fprintf(fp, "flag: %08X\n", vh->flag);
-	fprintf(fp, "rsv1: %08X.%08X.%08X\n", vh->rsv1[0], vh->rsv1[1], vh->rsv1[2]);
-	fprintf(fp, "vni : %08X.%08X.%08X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
-	fprintf(fp, "rsv2: %08X\n", vh->rsv2);
+	fprintf(fp, "flag: %02X\n", vh->flag);
+	fprintf(fp, "rsv1: %02X.%02X.%02X\n", vh->rsv1[0], vh->rsv1[1], vh->rsv1[2]);
+	fprintf(fp, "vni : %02X.%02X.%02X\n", vh->vni[0], vh->vni[1], vh->vni[2]);
+	fprintf(fp, "rsv2: %02X\n", vh->rsv2);
 }
 
 
