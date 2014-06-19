@@ -114,7 +114,7 @@ void sendUdp(void) {
 
 	maddr.sin_family = AF_INET;
 	maddr.sin_port = htons(VXLAN_PORT);
-	inet_pton(AF_INET, "224.1.1.1", &maddr.sin_addr.s_addr);
+	inet_pton(AF_INET, "224.0.0.100", &maddr.sin_addr.s_addr);
 //	inet_ntoa(MCAST_DEFAULT_ADDR, &maddr.sin_addr.s_addr);
 //	inet_ntoa(MCAST_DEFAULT_ADDR, &mreq.imr_multiaddr);
 //	setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&mreq, sizeof(mreq));
